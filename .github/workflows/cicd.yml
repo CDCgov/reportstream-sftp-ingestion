@@ -25,5 +25,5 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Compile
-        run: make compile
+      - name: Compile and Build Docker Image
+        run: make dockerBuild

@@ -9,3 +9,6 @@ vet:
 
 formatCheck:
 	gofmt -l ./ && test -z "$(gofmt -l ./)"
+
+dockerBuild:
+	docker build .
