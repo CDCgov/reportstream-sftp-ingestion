@@ -39,6 +39,10 @@ jobs:
       - name: Go Fmt
         run: make formatCheck
 
+  securityScanAnalyze:
+    name: CodeQL Security Scan
+    uses: ./.github/workflows/codeql_reusable.yml
+
   docker-build-test:
     name: Docker Build Test
     runs-on: ubuntu-latest
