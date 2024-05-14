@@ -9,3 +9,9 @@ vet:
 
 formatCheck:
 	gofmt -l ./ && test -z "$(gofmt -l ./)"
+
+dockerBuild:
+	docker build . -t reportstream-sftp-ingestion
+
+dockerRun:
+	docker run -it reportstream-sftp-ingestion
