@@ -21,3 +21,5 @@
 # Go workspace file
 go.work
 
+# the binary name itself
+reportstream-sftp-ingestion
