@@ -22,7 +22,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Run unit tests
-        run: go test ./...
+        run: make unitTests
 
   lint:
     name: Linting
@@ -36,7 +36,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Vet
-        run: go vet ./...
+        run: make vet
 
       - name: Go Fmt
-        run: gofmt -l ./ && test -z "$(gofmt -l ./)"
+        run: make formatCheck
