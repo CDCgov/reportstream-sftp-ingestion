@@ -30,7 +30,7 @@ jobs:
     steps:
 
       - name: Vet
-        run: go vet ./
+        run: go vet ./...
 
       - name: Go Fmt
         run: gofmt -l ./ && test -z "$(gofmt -l ./)"
