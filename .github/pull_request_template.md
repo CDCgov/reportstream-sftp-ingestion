@@ -12,7 +12,7 @@ if this PR isn't for a story (stories will be closed through different means).
 
 - [ ] I have added tests to cover my changes
 - [ ] I have added logging where useful (with appropriate log level)
-- [ ] I have added docs where required
+- [ ] I have added GoDocs where required
 - [ ] I have updated the documentation accordingly
 
 **Note**: You may remove items that are not applicable
