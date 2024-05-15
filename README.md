@@ -4,7 +4,7 @@
 Go installed on your machine
 
 ## Using and Running
-To run the application use
+To run the application use the below command
 
 ```shell
 go run .
