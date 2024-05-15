@@ -25,4 +25,4 @@ go.work
 reportstream-sftp-ingestion
 
 # IDE files
-.idea/*
+.idea/
