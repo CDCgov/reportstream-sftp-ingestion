@@ -1,3 +1,72 @@
+# ReportStream SFTP
+
+## Requirements
+Go installed on your machine
+
+## Using and Running
+To run the application use
+
+```shell
+go run .
+```
+
+We also have other build/lint/test commands listed in [makefile](Makefile). You can run these in your terminal using the syntax: make (step name) 
+
+
+```shell
+make vet
+```
+
+## Development
+
+### Additional Requirements
+
+Go here
+
+### Compiling
+
+```shell
+make compile
+```
+
+Compiles the binary to the root of the project
+
+### Testing
+
+#### Unit Tests
+```shell
+make unitTests
+```
+
+#### End-to-end Tests
+
+#### Load Testing
+
+
+### Deploying
+
+#### Environments
+
+##### Internal
+
+##### Dev
+
+The Dev environment is similar to the Internal environment but deploys to a CDC Azure Entra domain and subscription.  It
+is also meant to be the Wild West.  Dev deploys similarly to the Internal environment, but you interact with the
+`dev` branch.
+
+##### Staging
+
+The Staging environment is production-like and meant to be stable.  It deploys to a CDC Azure Entra domain and
+subscription.  Deployments occur when a commit is made to the `main` branch.  `main` is a protected branch and requires
+PR reviews before merge.
+
+##### Prod
+
+The Production environment is the real deal.  It deploys to a CDC Azure Entra domain and subscription.  Deployments
+occur when a release is published.
+
+
 # CDCgov GitHub Organization Open Source Project Template
 
 **Template for clearance: This project serves as a template to aid projects in starting up and moving through clearance procedures. To start, create a new repository and implement the required [open practices](open_practices.md), train on and agree to adhere to the organization's [rules of behavior](rules_of_behavior.md), and [send a request through the create repo form](https://forms.office.com/Pages/ResponsePage.aspx?id=aQjnnNtg_USr6NJ2cHf8j44WSiOI6uNOvdWse4I-C2NUNk43NzMwODJTRzA4NFpCUk1RRU83RTFNVi4u) using language from this template as a Guide.**
