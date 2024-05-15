@@ -1,13 +1,16 @@
 # ReportStream SFTP
 
 ## Requirements
+
 Go installed on your machine
 
 ## Using and Running
+
 To run the application use the below command
 
 ```shell
-go run .
+cd ./src/
+go run ./cmd/
 ```
 
 We also have other build/lint/test commands listed in [makefile](Makefile). You can run these in your terminal using the syntax: make (step name)
@@ -52,6 +55,7 @@ pre-commit install
 ### Testing
 
 #### Unit Tests
+
 ```shell
 make unitTests
 ```
