@@ -10,6 +10,9 @@ vet:
 formatCheck:
 	gofmt -l ./ && test -z "$(gofmt -l ./)"
 
+formatApply:
+	gofmt -w ./
+
 dockerBuild:
 	docker build . -t reportstream-sftp-ingestion
 
