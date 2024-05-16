@@ -17,7 +17,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: ./src/go.mod
 
       - name: Run unit tests
         run: make unitTests
@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: ./src/go.mod
 
       - name: Vet
         run: make vet
@@ -52,7 +52,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: ./src/go.mod
 
       - name: Build Image
         run: make dockerBuild

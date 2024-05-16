@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: go.mod
+          go-version-file: ./src/go.mod
 
       - name: Compile and Build Docker Image
         run: make dockerBuild
