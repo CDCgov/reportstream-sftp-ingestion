@@ -30,7 +30,9 @@ The additional requirements needed to contribute towards development are...
 - [Detect-Secrets](https://github.com/Yelp/detect-secrets)
 - [Terraform](https://www.terraform.io)
 - [Docker](https://www.docker.com/)
+- [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#install-azurite)
 
+- [Microsoft Azure Storage Explorer, not required but helpful] ()https://azure.microsoft.com/en-us/products/storage/storage-explorer
 
 ### Compiling
 
@@ -51,6 +53,13 @@ install the hooks.
 pre-commit install
 ```
 
+### Running locally
+For the Azure blob storage modify and run the below command to spin up Azurite which will run blob storage locally
+
+
+```shell
+azurite --silent --location ~/AzuritelocationOnYourMachine --debug ~/location/for/logs/debug.log
+```
 
 ### Testing
 
