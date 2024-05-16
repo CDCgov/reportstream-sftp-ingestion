@@ -11,7 +11,7 @@ terraform {
     resource_group_name  = "csels-rsti-dev-moderate-rg"
     storage_account_name = "cdcintermediaryterraform"
     container_name       = "terraform-state"
-    key                  = "dev.terraform.tfstate"
+    key                  = "rs-sftp-dev.terraform.tfstate"
   }
 }
 
