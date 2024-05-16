@@ -11,7 +11,7 @@ locals {
 }
 
 data "azurerm_resource_group" "group" {
-  name = "csels-rs-sftp-${var.environment}-moderate-rg"
+  name = "csels-rsti-${var.environment}-moderate-rg"
 }
 
 data "azurerm_client_config" "current" {}

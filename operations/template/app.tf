@@ -18,15 +18,15 @@ resource "azurerm_service_plan" "plan" {
 }
 
 # Create the staging App Service
-resource "azurerm_linux_web_app" "api" {
-  name                = "cdc-rs-sftp-${var.environment}-api"
+resource "azurerm_linux_web_app" "sftp" {
+  name                = "cdc-rs-sftp-${var.environment}"
   resource_group_name = data.azurerm_resource_group.group.name
   location            = azurerm_service_plan.plan.location
   service_plan_id     = azurerm_service_plan.plan.id
 
   https_only = true
 
-#   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
+   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.sftp.id : null
 
   site_config {
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
@@ -62,8 +62,8 @@ resource "azurerm_linux_web_app" "api" {
   }
 }
 
-resource "azurerm_monitor_autoscale_setting" "api_autoscale" {
-  name                = "api_autoscale"
+resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
+  name                = "sftp_autoscale"
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
   target_resource_id  = azurerm_service_plan.plan.id
