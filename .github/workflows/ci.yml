@@ -59,4 +59,4 @@ jobs:
 
       # Not using the Makefile because it includes `-i` which bombs out in GitHub Actions.
       - name: Run Container
-        run: docker run -t reportstream-sftp-ingestion
+        run: docker run -d -t reportstream-sftp-ingestion
