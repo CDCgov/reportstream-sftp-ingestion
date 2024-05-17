@@ -1,6 +1,6 @@
 # Create the container registry
 resource "azurerm_container_registry" "registry" {
-  name                = "cdc-rs-sftp${var.environment}containerregistry"
+  name                = "cdcrssftp${var.environment}containerregistry"
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
   sku                 = "Standard"
