@@ -1,11 +1,11 @@
 data "azurerm_virtual_network" "app" {
-  name                = "csels-rsti-${var.environment}-moderate-app-vnet"
+  //referencing a temporary VNET until we have the CDC create an official one for us
+  name                = "rs-sftp-${var.environment}-temporary-vnet"
   resource_group_name = data.azurerm_resource_group.group.name
 }
 
 locals {
-  // the first five CIDR blocks are dedicated to TI's subnets.  The 6th and on are used by SFTP ingest.  Migrate to the SFTP Vnet once we have it.
-  subnets_cidrs = cidrsubnets(data.azurerm_virtual_network.app.address_space[0], 2, 2, 2, 3, 3, 2)
+  subnets_cidrs = cidrsubnets(data.azurerm_virtual_network.app.address_space[0], 2)
 }
 
 
@@ -13,7 +13,7 @@ resource "azurerm_subnet" "app" {
   name                 = "sftp-app"
   resource_group_name  = data.azurerm_resource_group.group.name
   virtual_network_name = data.azurerm_virtual_network.app.name
-  address_prefixes     = [local.subnets_cidrs[5]]
+  address_prefixes     = [local.subnets_cidrs[0]]
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",
