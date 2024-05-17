@@ -1,0 +1,83 @@
+name: Terraform Deploy
+
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+      TERRAFORM_DIRECTORY:
+        type: string
+        required: true
+      TERRAFORM_INIT_PARAMETERS:
+        type: string
+        required: false
+        default: ""
+      TERRAFORM_APPLY_PARAMETERS:
+        type: string
+        required: false
+        default: ""
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+    outputs:
+      REGISTRY:
+        description: The container registry
+        value: ${{ jobs.terraform-deploy.outputs.REGISTRY }}
+      APP:
+        description: The web application's name
+        value: ${{ jobs.terraform-deploy.outputs.APP }}
+
+jobs:
+  terraform-deploy:
+    name: Terraform Deploy
+    environment:
+      name: ${{ inputs.ENVIRONMENT }}
+    runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
+    permissions:
+      id-token: write
+      contents: read
+    defaults:
+      run:
+        working-directory: ${{ inputs.TERRAFORM_DIRECTORY }}
+
+    outputs:
+      REGISTRY: ${{ steps.export-terraform-output.outputs.REGISTRY }}
+      APP: ${{ steps.export-terraform-output.outputs.APP }}
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Terraform Init
+        id: init
+        run: terraform init ${{ inputs.TERRAFORM_INIT_PARAMETERS }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -input=false ${{ inputs.TERRAFORM_APPLY_PARAMETERS }}
+
+      - name: Login via Azure CLI
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - id: export-terraform-output
+        name: Export Terraform Output
+        run: |
+          echo "REGISTRY=$(terraform output -raw registry)" >> "$GITHUB_OUTPUT"
+          echo "APP=$(terraform output -raw publish_app)" >> "$GITHUB_OUTPUT"
