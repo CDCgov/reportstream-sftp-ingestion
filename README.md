@@ -32,7 +32,7 @@ The additional requirements needed to contribute towards development are...
 - [Docker](https://www.docker.com/)
 - [Azurite](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio%2Cblob-storage#install-azurite)
 
-- [Microsoft Azure Storage Explorer, not required but helpful] ()https://azure.microsoft.com/en-us/products/storage/storage-explorer
+- [Microsoft Azure Storage Explorer, not required but helpful](https://azure.microsoft.com/en-us/products/storage/storage-explorer)
 
 ### Compiling
 
