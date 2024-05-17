@@ -39,6 +39,10 @@ jobs:
       - name: Go Fmt
         run: make formatCheck
 
+      - name: Terraform Formatting
+        working-directory: operations
+        run: terraform fmt -recursive -check
+
   securityScanAnalyze:
     name: CodeQL Security Scan
     uses: ./.github/workflows/codeql_reusable.yml

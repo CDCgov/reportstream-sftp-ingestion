@@ -8,10 +8,10 @@ terraform {
 
   # Use a remote Terraform state in Azure Storage
   backend "azurerm" {
-    resource_group_name  = "csels-rsti-stg-moderate-rg"
-    storage_account_name = "cdcintermediarytrfrmstg"
-    container_name       = "terraform-state"
-    key                  = "rs-sftp-staging.terraform.tfstate"
+    resource_group_name  = "cdcti-terraform"
+    storage_account_name = "cdctiterraform"
+    container_name       = "tfstate"
+    key                  = "rs-sftp-internal.terraform.tfstate"
   }
 }
 
@@ -27,6 +27,6 @@ provider "azurerm" {
 module "template" {
   source = "../../template/"
 
-  environment = "stg"
-  deployer_id = "f5feabe7-5d37-40ba-94f2-e5c0760b4561" //github app registration in CDC Azure Entra
+  environment = "internal"
+  deployer_id = "d59c2c86-de5e-41b7-a752-0869a73f5a60" //github app registration in Flexion Azure Entra
 }
