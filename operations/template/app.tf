@@ -26,7 +26,7 @@ resource "azurerm_linux_web_app" "sftp" {
 
   https_only = true
 
-   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.sftp.id : null
+   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
 
   site_config {
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null

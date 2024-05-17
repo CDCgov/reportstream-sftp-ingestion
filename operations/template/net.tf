@@ -1,18 +1,19 @@
-data "azurerm_virtual_network" "sftp" {
-  name                = "csels-rs-sftp-${var.environment}-moderate-app-vnet"
+data "azurerm_virtual_network" "app" {
+  name                = "csels-rsti-${var.environment}-moderate-app-vnet"
   resource_group_name = data.azurerm_resource_group.group.name
 }
 
 locals {
-  subnets_cidrs = cidrsubnets(data.azurerm_virtual_network.sftp.address_space[0], 2, 2, 2, 3, 3)
+  // the first five CIDR blocks are dedicated to TI's subnets.  The 6th and on are used by SFTP ingest.  Migrate to the SFTP Vnet once we have it.
+  subnets_cidrs = cidrsubnets(data.azurerm_virtual_network.app.address_space[0], 2, 2, 2, 3, 3, 2)
 }
 
 
-resource "azurerm_subnet" "sftp" {
-  name                 = "sftp"
+resource "azurerm_subnet" "app" {
+  name                 = "sftp-app"
   resource_group_name  = data.azurerm_resource_group.group.name
-  virtual_network_name = data.azurerm_virtual_network.sftp.name
-  address_prefixes     = [local.subnets_cidrs[0]]
+  virtual_network_name = data.azurerm_virtual_network.app.name
+  address_prefixes     = [local.subnets_cidrs[5]]
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",
@@ -129,6 +130,6 @@ resource "azurerm_network_security_rule" "App_Allow_All_Out_omhsinf" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "app_security_group" {
-  subnet_id                 = azurerm_subnet.sftp.id
+  subnet_id                 = azurerm_subnet.app.id
   network_security_group_id = azurerm_network_security_group.sftp_security_group.id
 }
