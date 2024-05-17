@@ -12,9 +12,6 @@ on:
       REPO:
         required: true
         type: string
-      REPO_DOCS:
-        required: true
-        type: string
       APP:
         required: true
         type: string

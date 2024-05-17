@@ -13,17 +13,28 @@ jobs:
     name: CI
     uses: ./.github/workflows/ci.yml
 
-  compile:
-    name: Compile
+  terraform-deploy:
+    name: Staging Infrastructure Deploy
     needs: ci
-    runs-on: ubuntu-latest
-    steps:
+    uses: ./.github/workflows/terraform-deploy_reusable.yml
+    with:
+      ENVIRONMENT: stg
+      TERRAFORM_DIRECTORY: operations/environments/stg
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CDC_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_CDC_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_CDC_DMZ_C1_SUBSCRIPTION_ID }}
 
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: ./src/go.mod
-
-      - name: Compile and Build Docker Image
-        run: make dockerBuild
+  staging-deploy:
+    name: Staging Application Deploy
+    needs: terraform-deploy
+    uses: ./.github/workflows/deploy_reusable.yml
+    with:
+      ENVIRONMENT: stg
+      REPO: report-stream-sftp-ingest
+      APP: ${{ needs.terraform-deploy.outputs.APP }}
+      REGISTRY: ${{ needs.terraform-deploy.outputs.REGISTRY }}
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CDC_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_CDC_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_CDC_DMZ_C1_SUBSCRIPTION_ID }}

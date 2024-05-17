@@ -59,8 +59,7 @@ jobs:
     if: needs.paths-filter.outputs.operations == 'true'
     with:
       ENVIRONMENT: pr
-      REPO: trusted-intermediary-router
-      REPO_DOCS: trusted-intermediary-docs
+      REPO: report-stream-sftp-ingest
       APP: ${{ needs.terraform-deploy.outputs.APP }}
       REGISTRY: ${{ needs.terraform-deploy.outputs.REGISTRY }}
     secrets:
