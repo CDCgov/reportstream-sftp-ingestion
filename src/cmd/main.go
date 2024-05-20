@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
+	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
 	"log"
 	"time"
 )
@@ -16,9 +17,15 @@ func main() {
 		log.Fatalf("Failed to init Azure blob client: %v", err)
 	}
 
-	err = readAzureFile(blobHandler, "reportstream.txt")
+	content, err := readAzureFile(blobHandler, "reportstream.txt")
 	if err != nil {
 		log.Fatalf("Failed to read the file: %v", err)
+	}
+
+	apiHandler := report_stream.ApiHandler{"http://localhost:7071"}
+	err = apiHandler.SendReport(content)
+	if err != nil {
+		log.Fatalf("Failed to send the file to ReportStream: %v", err)
 	}
 
 	for {
@@ -32,14 +39,14 @@ type BlobHandler interface {
 	FetchFile(blobPath string) ([]byte, error)
 }
 
-func readAzureFile(blobHandler BlobHandler, filePath string) error {
+func readAzureFile(blobHandler BlobHandler, filePath string) ([]byte, error) {
 	content, err := blobHandler.FetchFile(filePath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	//TODO: Auth and call ReportStream
 	log.Println(string(content))
 
-	return nil
+	return content, nil
 }

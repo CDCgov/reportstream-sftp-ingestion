@@ -11,12 +11,12 @@ func Test_Main(t *testing.T) {
 }
 
 func Test_readAzureFile_successfullyReadsAndPrints(t *testing.T) {
-	err := readAzureFile(TestBlobHandler{}, "dogcow.txt")
+	_, err := readAzureFile(TestBlobHandler{}, "dogcow.txt")
 	assert.NoError(t, err)
 }
 
 func Test_readAzureFile_failsWithError(t *testing.T) {
-	err := readAzureFile(TestBlobHandler{errors.New("it blew up")}, "dogcow.txt")
+	_, err := readAzureFile(TestBlobHandler{errors.New("it blew up")}, "dogcow.txt")
 	assert.Error(t, err)
 }
 
