@@ -16,7 +16,7 @@ func NewBlobHandler(conn string) (BlobHandler, error) {
 		return BlobHandler{}, err
 	}
 
-	return BlobHandler{blobClient}, nil
+	return BlobHandler{blobClient: blobClient}, nil
 }
 
 // TODO - container should eventually be managed by Terraform
