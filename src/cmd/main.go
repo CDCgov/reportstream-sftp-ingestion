@@ -23,10 +23,11 @@ func main() {
 	}
 
 	apiHandler := report_stream.ApiHandler{"http://localhost:7071"}
-	err = apiHandler.SendReport(content)
+	reportId, err := apiHandler.SendReport(content)
 	if err != nil {
 		log.Fatalf("Failed to send the file to ReportStream: %v", err)
 	}
+	log.Printf("File sent to ReportStream - reportId: %s", reportId)
 
 	for {
 		t := time.Now()
