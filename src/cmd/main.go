@@ -27,7 +27,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	apiHandler := report_stream.ApiHandler{BaseUrl: "http://localhost:7071"}
+	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
+	apiHandler := report_stream.ApiHandler{BaseUrl: reportStreamBaseUrl}
 	reportId, err := apiHandler.SendReport(content)
 	if err != nil {
 		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
