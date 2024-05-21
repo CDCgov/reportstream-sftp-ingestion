@@ -30,3 +30,6 @@ reportstream-sftp-ingestion
 # Ignore terraform state (as it is persisted via Azure Storage)
 terraform.tfstate*
 .terraform*
+
+# Local blob storage data
+/localdata
