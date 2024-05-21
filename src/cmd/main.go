@@ -28,13 +28,21 @@ func main() {
 	}
 
 	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
-	apiHandler := report_stream.ApiHandler{BaseUrl: reportStreamBaseUrl}
-	reportId, err := apiHandler.SendReport(content)
-	if err != nil {
-		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
-		os.Exit(1)
+
+	if reportStreamBaseUrl == "" {
+		// Do something with mock response
+
+		slog.Info("Mock message sent to Mock RS.")
+	} else {
+		apiHandler := report_stream.ApiHandler{BaseUrl: reportStreamBaseUrl}
+		reportId, err := apiHandler.SendReport(content)
+
+		if err != nil {
+			slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
+			os.Exit(1)
+		}
+		slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 	}
-	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
 	for {
 		t := time.Now()

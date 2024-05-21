@@ -54,12 +54,9 @@ pre-commit install
 ```
 
 ### Running locally
-For the Azure blob storage modify and run the below command to spin up Azurite which will run blob storage locally
-
-
-```shell
-azurite --silent --location ~/AzuritelocationOnYourMachine --debug ~/location/for/logs/debug.log
-```
+Run `docker-compose`, which will spin up both an Azurite container and the app. By default, this leaves the ReportStream
+URL prefix environment variable empty, and we'll use a mock response rather than calling ReportStream. Uncomment
+the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to call locally-running ReportStream instead.
 
 ### Testing
 
