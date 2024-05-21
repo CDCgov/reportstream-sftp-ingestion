@@ -15,7 +15,8 @@ func main() {
 	slog.Info("Hello World")
 
 	//TODO: Extract the client string to allow multi-environment
-	blobHandler, err := azure.NewBlobHandler("DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;")
+	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
+	blobHandler, err := azure.NewBlobHandler(azureBlobConnectionString)
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		os.Exit(1)
