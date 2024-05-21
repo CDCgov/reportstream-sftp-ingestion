@@ -14,8 +14,8 @@ func main() {
 
 	slog.Info("Hello World")
 
-	//TODO: Extract the client string to allow multi-environment
-	blobHandler, err := azure.NewBlobHandler("DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;")
+	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
+	blobHandler, err := azure.NewBlobHandler(azureBlobConnectionString)
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		os.Exit(1)
@@ -27,7 +27,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	apiHandler := report_stream.ApiHandler{BaseUrl: "http://localhost:7071"}
+	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
+	apiHandler := report_stream.ApiHandler{BaseUrl: reportStreamBaseUrl}
 	reportId, err := apiHandler.SendReport(content)
 	if err != nil {
 		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
@@ -43,8 +44,16 @@ func main() {
 }
 
 func setupLogging() {
-	jsonLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(jsonLogger)
+	environment := os.Getenv("ENV")
+
+	if environment == "" {
+		environment = "local"
+	}
+
+	if environment != "local" {
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		slog.SetDefault(logger)
+	}
 }
 
 type BlobHandler interface {
