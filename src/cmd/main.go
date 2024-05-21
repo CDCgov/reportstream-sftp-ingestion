@@ -14,7 +14,6 @@ func main() {
 
 	slog.Info("Hello World")
 
-	//TODO: Extract the client string to allow multi-environment
 	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
 	blobHandler, err := azure.NewBlobHandler(azureBlobConnectionString)
 	if err != nil {
@@ -44,8 +43,16 @@ func main() {
 }
 
 func setupLogging() {
-	jsonLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(jsonLogger)
+	environment := os.Getenv("ENV")
+
+	if environment == "" {
+		environment = "local"
+	}
+
+	if environment != "local" {
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+		slog.SetDefault(logger)
+	}
 }
 
 type BlobHandler interface {
