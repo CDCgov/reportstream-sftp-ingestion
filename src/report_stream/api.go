@@ -51,6 +51,8 @@ func (apiHandler Sender) SendMessage(message []byte) (string, error) {
 	defer res.Body.Close()
 
 	responseBodyBytes, err := io.ReadAll(res.Body)
+	slog.Info("response status", slog.String("status", res.Status))
+	slog.Info("request", slog.Any("request", req))
 	slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
 
 	if err != nil {
