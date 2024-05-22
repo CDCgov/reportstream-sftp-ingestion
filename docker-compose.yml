@@ -14,7 +14,10 @@ services:
       - "9090:9090" # default api endpoint port
     platform: linux/amd64
     depends_on:
-      - sftp-Azurite
+      sftp-Azurite:
+        condition: service_started
+      azure-cli:
+        condition: service_completed_successfully
     networks:
       - sftp
 
@@ -31,6 +34,21 @@ services:
       - "11002:10002"
     networks:
       - sftp
+
+  azure-cli:
+    image: mcr.microsoft.com/azure-cli
+    command:
+      - /bin/sh
+      - -c
+      - |
+        az storage container create -n sftp
+        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name reportstream.txt --data "Hello ReportStream"
+    environment:
+      AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1; # pragma: allowlist secret
+    networks:
+      - sftp
+    depends_on:
+      - sftp-Azurite
 
 
 networks:
