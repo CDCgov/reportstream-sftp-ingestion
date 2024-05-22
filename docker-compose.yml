@@ -3,10 +3,13 @@ services:
   rs-sftp:
     build: .
     environment:
-      AZURE_BLOB_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;
+      AZURE_BLOB_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1; # pragma: allowlist secret
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise we'll use a mock response
       #REPORT_STREAM_URL_PREFIX: http://localhost:7071
+    volumes:
+      # map to Azurite data objects to the build directory
+      - ./localdata/reportstream:/localdata
     ports:
       - "9090:9090" # default api endpoint port
     platform: linux/amd64

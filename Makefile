@@ -18,3 +18,6 @@ dockerBuild:
 
 dockerRun:
 	docker run -it reportstream-sftp-ingestion
+
+dockerComposeRun:
+	docker compose up --build

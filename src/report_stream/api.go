@@ -22,16 +22,14 @@ type Report struct {
 	ReportId string `json:"reportId"`
 }
 
-type ApiHandler struct {
+type Sender struct {
 	BaseUrl string
 }
 
-//func (apiHandler *ApiHandler) Login {}
-
-func (apiHandler *ApiHandler) SendReport(hl7message []byte) (string, error) {
+func (apiHandler Sender) SendMessage(message []byte) (string, error) {
 
 	client := http.Client{}
-	req, err := http.NewRequest("POST", apiHandler.BaseUrl+"/api/reports", bytes.NewBuffer(hl7message))
+	req, err := http.NewRequest("POST", apiHandler.BaseUrl+"/api/reports", bytes.NewBuffer(message))
 
 	if err != nil {
 		return "", err
