@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
+	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
 	"log/slog"
 	"os"
@@ -28,21 +29,21 @@ func main() {
 	}
 
 	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
+	var messageSender MessageSender
 
 	if reportStreamBaseUrl == "" {
-		// Do something with mock response
-
-		slog.Info("Mock message sent to Mock RS.")
+		messageSender = local.FileSender{}
 	} else {
-		apiHandler := report_stream.ReportStreamSender{BaseUrl: reportStreamBaseUrl}
-		reportId, err := apiHandler.SendMessage(content)
-
-		if err != nil {
-			slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
-			os.Exit(1)
-		}
-		slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
+		messageSender = report_stream.Sender{BaseUrl: reportStreamBaseUrl}
 	}
+
+	reportId, err := messageSender.SendMessage(content)
+	if err != nil {
+		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
 	for {
 		t := time.Now()

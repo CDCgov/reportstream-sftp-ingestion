@@ -22,11 +22,11 @@ type Report struct {
 	ReportId string `json:"reportId"`
 }
 
-type ReportStreamSender struct {
+type Sender struct {
 	BaseUrl string
 }
 
-func (apiHandler *ReportStreamSender) SendMessage(message []byte) (string, error) {
+func (apiHandler Sender) SendMessage(message []byte) (string, error) {
 
 	client := http.Client{}
 	req, err := http.NewRequest("POST", apiHandler.BaseUrl+"/api/reports", bytes.NewBuffer(message))
