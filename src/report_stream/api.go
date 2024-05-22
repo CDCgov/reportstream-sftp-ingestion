@@ -51,7 +51,7 @@ func (apiHandler Sender) SendMessage(message []byte) (string, error) {
 	defer res.Body.Close()
 
 	responseBodyBytes, err := io.ReadAll(res.Body)
-	slog.Info("response body", string(responseBodyBytes))
+	slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
 
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func (apiHandler Sender) SendMessage(message []byte) (string, error) {
 		return "", err
 	}
 
-	slog.Info("report", report)
+	slog.Info("report", slog.Any("report", report))
 	return report.ReportId, nil
 }
 
