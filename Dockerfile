@@ -4,7 +4,7 @@ ENV GOOS=linux
 ENV GOARCH=amd64
 ENV CGO_ENABLED=0
 
-RUN apt update && apt install -y --no-install-recommends ca-certificates
+RUN apt update && apt install -y --no-install-recommends ca-certificates && apt clean
 
 WORKDIR /opt/build/
 
