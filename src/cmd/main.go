@@ -34,8 +34,8 @@ func main() {
 
 		slog.Info("Mock message sent to Mock RS.")
 	} else {
-		apiHandler := report_stream.ApiHandler{BaseUrl: reportStreamBaseUrl}
-		reportId, err := apiHandler.SendReport(content)
+		apiHandler := report_stream.ReportStreamSender{BaseUrl: reportStreamBaseUrl}
+		reportId, err := apiHandler.SendMessage(content)
 
 		if err != nil {
 			slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
