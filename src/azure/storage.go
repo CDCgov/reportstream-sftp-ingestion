@@ -6,22 +6,22 @@ import (
 	"io"
 )
 
-type BlobHandler struct {
+type StorageHandler struct {
 	blobClient *azblob.Client
 }
 
-func NewBlobHandler(conn string) (BlobHandler, error) {
+func NewBlobHandler(conn string) (StorageHandler, error) {
 	blobClient, err := azblob.NewClientFromConnectionString(conn, nil)
 	if err != nil {
-		return BlobHandler{}, err
+		return StorageHandler{}, err
 	}
 
-	return BlobHandler{blobClient: blobClient}, nil
+	return StorageHandler{blobClient: blobClient}, nil
 }
 
 // TODO - container should eventually be managed by Terraform
 
-func (receiver BlobHandler) FetchFile(blobPath string) ([]byte, error) {
+func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	// TODO - read containerName from env vars
 	containerName := "sftp"
 

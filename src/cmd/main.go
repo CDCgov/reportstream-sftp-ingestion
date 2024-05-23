@@ -65,10 +65,6 @@ func setupLogging() {
 	}
 }
 
-type BlobHandler interface {
-	FetchFile(blobPath string) ([]byte, error)
-}
-
 func readAzureFile(blobHandler BlobHandler, filePath string) ([]byte, error) {
 	content, err := blobHandler.FetchFile(filePath)
 	if err != nil {
