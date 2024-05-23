@@ -11,7 +11,7 @@ services:
       # map to Azurite data objects to the build directory
       - ./localdata/reportstream:/localdata
     ports:
-      - "9090:9090" # default api endpoint port
+      - "9999:9090" # default api endpoint port
     platform: linux/amd64
     depends_on:
       sftp-Azurite:
@@ -29,9 +29,9 @@ services:
       # map to Azurite data objects to the build directory
       - ./localdata/azurite:/data
     ports:
-      - "11000:10000"
-      - "11001:10001"
-      - "11002:10002"
+      - "12000:10000"
+      - "12001:10001"
+      - "12002:10002"
     networks:
       - sftp
 
