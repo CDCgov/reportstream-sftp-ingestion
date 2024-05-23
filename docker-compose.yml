@@ -6,10 +6,13 @@ services:
       AZURE_BLOB_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1; # pragma: allowlist secret
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise we'll use a mock response
-      #REPORT_STREAM_URL_PREFIX: http://localhost:7071
+      REPORT_STREAM_URL_PREFIX: http://localhost:7071
+      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local #pragma: allowlist secret
+      FLEXION_CLIENT_NAME: flexion.simulated-hospital
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/reportstream:/localdata
+      - ./mock_credentials:/mock_credentials
     ports:
       - "9999:9090" # default api endpoint port
     platform: linux/amd64

@@ -10,7 +10,7 @@ type StorageHandler struct {
 	blobClient *azblob.Client
 }
 
-func NewBlobHandler(conn string) (StorageHandler, error) {
+func NewStorageHandler(conn string) (StorageHandler, error) {
 	blobClient, err := azblob.NewClientFromConnectionString(conn, nil)
 	if err != nil {
 		return StorageHandler{}, err

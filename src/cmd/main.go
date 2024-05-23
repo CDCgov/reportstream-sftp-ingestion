@@ -16,7 +16,7 @@ func main() {
 	slog.Info("Hello World")
 
 	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
-	blobHandler, err := azure.NewBlobHandler(azureBlobConnectionString)
+	blobHandler, err := azure.NewStorageHandler(azureBlobConnectionString)
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		os.Exit(1)
@@ -34,7 +34,7 @@ func main() {
 	if reportStreamBaseUrl == "" {
 		messageSender = local.FileSender{}
 	} else {
-		messageSender = report_stream.Sender{BaseUrl: reportStreamBaseUrl}
+		messageSender = report_stream.NewSender()
 	}
 
 	reportId, err := messageSender.SendMessage(content)
