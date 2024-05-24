@@ -87,14 +87,15 @@ func (sender Sender) GenerateJwt() (string, error) {
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
 		ID:        id.String(),
-		// missing -k, --kid <KID> the kid to place in the header - set to flexion.simulated-hospital in command line
-		Issuer:  sender.ClientName,
-		Subject: sender.ClientName,
-		//Audience: "staging.prime.cdc.gov", // not sure why it doesn't like this
+		Issuer:    sender.ClientName,
+		Subject:   sender.ClientName,
+		Audience:  jwt.ClaimStrings{"staging.prime.cdc.gov"},
 		// I think we don't need the --no-iat - looks like it should be excluded automatically
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	t.Header["kid"] = sender.ClientName
+
 	return t.SignedString(key)
 }
 
