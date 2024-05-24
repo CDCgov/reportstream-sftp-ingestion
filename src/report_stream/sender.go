@@ -52,23 +52,17 @@ type ReportStreamError struct {
 }
 
 type Sender struct {
-	BaseUrl        string
-	PrivateKeyName string
-	ClientName     string
+	BaseUrl          string
+	PrivateKeyName   string
+	ClientName       string
+	credentialGetter CredentialGetter
 }
 
 func NewSender() Sender {
 	// TODO get sender info based on source folder
-	return Sender{BaseUrl: os.Getenv("REPORT_STREAM_URL_PREFIX"), PrivateKeyName: os.Getenv("FLEXION_PRIVATE_KEY_NAME"), ClientName: os.Getenv("FLEXION_CLIENT_NAME")}
-}
-
-//TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
-//TODO - unchain the key/JWT/token/submit sequence?
-
-func (sender Sender) GenerateJwt() (string, error) {
-	environment := os.Getenv("ENV")
-
 	var credentialGetter CredentialGetter
+
+	environment := os.Getenv("ENV")
 	if environment == "" {
 		environment = "local"
 	}
@@ -80,7 +74,20 @@ func (sender Sender) GenerateJwt() (string, error) {
 		credentialGetter = azure.CredentialGetter{}
 	}
 
-	key, err := credentialGetter.GetPrivateKey(sender.PrivateKeyName)
+	return Sender{
+		BaseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
+		PrivateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
+		ClientName:       os.Getenv("FLEXION_CLIENT_NAME"),
+		credentialGetter: credentialGetter,
+	}
+}
+
+//TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
+//TODO - unchain the key/JWT/token/submit sequence?
+
+func (sender Sender) GenerateJwt() (string, error) {
+
+	key, err := sender.credentialGetter.GetPrivateKey(sender.PrivateKeyName)
 
 	if err != nil {
 		return "", err
