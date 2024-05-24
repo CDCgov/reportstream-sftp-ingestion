@@ -1,10 +1,11 @@
 package main
 
 // The MessageSender interface is about delivering data to external services.
-// Currently, we send messages to ReportStream or to a mock service for testing.
+// Currently, we send messages to ReportStream or to a local-only mock service for testing.
+// Local dev can use either local ReportStream or the mock service
+// TODO - have PR env use mock service - any other envs?
 type MessageSender interface {
 	//TODO - implement these in local file sender?
-	//GetPrivateKey() (*rsa.PrivateKey, error)
 	//GenerateJwt() (string, error)
 	//GetToken() (string, error)
 

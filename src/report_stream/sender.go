@@ -2,10 +2,10 @@ package report_stream
 
 import (
 	"bytes"
-	"crypto/rsa"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
+	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"io"
@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -63,23 +62,47 @@ func NewSender() Sender {
 	return Sender{BaseUrl: os.Getenv("REPORT_STREAM_URL_PREFIX"), PrivateKeyName: os.Getenv("FLEXION_PRIVATE_KEY_NAME"), ClientName: os.Getenv("FLEXION_CLIENT_NAME")}
 }
 
+//func (sender Sender) setupVars() (string, error){
+//	environment := os.Getenv("ENV")
+//
+//	if environment == "" {
+//		environment = "local"
+//	}
+//
+//	var (pem, err []byte, error)
+//
+//	if environment == "local" {
+//		pem, err = os.ReadFile(filepath.Join("mock_credentials", fmt.Sprintf("%s.pem", sender.PrivateKeyName)))
+//
+//		if err != nil {
+//			return "", err
+//		}
+//
+//	} else {
+//		return os.Getenv("FLEXION_PEM")
+//	}
+//}
+
 //TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
 //TODO - unchain the key/JWT/token/submit sequence?
 
-func (sender Sender) GetPrivateKey() (*rsa.PrivateKey, error) {
-	pem, err := os.ReadFile(filepath.Join("mock_credentials", fmt.Sprintf("%s.pem", sender.PrivateKeyName)))
-	if err != nil {
-		return nil, err
-	}
-	key, err := jwt.ParseRSAPrivateKeyFromPEM(pem)
-	if err != nil {
-		return nil, err
-	}
-	return key, nil
-}
-
 func (sender Sender) GenerateJwt() (string, error) {
-	key, err := sender.GetPrivateKey()
+	environment := os.Getenv("ENV")
+
+	var credentialGetter CredentialGetter
+	if environment == "" {
+		environment = "local"
+	}
+	if environment == "local" {
+		slog.Info("Using local credentials")
+		credentialGetter = local.CredentialGetter{}
+	} else {
+		slog.Info("Using Azure credentials")
+		credentialGetter = azure.CredentialGetter{}
+	}
+
+	key, err := credentialGetter.GetPrivateKey(sender.PrivateKeyName)
+
 	if err != nil {
 		return "", err
 	}
@@ -89,8 +112,7 @@ func (sender Sender) GenerateJwt() (string, error) {
 		ID:        id.String(),
 		Issuer:    sender.ClientName,
 		Subject:   sender.ClientName,
-		Audience:  jwt.ClaimStrings{"staging.prime.cdc.gov"},
-		// I think we don't need the --no-iat - looks like it should be excluded automatically
+		Audience:  jwt.ClaimStrings{os.Getenv("ENV") + ".prime.cdc.gov"},
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
