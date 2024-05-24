@@ -40,11 +40,11 @@ jobs:
 
       - name: SonarQube Scan
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=<your_project_key> \
-            -Dsonar.organization=<your_organization_key> \  # For SonarCloud only
+            -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
+            -Dsonar.organization=cdcgov \  # For SonarCloud only
             -Dsonar.host.url=https://sonarcloud.io \  # Use your SonarQube URL if using SonarQube
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.sources=. \
