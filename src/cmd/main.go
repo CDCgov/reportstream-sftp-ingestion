@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	content, err := readAzureFile(blobHandler, "reportstream.txt")
+	content, err := readAzureFile(blobHandler, "order_message.hl7")
 	if err != nil {
 		slog.Error("Failed to read the file", slog.Any("error", err))
 		os.Exit(1)

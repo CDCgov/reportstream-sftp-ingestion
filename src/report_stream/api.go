@@ -123,11 +123,10 @@ func (sender Sender) GetToken() (string, error) {
 	req.Header = http.Header{
 		"Content-Type": {"application/x-www-form-urlencoded"},
 	}
-	reqBody, _ := io.ReadAll(req.Body)
-	slog.Info("request", slog.Any("body", reqBody))
 
 	client := http.Client{}
 	res, err := client.Do(req)
+
 	if err != nil {
 		slog.Info("error calling token endpoint", slog.Any("err", err))
 		return "", err
@@ -136,8 +135,6 @@ func (sender Sender) GetToken() (string, error) {
 	defer res.Body.Close()
 
 	responseBodyBytes, err := io.ReadAll(res.Body)
-	slog.Info("response", slog.Any("res", res))
-	slog.Info("responseBodyBytes", slog.Any("responseBodyBytes", responseBodyBytes))
 
 	if err != nil {
 		return "", err
@@ -171,9 +168,9 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 	}
 
 	req.Header = http.Header{
-		"content-type":           {"application/hl7-v2"},
-		"client":                 {sender.ClientName},
-		"Authorization: Bearer ": {token},
+		"content-type":  {"application/hl7-v2"},
+		"client":        {sender.ClientName},
+		"Authorization": {"Bearer " + token},
 	}
 
 	res, err := client.Do(req)
@@ -189,7 +186,8 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		return "", err
 	}
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode >= 300 {
+		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
 		// TODO - decide when/whether to parse body - RS error responses are sometimes strings and sometimes JSON
 		return "", errors.New(res.Status)
