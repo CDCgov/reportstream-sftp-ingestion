@@ -53,9 +53,10 @@ jobs:
           cd src/report_stream
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
-            -Dsonar.organization=cdcgov \  
-            -Dsonar.host.url=https://sonarcloud.io \  
+            -Dsonar.organization=cdcgov \
+            -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.sources=. \
             -Dsonar.tests=. \
             -Dsonar.go.coverage.reportPaths=coverage.out
+      
