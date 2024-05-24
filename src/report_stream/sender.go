@@ -31,26 +31,6 @@ For now:
 - Call /api/reports (needs API key in deployed env and no security locally)
 */
 
-//TODO - move RS structs to a 'types' file?
-
-type Report struct {
-	ReportId string `json:"reportId"`
-}
-
-type ReportStreamToken struct {
-	Sub              string `json:"sub"`
-	AccessToken      string `json:"access_token"`
-	TokenType        string `json:"token_type"`
-	ExpiresIn        int    `json:"expires_in"`
-	ExpiresAtSeconds int    `json:"expires_at_seconds"`
-	Scope            string `json:"scope"`
-}
-type ReportStreamError struct {
-	Error            string `json:"error"`
-	ErrorDescription string `json:"error_description"`
-	ErrorUri         string `json:"error_uri"`
-}
-
 type Sender struct {
 	BaseUrl          string
 	PrivateKeyName   string
@@ -132,8 +112,7 @@ func (sender Sender) GetToken() (string, error) {
 		"Content-Type": {"application/x-www-form-urlencoded"},
 	}
 
-	client := http.Client{}
-	res, err := client.Do(req)
+	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
 		slog.Info("error calling token endpoint", slog.Any("err", err))
@@ -168,7 +147,6 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		return "", err
 	}
 
-	client := http.Client{}
 	req, err := http.NewRequest("POST", sender.BaseUrl+"/api/waters", bytes.NewBuffer(message))
 
 	if err != nil {
@@ -181,7 +159,7 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		"Authorization": {"Bearer " + token},
 	}
 
-	res, err := client.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -210,66 +188,3 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 	slog.Info("report", slog.Any("report", report))
 	return report.ReportId, nil
 }
-
-/**
-Sample responses from RS waters
-Success:
-{
-  "id" : "78809588-1193-4861-a6a7-52493f7dd254",
-  "submissionId" : 26,
-  "overallStatus" : "Received",
-  "timestamp" : "2024-05-20T21:11:36.144Z",
-  "plannedCompletionAt" : null,
-  "actualCompletionAt" : null,
-  "sender" : "flexion.simulated-hospital",
-  "reportItemCount" : 1,
-  "errorCount" : 0,
-  "warningCount" : 0,
-  "httpStatus" : 201,
-  "destinations" : [ ],
-  "actionName" : "receive",
-  "externalName" : null,
-  "reportId" : "78809588-1193-4861-a6a7-52493f7dd254",
-  "topic" : "etor-ti",
-  "bodyFormat" : "",
-  "errors" : [ ],
-  "warnings" : [ ],
-  "destinationCount" : 0,
-  "fileName" : ""
-}
-
-JSON Error:
-{
-    "id": null,
-    "submissionId": 91,
-    "overallStatus": "Error",
-    "timestamp": "2024-05-23T21:36:46.879Z",
-    "plannedCompletionAt": null,
-    "actualCompletionAt": null,
-    "sender": "",
-    "reportItemCount": null,
-    "errorCount": 1,
-    "warningCount": 0,
-    "httpStatus": 400,
-    "destinations": [],
-    "actionName": "receive",
-    "externalName": "",
-    "reportId": null,
-    "topic": null,
-    "bodyFormat": "",
-    "errors": [
-        {
-            "scope": "parameter",
-            "message": "Blank message(s) found within file. Blank messages cannot be processed.",
-            "errorCode": "UNKNOWN"
-        }
-    ],
-    "warnings": [],
-    "destinationCount": 0,
-    "fileName": ""
-}
-
-String error:
-Expected a 'client' query parameter
-
-*/
