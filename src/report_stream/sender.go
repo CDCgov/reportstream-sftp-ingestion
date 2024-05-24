@@ -62,27 +62,6 @@ func NewSender() Sender {
 	return Sender{BaseUrl: os.Getenv("REPORT_STREAM_URL_PREFIX"), PrivateKeyName: os.Getenv("FLEXION_PRIVATE_KEY_NAME"), ClientName: os.Getenv("FLEXION_CLIENT_NAME")}
 }
 
-//func (sender Sender) setupVars() (string, error){
-//	environment := os.Getenv("ENV")
-//
-//	if environment == "" {
-//		environment = "local"
-//	}
-//
-//	var (pem, err []byte, error)
-//
-//	if environment == "local" {
-//		pem, err = os.ReadFile(filepath.Join("mock_credentials", fmt.Sprintf("%s.pem", sender.PrivateKeyName)))
-//
-//		if err != nil {
-//			return "", err
-//		}
-//
-//	} else {
-//		return os.Getenv("FLEXION_PEM")
-//	}
-//}
-
 //TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
 //TODO - unchain the key/JWT/token/submit sequence?
 
