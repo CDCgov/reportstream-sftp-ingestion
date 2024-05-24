@@ -26,12 +26,12 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('src/report_stream/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Install dependencies
-        run: |
-          cd src/report_stream
-          go mod tidy
-          go mod download
+#
+#      - name: Install dependencies
+#        run: |
+#          cd src/report_stream
+#          go mod tidy
+#          go mod download
 
       - name: Install SonarQube Scanner
         run: |
