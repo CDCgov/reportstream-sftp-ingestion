@@ -23,13 +23,13 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('src/report-stream/go.sum') }}
+          key: ${{ runner.os }}-go-${{ hashFiles('src/report_stream/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
 
       - name: Install dependencies
         run: |
-          cd src/report-stream
+          cd src/report_stream
           go mod tidy
           go mod download
 
@@ -41,7 +41,7 @@ jobs:
 
       - name: Run tests and generate coverage
         run: |
-          cd src/report-stream
+          cd src/report_stream
           go test -v ./... -coverprofile=coverage.out
           cat coverage.out
           go tool cover -func=coverage.out
@@ -50,7 +50,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
-          cd src/report-stream
+          cd src/report_stream
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
             -Dsonar.organization=cdcgov \  
