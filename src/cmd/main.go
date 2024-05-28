@@ -22,9 +22,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	content, err := readAzureFile(blobHandler, "order_message.hl7")
+	filepath := "order_message.hl7"
+	content, err := readAzureFile(blobHandler, filepath)
 	if err != nil {
-		slog.Error("Failed to read the file", slog.Any("error", err))
+		slog.Error("Failed to read the file", slog.String("filepath", filepath), slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -32,8 +33,10 @@ func main() {
 	var messageSender MessageSender
 
 	if reportStreamBaseUrl == "" {
+		slog.Info("No report stream url prefix set, using local sender instead")
 		messageSender = local.FileSender{}
 	} else {
+		slog.Info("Found report stream url prefix, will send to ReportStream")
 		messageSender = report_stream.NewSender()
 	}
 
