@@ -22,11 +22,17 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      - name: Verify Java version
+        run: java -version
+
       - name: Install SonarQube Scanner
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner.zip -d $HOME
           echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
+          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
+          echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+    
 
       - name: Run tests and generate coverage
         run: |
@@ -40,7 +46,6 @@ jobs:
           JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
-          java -version
           cd src
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
@@ -50,4 +55,5 @@ jobs:
             -Dsonar.sources=. \
 #            -Dsonar.tests=. \
 #            -Dsonar.go.coverage.reportPaths=coverage.out
+
       
