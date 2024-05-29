@@ -63,6 +63,7 @@ resource "azurerm_linux_web_app" "sftp" {
     REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
     FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
     AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
+    FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
   }
 
   identity {
