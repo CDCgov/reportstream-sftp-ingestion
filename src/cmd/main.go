@@ -42,11 +42,11 @@ func main() {
 
 	reportId, err := messageSender.SendMessage(content)
 	if err != nil {
-		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
-		os.Exit(1)
+		slog.Warn("Failed to send the file to ReportStream", slog.Any("error", err))
+		slog.Info("actually continuing just for now while we debug")
+	} else {
+		slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 	}
-
-	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
 	for {
 		t := time.Now()
