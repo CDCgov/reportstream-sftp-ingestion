@@ -19,3 +19,5 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /opt/build/reportstream-sftp-ingestion /usr/local/bin/reportstream-sftp-ingestion
 
 ENTRYPOINT ["/usr/local/bin/reportstream-sftp-ingestion"]
+
+EXPOSE 80
