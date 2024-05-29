@@ -13,25 +13,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
-
-      - name: Cache Go modules
-        uses: actions/cache@v2
+          go-version-file: ./src/go.mod
+      - name: set up java
+        uses: actions/setup-java@v4
         with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('src/report_stream/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-#
-#      - name: Install dependencies
-#        run: |
-#          cd src/report_stream
-#          go mod tidy
-#          go mod download
+          java-version: 17
+          distribution: corretto
 
       - name: Install SonarQube Scanner
         run: |
@@ -41,7 +30,7 @@ jobs:
 
 #      - name: Run tests and generate coverage
 #        run: |
-#          cd src/report_stream
+#          cd src
 #          go test -v ./... -coverprofile=coverage.out
 #          cat coverage.out
 #          go tool cover -func=coverage.out
@@ -50,7 +39,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
-          cd src/report_stream
+          cd src
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
             -Dsonar.organization=cdcgov \
