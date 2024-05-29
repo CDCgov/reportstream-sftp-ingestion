@@ -1,5 +1,5 @@
 resource "azurerm_key_vault" "key_storage" {
-  name = "rs-sftp-key-vault-${var.environment}"
+  name = "rs-sftp-vault-${var.environment}"
 
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
