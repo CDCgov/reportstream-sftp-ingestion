@@ -17,7 +17,7 @@ jobs:
         with:
           go-version-file: ./src/go.mod
       - name: set up java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
           java-version: 17
           distribution: corretto
@@ -44,8 +44,8 @@ jobs:
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
             -Dsonar.organization=cdcgov \
             -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.sources=. \
-            -Dsonar.tests=. \
-            -Dsonar.go.coverage.reportPaths=coverage.out
+#            -Dsonar.tests=. \
+#            -Dsonar.go.coverage.reportPaths=coverage.out
       
