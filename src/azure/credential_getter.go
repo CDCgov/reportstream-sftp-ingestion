@@ -17,7 +17,7 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 	slog.Info("got key info", slog.String("key name", privateKeyName), slog.String("vaultURI", vaultURI))
 
 	// Create a credential using the NewDefaultAzureCredential type.
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	cred, err := azidentity.NewManagedIdentityCredential(nil)
 	if err != nil {
 		slog.Error("failed to obtain a credential: ", slog.Any("error", err))
 		return nil, err
