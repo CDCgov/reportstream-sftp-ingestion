@@ -17,6 +17,11 @@ jobs:
         with:
           go-version-file: ./src/go.mod
 
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Verify Java version
         run: java -version
@@ -28,12 +33,7 @@ jobs:
           echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
           echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
           echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-
-      - name: set up java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
+    
 
       - name: Run tests and generate coverage
         run: |
@@ -44,7 +44,7 @@ jobs:
 
       - name: SonarQube Scan
         env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64
+          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9.1/x64
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
           cd src/
