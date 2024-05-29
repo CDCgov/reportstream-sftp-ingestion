@@ -37,6 +37,8 @@ jobs:
 
       - name: SonarQube Scan
         env:
+          JAVA_HOME: /opt/hostedtoolcache/Java_Corretto_jdk/17.0.11-9.1/x64
+          JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Corretto_jdk/17.0.11-9.1/x64
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
           cd src
