@@ -27,7 +27,8 @@ func Test_Credential_Getter_GetsPrivateKey(t *testing.T) {
 
 	secret.secretGetter = mockSecretGetter
 
-	secretValue := "test key value"
+	//TODO: do what the below says
+	secretValue := "PUT SOME REAL KEY HERE"
 	response := azsecrets.GetSecretResponse{
 		Secret: azsecrets.Secret{Value: &secretValue},
 	}
