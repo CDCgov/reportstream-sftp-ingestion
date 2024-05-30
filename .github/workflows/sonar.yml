@@ -54,7 +54,7 @@ jobs:
         run: |
           cd src/
           echo "sonar properties here"
-          cat /home/runner/sonar-scanner-4.6.2.2472-linux/conf/sonar-scanner.properties
+          cat /home/runner/sonar-scanner-4.6.0.2311-linux/conf/sonar-scanner.properties
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
             -Dsonar.organization=cdcgov \
