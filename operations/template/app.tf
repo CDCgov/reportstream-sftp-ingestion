@@ -58,6 +58,8 @@ resource "azurerm_linux_web_app" "sftp" {
     DOCKER_REGISTRY_SERVER_URL      = "https://${azurerm_container_registry.registry.login_server}"
     DOCKER_REGISTRY_SERVER_USERNAME = azurerm_container_registry.registry.admin_username
     DOCKER_REGISTRY_SERVER_PASSWORD = azurerm_container_registry.registry.admin_password
+    WEBSITES_PORT                   = 8080
+
     ENV                             = var.environment
     AZURE_BLOB_CONNECTION_STRING    = azurerm_storage_account.storage.primary_blob_connection_string
     REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
