@@ -1,39 +1,40 @@
 name: SonarQube Analysis
 
 on:
-  push:  # Trigger on push to any branch
-  pull_request:  # Trigger on pull request to any branch
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  sonarQube:
+  sonar:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: ./src/go.mod
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Verify Java version
-        run: java -version
-
-      - name: Install SonarQube Scanner
-        run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
-          unzip sonar-scanner.zip -d $HOME
-          echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
-          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
-          echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
-    
+#      - name: Set up Java
+#        uses: actions/setup-java@v3
+#        with:
+#          distribution: 'temurin'
+#          java-version: '17'
+#
+#      - name: Verify Java version
+#        run: java -version
+#
+#      - name: Install SonarQube Scanner
+#        run: |
+#          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+#          unzip sonar-scanner.zip -d $HOME
+#          echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
+#          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
+#          echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+#
 
       - name: Run tests and generate coverage
         run: |
@@ -42,19 +43,16 @@ jobs:
           cat coverage.out
           go tool cover -func=coverage.out
 
-      - name: SonarQube Scan
+      - name: Sonar Scan
+        uses: sonarsource/sonarcloud-github-action@v2.2.0
         env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9.1/x64
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
-        run: |
-          cd src/
-          cat /home/runner/sonar-scanner-4.6.2.2472-linux/conf/sonar-scanner.properties
-          sonar-scanner \
-            -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
-            -Dsonar.organization=cdcgov \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.sources=. \
-            -Dsonar.tests=. \
+        with:
+          projectBaseDir: src
+          args: >
+            -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion
+            -Dsonar.organization=cdcgov
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.sources=.
+            -Dsonar.tests=.
             -Dsonar.go.coverage.reportPaths=coverage.out
-          
