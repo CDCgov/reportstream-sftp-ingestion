@@ -14,7 +14,7 @@ services:
       - ./localdata/reportstream:/localdata
       - ./mock_credentials:/mock_credentials
     ports:
-      - "9999:9090" # default api endpoint port
+      - "8081:8080" # default api endpoint port
     platform: linux/amd64
     depends_on:
       sftp-Azurite:

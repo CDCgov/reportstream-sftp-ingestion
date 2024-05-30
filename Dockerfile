@@ -20,4 +20,4 @@ COPY --from=builder /opt/build/reportstream-sftp-ingestion /usr/local/bin/report
 
 ENTRYPOINT ["/usr/local/bin/reportstream-sftp-ingestion"]
 
-EXPOSE 80
+EXPOSE 8080

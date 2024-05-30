@@ -52,7 +52,7 @@ func NewSender() Sender {
 		credentialGetter = local.CredentialGetter{}
 	} else {
 		slog.Info("Using Azure credentials")
-		credentialGetter = azure.CredentialGetter{}
+		credentialGetter = azure.SecretGetter{}
 	}
 
 	return Sender{

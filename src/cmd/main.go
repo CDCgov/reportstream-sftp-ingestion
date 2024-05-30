@@ -4,7 +4,9 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
+	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 )
@@ -14,6 +16,8 @@ func main() {
 	setupLogging()
 
 	slog.Info("Hello World")
+
+	go setupHealthCheck()
 
 	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
 	blobHandler, err := azure.NewStorageHandler(azureBlobConnectionString)
@@ -65,6 +69,23 @@ func setupLogging() {
 	if environment != "local" {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 		slog.SetDefault(logger)
+	}
+}
+
+func setupHealthCheck() {
+	slog.Info("Bootstrapping health check")
+
+	http.HandleFunc("/health", func(response http.ResponseWriter, request *http.Request) {
+		slog.Info("Health check ping")
+		_, err := io.WriteString(response, "Operational")
+		if err != nil {
+			slog.Error("Failed to respond to health check", slog.Any("error", err))
+		}
+	})
+
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		slog.Error("Failed to start health check", slog.Any("error", err))
 	}
 }
 
