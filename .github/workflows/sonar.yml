@@ -26,13 +26,18 @@ jobs:
       - name: Verify Java version
         run: java -version
 
+      - name: Set JAVA_HOME environment variable
+        run: echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))" >> $GITHUB_ENV
+
+
       - name: Install SonarQube Scanner
         run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.0.2311-linux.zip
           unzip sonar-scanner.zip -d $HOME
-          echo "$HOME/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
-          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
-          echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+#          export PATH="$HOME/sonar-scanner-4.6.0.2311-linux/bin:$PATH"
+#          echo "$HOME/sonar-scanner-4.6.0.2311-linux/bin" >> $GITHUB_PATH
+#          echo "export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/11.0.17-7/x64" >> $GITHUB_ENV
+#          echo "export PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
     
 
       - name: Run tests and generate coverage
