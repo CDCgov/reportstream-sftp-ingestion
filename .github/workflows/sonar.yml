@@ -49,7 +49,7 @@ jobs:
 
       - name: SonarQube Scan
         env:
-          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.11-9.1/x64
+          JAVA_HOME: ${{ env.JAVA_HOME }}
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
           cd src/
