@@ -16,7 +16,6 @@ type CredentialGetter struct{}
 
 func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.PrivateKey, error) {
 	vaultURI := os.Getenv("AZURE_KEY_VAULT_URI")
-	slog.Info("got key info", slog.String("key name", privateKeyName), slog.String("vaultURI", vaultURI))
 
 	// Create a credential using the NewDefaultAzureCredential type.
 	cred, err := azidentity.NewManagedIdentityCredential(&azidentity.ManagedIdentityCredentialOptions{
@@ -26,13 +25,7 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 			},
 		},
 	})
-	//cred, err := azidentity.NewDefaultAzureCredential(&azidentity.DefaultAzureCredentialOptions{
-	//	ClientOptions: policy.ClientOptions{
-	//		Retry: policy.RetryOptions{
-	//			TryTimeout: 60 * time.Second,
-	//		},
-	//	},
-	//})
+
 	if err != nil {
 		slog.Error("failed to obtain a credential: ", slog.Any("error", err))
 		return nil, err
@@ -44,7 +37,6 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 		slog.Error("failed to create a client: ", slog.Any("error", err))
 		return nil, err
 	}
-	slog.Info("created client")
 
 	version := ""
 	resp, err := client.GetSecret(context.TODO(), privateKeyName, version, nil)
@@ -52,8 +44,6 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 		slog.Error("failed to get the secret ", slog.Any("error", err))
 		return nil, err
 	}
-
-	slog.Info("got secret")
 
 	pem := *resp.Value
 
