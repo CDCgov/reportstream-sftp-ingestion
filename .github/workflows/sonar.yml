@@ -48,6 +48,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         run: |
           cd src/
+          echo "sonar properties here"
           cat /home/runner/sonar-scanner-4.6.2.2472-linux/conf/sonar-scanner.properties
           sonar-scanner \
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion \
