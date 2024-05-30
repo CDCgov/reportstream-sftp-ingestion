@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"github.com/CDCgov/reportstream-sftp-ingestion/local"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"io"
@@ -35,12 +36,12 @@ type Sender struct {
 	BaseUrl          string
 	PrivateKeyName   string
 	ClientName       string
-	credentialGetter CredentialGetter
+	credentialGetter utils.CredentialGetter
 }
 
 func NewSender() Sender {
 	// TODO get sender info based on source folder
-	var credentialGetter CredentialGetter
+	var credentialGetter utils.CredentialGetter
 
 	environment := os.Getenv("ENV")
 	if environment == "" {
