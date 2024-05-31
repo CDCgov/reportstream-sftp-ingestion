@@ -61,12 +61,19 @@ func (sender Sender) generateJwt() (string, error) {
 		return "", err
 	}
 	id, _ := uuid.NewUUID()
+
+	env := os.Getenv("ENV")
+	audiencePrefix := ""
+	if env != "prd" {
+		audiencePrefix = env + "."
+	}
+
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
 		ID:        id.String(),
 		Issuer:    sender.clientName,
 		Subject:   sender.clientName,
-		Audience:  jwt.ClaimStrings{os.Getenv("ENV") + ".prime.cdc.gov"},
+		Audience:  jwt.ClaimStrings{audiencePrefix + "prime.cdc.gov"},
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
