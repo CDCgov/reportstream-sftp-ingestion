@@ -6,6 +6,8 @@ resource "azurerm_storage_account" "storage" {
   account_replication_type        = "GRS"
   account_kind                    = "StorageV2"
   allow_nested_items_to_be_public = false
+  is_hns_enabled                  = true
+  sftp_enabled                    = true
 }
 
 resource "azurerm_storage_container" "sftp_container" {
