@@ -18,20 +18,6 @@ import (
 	"time"
 )
 
-/*
-TODO:
-- Set up environment variables for FLEXION_PRIVATE_KEY_NAME and FLEXION_CLIENT_NAME
-- TF for those vars - QUESTION: should we be loading private key from TF like as data, or creating it new in TF and then manually updating it?
-- Manually update key in TF?
-- Get key from ENV
-- Generate JWT to call token endpoint with
-- Call token endpoint (POST {{protocol}}://{{rs-host}}:{{rs-port}}/api/token) and do something with the response - cache? Use right away?
-- Update the send message code to call 'Send HL7v2 Message' endpoint (POST {{protocol}}://{{rs-host}}:{{rs-port}}/api/waters)
-
-For now:
-- Call /api/reports (needs API key in deployed env and no security locally)
-*/
-
 type Sender struct {
 	baseUrl          string
 	privateKeyName   string
@@ -40,8 +26,6 @@ type Sender struct {
 }
 
 func NewSender() (Sender, error) {
-	// TODO get sender info based on source folder
-
 	environment := os.Getenv("ENV")
 	if environment == "" {
 		environment = "local"
@@ -68,9 +52,6 @@ func NewSender() (Sender, error) {
 		credentialGetter: credentialGetter,
 	}, nil
 }
-
-//TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
-//TODO - unchain the key/JWT/token/submit sequence?
 
 func (sender Sender) generateJwt() (string, error) {
 
@@ -100,9 +81,6 @@ func (sender Sender) getToken() (string, error) {
 		return "", err
 	}
 
-	// TODO
-	// - put the scope into config
-	// - figure out if org and sender should be split apart (e.g. `flexion.simulated-hospital` vs `flexion` and `simulated-hospital`)
 	data := url.Values{
 		"scope":                 {"flexion.*.report"},
 		"grant_type":            {"client_credentials"},
@@ -136,7 +114,6 @@ func (sender Sender) getToken() (string, error) {
 
 	if res.StatusCode != http.StatusOK {
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
-		// TODO - decide when/whether to parse body - RS error responses are sometimes strings and sometimes JSON
 		return "", errors.New(res.Status)
 	}
 	var token ReportStreamToken
@@ -182,7 +159,6 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 	if res.StatusCode >= 300 {
 		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
-		// TODO - decide when/whether to parse body - RS error responses are sometimes strings and sometimes JSON
 		return "", errors.New(res.Status)
 	}
 
