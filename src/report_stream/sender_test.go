@@ -40,8 +40,9 @@ func (m *MockCredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.Privat
 
 func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
 
-	sender := NewSender()
+	sender, err := NewSender()
 
+	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.BaseUrl)
 	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.PrivateKeyName)
 	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.ClientName)
@@ -49,7 +50,9 @@ func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
 
 func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
 
-	sender := NewSender()
+	sender, err := NewSender()
+	assert.NoError(suite.T(), err)
+
 	mockCredentialGetter := new(MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
@@ -65,12 +68,14 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
 
 func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsError_WhenGetPrivateKeyReturnsError() {
 
-	sender := NewSender()
+	sender, err := NewSender()
+	assert.NoError(suite.T(), err)
+
 	mockCredentialGetter := new(MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
-	_, err := sender.GenerateJwt()
+	_, err = sender.GenerateJwt()
 
 	assert.Error(suite.T(), err)
 }

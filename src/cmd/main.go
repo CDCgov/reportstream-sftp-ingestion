@@ -41,7 +41,11 @@ func main() {
 		messageSender = local.FileSender{}
 	} else {
 		slog.Info("Found report stream url prefix, will send to ReportStream")
-		messageSender = report_stream.NewSender()
+		messageSender, err = report_stream.NewSender()
+		if err != nil {
+			slog.Warn("Failed to construct the ReportStream sender", slog.Any("error", err))
+			slog.Info("actually continuing just for now while we debug")
+		}
 	}
 
 	reportId, err := messageSender.SendMessage(content)

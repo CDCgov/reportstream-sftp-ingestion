@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	"log/slog"
 	"os"
 	"path/filepath"
 )
@@ -16,13 +17,17 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 	//- have e.g. a credential getter interface that varies by 'local or not'
 	// put interface in this package, one implementation in this package, another implementation in local
 
+	slog.Info("Reading private key from local hard drive", slog.String("name", privateKeyName))
+
 	pem, err := os.ReadFile(filepath.Join("mock_credentials", fmt.Sprintf("%s.pem", privateKeyName)))
 	if err != nil {
 		return nil, err
 	}
+
 	key, err := jwt.ParseRSAPrivateKeyFromPEM(pem)
 	if err != nil {
 		return nil, err
 	}
+
 	return key, nil
 }

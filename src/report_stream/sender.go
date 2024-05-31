@@ -39,20 +39,26 @@ type Sender struct {
 	credentialGetter utils.CredentialGetter
 }
 
-func NewSender() Sender {
+func NewSender() (Sender, error) {
 	// TODO get sender info based on source folder
-	var credentialGetter utils.CredentialGetter
 
 	environment := os.Getenv("ENV")
 	if environment == "" {
 		environment = "local"
 	}
+
+	var credentialGetter utils.CredentialGetter
+
 	if environment == "local" {
 		slog.Info("Using local credentials")
 		credentialGetter = local.CredentialGetter{}
 	} else {
 		slog.Info("Using Azure credentials")
-		credentialGetter = azure.SecretGetter{}
+		var err error
+		credentialGetter, err = azure.NewSecretGetter()
+		if err != nil {
+			return Sender{}, err
+		}
 	}
 
 	return Sender{
@@ -60,7 +66,7 @@ func NewSender() Sender {
 		PrivateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
 		ClientName:       os.Getenv("FLEXION_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
-	}
+	}, nil
 }
 
 //TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
