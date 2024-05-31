@@ -40,7 +40,7 @@ func (credentialGetter SecretGetter) GetPrivateKey(privateKeyName string) (*rsa.
 	}
 
 	// Establish a connection to the Key Vault client
-	_, err = azsecrets.NewClient(vaultURI, cred, nil)
+	newClient, err := azsecrets.NewClient(vaultURI, cred, nil)
 
 	if err != nil {
 		slog.Error("failed to create a client: ", slog.Any("error", err))
@@ -48,7 +48,7 @@ func (credentialGetter SecretGetter) GetPrivateKey(privateKeyName string) (*rsa.
 	}
 
 	version := ""
-	resp, err := credentialGetter.secretGetter.GetSecret(context.TODO(), privateKeyName, version, nil)
+	resp, err := newClient.GetSecret(context.TODO(), privateKeyName, version, nil)
 	if err != nil {
 		slog.Error("failed to get the secret ", slog.Any("error", err))
 		return nil, err
