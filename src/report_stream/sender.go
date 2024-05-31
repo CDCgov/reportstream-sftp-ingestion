@@ -33,9 +33,9 @@ For now:
 */
 
 type Sender struct {
-	BaseUrl          string
-	PrivateKeyName   string
-	ClientName       string
+	baseUrl          string
+	privateKeyName   string
+	clientName       string
 	credentialGetter utils.CredentialGetter
 }
 
@@ -62,9 +62,9 @@ func NewSender() (Sender, error) {
 	}
 
 	return Sender{
-		BaseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		PrivateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
-		ClientName:       os.Getenv("FLEXION_CLIENT_NAME"),
+		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
+		privateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
+		clientName:       os.Getenv("FLEXION_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil
 }
@@ -72,9 +72,9 @@ func NewSender() (Sender, error) {
 //TODO - cache key and/or JWT and/or token somewhere rather than requesting each time? JWT and token both expire
 //TODO - unchain the key/JWT/token/submit sequence?
 
-func (sender Sender) GenerateJwt() (string, error) {
+func (sender Sender) generateJwt() (string, error) {
 
-	key, err := sender.credentialGetter.GetPrivateKey(sender.PrivateKeyName)
+	key, err := sender.credentialGetter.GetPrivateKey(sender.privateKeyName)
 
 	if err != nil {
 		return "", err
@@ -83,19 +83,19 @@ func (sender Sender) GenerateJwt() (string, error) {
 	claims := &jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Minute)),
 		ID:        id.String(),
-		Issuer:    sender.ClientName,
-		Subject:   sender.ClientName,
+		Issuer:    sender.clientName,
+		Subject:   sender.clientName,
 		Audience:  jwt.ClaimStrings{os.Getenv("ENV") + ".prime.cdc.gov"},
 	}
 
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	t.Header["kid"] = sender.ClientName
+	t.Header["kid"] = sender.clientName
 
 	return t.SignedString(key)
 }
 
-func (sender Sender) GetToken() (string, error) {
-	senderJwt, err := sender.GenerateJwt()
+func (sender Sender) getToken() (string, error) {
+	senderJwt, err := sender.generateJwt()
 	if err != nil {
 		return "", err
 	}
@@ -110,7 +110,7 @@ func (sender Sender) GetToken() (string, error) {
 		"client_assertion":      {senderJwt},
 	}
 
-	req, err := http.NewRequest("POST", sender.BaseUrl+"/api/token", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", sender.baseUrl+"/api/token", strings.NewReader(data.Encode()))
 	if err != nil {
 		return "", err
 	}
@@ -149,12 +149,12 @@ func (sender Sender) GetToken() (string, error) {
 }
 
 func (sender Sender) SendMessage(message []byte) (string, error) {
-	token, err := sender.GetToken()
+	token, err := sender.getToken()
 	if err != nil {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", sender.BaseUrl+"/api/waters", bytes.NewBuffer(message))
+	req, err := http.NewRequest("POST", sender.baseUrl+"/api/waters", bytes.NewBuffer(message))
 
 	if err != nil {
 		return "", err
@@ -162,7 +162,7 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 
 	req.Header = http.Header{
 		"content-type":  {"application/hl7-v2"},
-		"client":        {sender.ClientName},
+		"client":        {sender.clientName},
 		"Authorization": {"Bearer " + token},
 	}
 

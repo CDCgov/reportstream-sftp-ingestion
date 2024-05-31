@@ -5,9 +5,5 @@ package main
 // Local dev can use either local ReportStream or the mock service
 // TODO - have PR env use mock service - any other envs?
 type MessageSender interface {
-	//TODO - implement these in local file sender?
-	//GenerateJwt() (string, error)
-	//GetToken() (string, error)
-
 	SendMessage(message []byte) (string, error)
 }

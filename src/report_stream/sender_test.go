@@ -15,14 +15,14 @@ type SenderTestSuite struct {
 	suite.Suite
 }
 
-func (receiver *SenderTestSuite) SetupTest() {
+func (suite *SenderTestSuite) SetupTest() {
 	os.Setenv("ENV", "local")
 	os.Setenv("REPORT_STREAM_URL_PREFIX", "rs.com")
 	os.Setenv("FLEXION_PRIVATE_KEY_NAME", "key")
 	os.Setenv("FLEXION_CLIENT_NAME", "client")
 }
 
-func (receiver *SenderTestSuite) TearDownTest() {
+func (suite *SenderTestSuite) TearDownTest() {
 	os.Unsetenv("ENV")
 	os.Unsetenv("REPORT_STREAM_URL_PREFIX")
 	os.Unsetenv("FLEXION_PRIVATE_KEY_NAME")
@@ -43,9 +43,9 @@ func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
 	sender, err := NewSender()
 
 	assert.NoError(suite.T(), err)
-	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.BaseUrl)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.PrivateKeyName)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.ClientName)
+	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.baseUrl)
+	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.privateKeyName)
+	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
 }
 
 func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
@@ -60,7 +60,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
 	assert.NoError(suite.T(), err)
 
 	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
-	jwt, err := sender.GenerateJwt()
+	jwt, err := sender.generateJwt()
 
 	assert.NoError(suite.T(), err)
 	assert.NotEmpty(suite.T(), jwt)
@@ -75,7 +75,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsError_WhenGetPrivat
 	sender.credentialGetter = mockCredentialGetter
 
 	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
-	_, err = sender.GenerateJwt()
+	_, err = sender.generateJwt()
 
 	assert.Error(suite.T(), err)
 }
