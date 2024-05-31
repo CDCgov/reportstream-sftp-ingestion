@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/log"
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
@@ -69,6 +70,10 @@ func setupLogging() {
 	if environment != "local" {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 		slog.SetDefault(logger)
+
+		log.SetListener(func(event log.Event, s string) {
+			slog.Info(s)
+		})
 	}
 }
 
