@@ -29,6 +29,9 @@ resource "azurerm_linux_web_app" "sftp" {
   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
 
   site_config {
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 5
+
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
 
     dynamic "ip_restriction" {
@@ -58,9 +61,16 @@ resource "azurerm_linux_web_app" "sftp" {
     DOCKER_REGISTRY_SERVER_URL      = "https://${azurerm_container_registry.registry.login_server}"
     DOCKER_REGISTRY_SERVER_USERNAME = azurerm_container_registry.registry.admin_username
     DOCKER_REGISTRY_SERVER_PASSWORD = azurerm_container_registry.registry.admin_password
-    ENV                             = var.environment
-    AZURE_BLOB_CONNECTION_STRING    = azurerm_storage_account.storage.primary_blob_connection_string
-    REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
+    WEBSITES_PORT                   = 8080
+    PORT                            = 8080
+
+    ENV                          = var.environment
+    AZURE_BLOB_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
+    REPORT_STREAM_URL_PREFIX     = "https://${local.rs_domain_prefix}prime.cdc.gov"
+    FLEXION_PRIVATE_KEY_NAME     = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
+    AZURE_KEY_VAULT_URI          = azurerm_key_vault.key_storage.vault_uri
+    FLEXION_CLIENT_NAME          = "flexion.simulated-lab"
+    AZURE_SDK_GO_LOGGING         = "all"
   }
 
   identity {

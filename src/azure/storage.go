@@ -19,10 +19,8 @@ func NewStorageHandler(conn string) (StorageHandler, error) {
 	return StorageHandler{blobClient: blobClient}, nil
 }
 
-// TODO - container should eventually be managed by Terraform
-
 func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
-	// TODO - read containerName from env vars
+	// The container name for CA will be added as part of card 1077 and will be configurable in 1081
 	containerName := "sftp"
 
 	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, blobPath, &azblob.DownloadStreamOptions{})
