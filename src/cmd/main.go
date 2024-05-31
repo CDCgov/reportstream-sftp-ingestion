@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -25,6 +26,12 @@ func main() {
 	if err != nil {
 		slog.Warn("Usecase failed", slog.Any("error", err))
 		slog.Info("Continuing for now while debugging")
+	}
+
+	for {
+		t := time.Now()
+		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
+		time.Sleep(4 * time.Minute)
 	}
 }
 
