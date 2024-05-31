@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	azlog "github.com/Azure/azure-sdk-for-go/sdk/azcore/log"
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
@@ -14,9 +12,9 @@ import (
 )
 
 func main() {
-	azlog.SetListener(func(event azlog.Event, s string) {
-		fmt.Println(s)
-	})
+	//azlog.SetListener(func(event azlog.Event, s string) {
+	//	fmt.Println(s)
+	//})
 
 	setupLogging()
 
@@ -81,7 +79,8 @@ func setupHealthCheck() {
 	slog.Info("Bootstrapping health check")
 
 	responseFunction := func(response http.ResponseWriter, request *http.Request) {
-		slog.Info("Health check ping")
+		slog.Info("Health check ping", slog.String("method", request.Method), slog.String("path", request.URL.String()))
+
 		_, err := io.WriteString(response, "Operational")
 		if err != nil {
 			slog.Error("Failed to respond to health check", slog.Any("error", err))
