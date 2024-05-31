@@ -12,9 +12,6 @@ import (
 )
 
 func main() {
-	//azlog.SetListener(func(event azlog.Event, s string) {
-	//	fmt.Println(s)
-	//})
 
 	setupLogging()
 
@@ -78,18 +75,14 @@ func setupLogging() {
 func setupHealthCheck() {
 	slog.Info("Bootstrapping health check")
 
-	responseFunction := func(response http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
 		slog.Info("Health check ping", slog.String("method", request.Method), slog.String("path", request.URL.String()))
 
 		_, err := io.WriteString(response, "Operational")
 		if err != nil {
 			slog.Error("Failed to respond to health check", slog.Any("error", err))
 		}
-	}
-
-	http.HandleFunc("/", responseFunction)
-	http.HandleFunc("/health", responseFunction)
-	http.HandleFunc("/admin/host/status", responseFunction)
+	})
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
