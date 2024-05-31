@@ -75,13 +75,17 @@ func setupLogging() {
 func setupHealthCheck() {
 	slog.Info("Bootstrapping health check")
 
-	http.HandleFunc("/health", func(response http.ResponseWriter, request *http.Request) {
+	responseFunction := func(response http.ResponseWriter, request *http.Request) {
 		slog.Info("Health check ping")
 		_, err := io.WriteString(response, "Operational")
 		if err != nil {
 			slog.Error("Failed to respond to health check", slog.Any("error", err))
 		}
-	})
+	}
+
+	http.HandleFunc("/", responseFunction)
+	http.HandleFunc("/health", responseFunction)
+	http.HandleFunc("/admin/host/status", responseFunction)
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
