@@ -29,12 +29,10 @@ As a _, so that _, I need _.
 ## Definition of Done
 - [ ] Documentation tasks completed
   - [ ] Documentation and diagrams created or updated
-    - [ ] Implementation guide (`/ig` folder)
     - [ ] ADRs (`/adr` folder)
     - [ ] Main `README.md`
     - [ ] Other READMEs in the repo
-    - [ ] If applicable, update the `ReportStream Setup` section in `README.md`
-  - [ ] [Threat model](https://lucid.app/lucidchart/8c6e8d37-2612-42a8-ac57-150c83f8e29e/edit) updated
+  - [ ] [Threat model](https://lucid.app/lucidchart/693ff5f9-c289-4585-9e74-a7f5abb36d69/edit) updated
   - [ ] API documentation updated
 - [ ] Code quality tasks completed
   - [ ] Code refactored for clarity and no design/technical debt
