@@ -77,6 +77,31 @@ make unitTests
 
 ##### Internal
 
+The Internal environment is meant to be the Wild West.  Meaning anyone can push to it to test something, and there is no
+requirement that only good builds be pushed to it.  Use the Internal environment if you want to test something in a
+deployed environment in a _non-CDC_ Azure Entra domain and subscription.
+
+To deploy to the Internal environment...
+1. Check with the team that no one is already using it.
+2. [Find the `internal` branch](https://github.com/CDCgov/trusted-intermediary/branches/all?query=internal) and delete
+   it in GitHub.
+3. Delete your local `internal` branch if needed.
+   ```shell
+   git branch -D internal
+   ```
+4. From the branch you want to test, create a new `internal` branch.
+   ```shell
+   git checkout -b internal
+   ```
+5. Push the branch to GitHub.
+   ```shell
+   git push --set-upstream origin internal
+   ```
+
+Then the [deploy](https://github.com/CDCgov/reportstream-sftp-ingestion/actions/workflows/internal-deploy.yml) will run.
+Remember that you now have the `internal` branch checked out locally.  If you make subsequent code changes, you will
+make them on the `internal` branch instead of your original branch.
+
 ##### Dev
 
 The Dev environment is similar to the Internal environment but deploys to a CDC Azure Entra domain and subscription.  It
