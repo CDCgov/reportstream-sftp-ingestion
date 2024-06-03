@@ -83,7 +83,7 @@ deployed environment in a _non-CDC_ Azure Entra domain and subscription.
 
 To deploy to the Internal environment...
 1. Check with the team that no one is already using it.
-2. [Find the `internal` branch](https://github.com/CDCgov/trusted-intermediary/branches/all?query=internal) and delete
+2. [Find the `internal` branch](https://github.com/CDCgov/reportstream-sftp-ingestion/branches/all?query=internal) and delete
    it in GitHub.
 3. Delete your local `internal` branch if needed.
    ```shell
