@@ -2,9 +2,11 @@ package azure
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"log"
+	"log/slog"
 	"os"
 )
 
@@ -47,6 +49,37 @@ func ListenToQueue() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Updated number of messages in the queue=%d\n", len(resp.Messages))
+	messageCount := len(resp.Messages)
+	fmt.Printf("Updated number of messages in the queue=%d\n", messageCount)
+	if messageCount > 0 {
+		// TODO - dequeue multiple messages, loop over them and kick off go routine for each
+		messageResponse, err := client.DequeueMessage(ctx, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		message := messageResponse.Messages[0]
+		messageText := *message.MessageText
+		messageId := *message.MessageID
+		popReceipt := *message.PopReceipt
+
+		decoded, err := base64.StdEncoding.DecodeString(messageText)
+		if err != nil {
+			fmt.Println("decode error:", err)
+			return
+		}
+		fmt.Println(string(decoded))
+
+		slog.Info("message dequeued", slog.Any("message text", decoded), slog.Any("message response", messageResponse.Messages[0]))
+
+		// TODO - delete message in the message handler instead of the queue reader
+		deleteResponse, err := client.DeleteMessage(ctx, messageId, popReceipt, nil)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		slog.Info("message deleted", slog.Any("delete message response", deleteResponse))
+	}
 
 }
