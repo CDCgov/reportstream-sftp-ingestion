@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"io"
 	"log/slog"
 	"net/http"
@@ -29,9 +30,10 @@ func main() {
 	}
 
 	for {
+		azure.ListenToQueue()
 		t := time.Now()
 		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
-		time.Sleep(4 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }
 

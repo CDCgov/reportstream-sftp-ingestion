@@ -15,7 +15,7 @@ type ReadAndSendUsecase struct {
 
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 
-	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
+	azureBlobConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobHandler, err := azure.NewStorageHandler(azureBlobConnectionString)
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
