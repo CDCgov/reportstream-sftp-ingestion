@@ -43,8 +43,7 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	}, nil
 }
 
-func (receiver ReadAndSendUsecase) ReadAndSend() error {
-	filepath := "order_message.hl7"
+func (receiver ReadAndSendUsecase) ReadAndSend(filepath string) error {
 	content, err := receiver.blobHandler.FetchFile(filepath)
 	if err != nil {
 		slog.Error("Failed to read the file", slog.String("filepath", filepath), slog.Any("error", err))

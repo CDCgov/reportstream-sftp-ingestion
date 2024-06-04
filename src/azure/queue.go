@@ -29,7 +29,7 @@ func listenToQueue(sqsService *sqs.SQS, queueUrl *string) {
 }
 */
 
-func ListenToQueue() error {
+func ListenToQueue() (string, error) {
 
 	azureQueueConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
@@ -38,27 +38,23 @@ func ListenToQueue() error {
 	// TODO - bubble up error and do correct logging
 	if err != nil {
 		slog.Error("Unable to create Azure Queue Client", err)
-		return err
+		return "", err
 	}
 	ctx := context.Background()
 
-	// The code below shows how a client or server can determine the approximate count of messages in the queue:
-	resp, err := client.PeekMessages(ctx, nil)
+	// TODO - dequeue multiple messages, loop over them and kick off go routine for each
+	messageResponse, err := client.DequeueMessage(ctx, nil)
 	if err != nil {
-		slog.Error("Unable to peek messages", err)
-		return err
+		slog.Error("Unable to dequeue messages", err)
+		return "", err
 	}
 
-	messageCount := len(resp.Messages)
-	slog.Info("Updated number of messages in the queue=", messageCount)
-	if messageCount > 0 {
-		// TODO - dequeue multiple messages, loop over them and kick off go routine for each
-		messageResponse, err := client.DequeueMessage(ctx, nil)
-		if err != nil {
-			slog.Error("Unable to dequeue messages", err)
-			return err
-		}
+	var messageCount int
 
+	messageCount = len(messageResponse.Messages)
+	slog.Info("", slog.Any("Number of messages in the queue", messageCount))
+
+	if messageCount > 0 {
 		message := messageResponse.Messages[0]
 		messageText := *message.MessageText
 		messageId := *message.MessageID
@@ -66,8 +62,8 @@ func ListenToQueue() error {
 
 		decoded, err := base64.StdEncoding.DecodeString(messageText)
 		if err != nil {
-			slog.Error("Unable to decode message text", err)
-			return err
+			slog.Error("Unable to decode message text", slog.Any("error", err))
+			return "", err
 		}
 
 		slog.Info("message dequeued", slog.Any("message text", decoded), slog.Any("message response", messageResponse.Messages[0]))
@@ -75,11 +71,13 @@ func ListenToQueue() error {
 		// TODO - delete message in the message handler instead of the queue reader
 		deleteResponse, err := client.DeleteMessage(ctx, messageId, popReceipt, nil)
 		if err != nil {
-			slog.Error("Unable to delete message", err)
-			return err
+			slog.Error("Unable to delete message", slog.Any("error", err))
+			return "", err
 		}
 
 		slog.Info("message deleted", slog.Any("delete message response", deleteResponse))
+
+		return string(decoded), nil
 	}
-	return nil
+	return "", nil
 }
