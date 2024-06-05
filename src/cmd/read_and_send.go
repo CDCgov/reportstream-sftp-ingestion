@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"github.com/CDCgov/reportstream-sftp-ingestion/local"
 	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
@@ -59,4 +60,48 @@ func (receiver ReadAndSendUsecase) ReadAndSend(filepath string) error {
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
 	return nil
+}
+
+// Initial function that should be called from Main that will call the Queue function that checks for messages.
+// Secondly it should call ReadAndSend if a filename comes back
+// Finally it should call  storage.go to move and delete the file (Func needs created) and the queue.go function to delete the message if sent successfully
+func (receiver ReadAndSendUsecase) CheckQueue() {
+
+	queueHandler, err := azure.NewQueueHandler()
+	if err != nil {
+		slog.Warn("Failed to create queueHandler", slog.Any("error", err))
+	}
+
+	messageResponse, err := queueHandler.ListenToQueue()
+	if err != nil {
+		slog.Warn("ListenToQueue failed", slog.Any("error", err))
+	}
+
+	filepathBytes, err := base64.StdEncoding.DecodeString(*messageResponse.Messages[0].MessageText)
+
+	filepath := string(filepathBytes)
+
+	message := *messageResponse.Messages[0]
+
+	usecase, err := NewReadAndSendUsecase()
+
+	if err != nil {
+		slog.Error("NewReadAndSendUsecase failed", slog.Any("error", err))
+	}
+	if filepath != "" {
+		slog.Info("Calling read and send")
+		err = usecase.ReadAndSend(filepath)
+		if err != nil {
+			slog.Error("ReadAndSend failed", slog.Any("error", err))
+		}
+
+		err = queueHandler.HandleMessage(message)
+
+		if err != nil {
+			slog.Error("HandleMessage failed", slog.Any("error", err))
+		}
+	} else {
+		slog.Error("No queue file found", slog.Any("error", err))
+	}
+
 }

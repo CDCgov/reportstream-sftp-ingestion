@@ -11,9 +11,9 @@ func Test_ReadAndSendUsecase_failsToReadBlob(t *testing.T) {
 	mockBlobHandler := &MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", "order_message.hl7").Return([]byte{}, errors.New("it blew up"))
 
-	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler}
+	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler}
 
-	err := usecase.ReadAndSend()
+	err := usecase.ReadAndSend("order_message.hl7")
 
 	assert.Error(t, err)
 }
@@ -25,9 +25,9 @@ func Test_ReadAndSendUsecase_failsToSendMessage(t *testing.T) {
 	mockMessageSender := &MockMessageSender{}
 	mockMessageSender.On("SendMessage", mock.Anything).Return("", errors.New("sending message failed"))
 
-	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
 
-	err := usecase.ReadAndSend()
+	err := usecase.ReadAndSend("order_message.hl7")
 
 	assert.Error(t, err)
 }
@@ -39,9 +39,9 @@ func Test_ReadAndSendUsecase_successfulReadAndSend(t *testing.T) {
 	mockMessageSender := &MockMessageSender{}
 	mockMessageSender.On("SendMessage", mock.Anything).Return("epic report ID", nil)
 
-	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
 
-	err := usecase.ReadAndSend()
+	err := usecase.ReadAndSend("order_message.hl7")
 
 	assert.NoError(t, err)
 }

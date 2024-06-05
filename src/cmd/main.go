@@ -1,12 +1,10 @@
 package main
 
 import (
-	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 )
 
 func main() {
@@ -23,31 +21,8 @@ func main() {
 		slog.Info("Continuing for now while debugging")
 	}
 
-	slog.Info("Sending default file")
-	filepath := "order_message.hl7"
-	err = usecase.ReadAndSend(filepath)
-	if err != nil {
-		slog.Warn("Usecase failed", slog.Any("error", err))
-		slog.Info("Continuing for now while debugging")
-	}
+	usecase.CheckQueue()
 
-	// TODO - move loop into queue listener
-	for {
-		// TODO - use event schema: https://learn.microsoft.com/en-us/azure/event-grid/event-schema-blob-storage?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&tabs=cloud-event-schema
-		filepath, err = azure.ListenToQueue()
-		if err != nil {
-			slog.Warn("ListenToQueue failed", slog.Any("error", err))
-		} else if filepath != "" {
-			slog.Info("Retrieved file path from queue message", slog.Any("path", filepath))
-			err = usecase.ReadAndSend(filepath)
-			if err != nil {
-				slog.Warn("Unable to retrieve file: ", filepath, slog.Any("error", err))
-			}
-		}
-		t := time.Now()
-		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
-		time.Sleep(1 * time.Minute)
-	}
 }
 
 func setupLogging() {
