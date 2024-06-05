@@ -1,7 +1,8 @@
-package main
+package usecases
 
 import (
 	"errors"
+	"github.com/CDCgov/reportstream-sftp-ingestion/cmd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -11,7 +12,7 @@ func Test_ReadAndSendUsecase_failsToReadBlob(t *testing.T) {
 	mockBlobHandler := &MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", "order_message.hl7").Return([]byte{}, errors.New("it blew up"))
 
-	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler}
+	usecase := main.main.ReadAndSendUsecase{blobHandler: mockBlobHandler}
 
 	err := usecase.ReadAndSend("order_message.hl7")
 
@@ -25,7 +26,7 @@ func Test_ReadAndSendUsecase_failsToSendMessage(t *testing.T) {
 	mockMessageSender := &MockMessageSender{}
 	mockMessageSender.On("SendMessage", mock.Anything).Return("", errors.New("sending message failed"))
 
-	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := main.main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
 
 	err := usecase.ReadAndSend("order_message.hl7")
 
@@ -39,7 +40,7 @@ func Test_ReadAndSendUsecase_successfulReadAndSend(t *testing.T) {
 	mockMessageSender := &MockMessageSender{}
 	mockMessageSender.On("SendMessage", mock.Anything).Return("epic report ID", nil)
 
-	usecase := main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := main.main.ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
 
 	err := usecase.ReadAndSend("order_message.hl7")
 
