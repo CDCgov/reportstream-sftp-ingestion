@@ -51,17 +51,7 @@ func NewQueueHandler() (QueueHandler, error) {
 	return QueueHandler{queueClient: client, ctx: context.Background()}, nil
 }
 
-func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-	// TODO - use event schema: https://learn.microsoft.com/en-us/azure/event-grid/event-schema-blob-storage?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&tabs=cloud-event-schema
-
-	messageText := *message.MessageText
-
-	usecase, err := usecases.NewReadAndSendUsecase()
-	if err != nil {
-		slog.Warn("Failed to init the usecase", slog.Any("error", err))
-		slog.Info("Continuing for now while debugging")
-	}
-	// changing from a message body that looks like 'msg2.hl7' to a message body that's a json
+func getFilePathFromMessage(messageText string) (string, error) {
 	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
 
 	// Map bytes json to Event object format (shape)
@@ -69,12 +59,12 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	err = event.UnmarshalJSON(eventBytes)
 	if err != nil {
 		slog.Error("Failed to unmarshal event", slog.Any("error", err))
-		return err
+		return "", err
 	}
 
 	eventSubject := *event.Subject
 
-	eventSubjectParts := strings.Split(eventSubject, "/blobs/")
+	eventSubjectParts := strings.Split(eventSubject, "blobs/")
 
 	// Determines whether a blob was given and split properly
 	// EX: "subject":"/blobServices/default/containers/sftp/blobs/customer/import/msg2.hl7"
@@ -82,10 +72,40 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	// If fewer than 2 pieces result, this is probably not a blob
 	if len(eventSubjectParts) != 2 {
 		slog.Error("Failed to parse subject", slog.String("subject", eventSubject))
-		return errors.New("failed to parse subject")
+		return "", errors.New("failed to parse subject")
 	}
 
-	filePath := eventSubjectParts[1]
+	return eventSubjectParts[1], nil
+}
+
+func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) error {
+	messageId := *message.MessageID
+	popReceipt := *message.PopReceipt
+
+	deleteResponse, err := receiver.queueClient.DeleteMessage(receiver.ctx, messageId, popReceipt, nil)
+	if err != nil {
+		slog.Error("Unable to delete message", slog.Any("error", err))
+		return err
+	}
+
+	slog.Info("message deleted", slog.Any("delete message response", deleteResponse))
+
+	return nil
+}
+
+func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
+	usecase, err := usecases.NewReadAndSendUsecase()
+	if err != nil {
+		slog.Warn("Failed to init the usecase", slog.Any("error", err))
+		slog.Info("Continuing for now while debugging")
+	}
+
+	filePath, err := getFilePathFromMessage(*message.MessageText)
+
+	if err != nil {
+		slog.Error("Failed to get the file path", slog.Any("error", err))
+		return err
+	}
 
 	err = usecase.ReadAndSend(filePath)
 
@@ -98,16 +118,11 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
 	} else {
 		// Only delete message if file successfully sent to ReportStream
-		messageId := *message.MessageID
-		popReceipt := *message.PopReceipt
-
-		deleteResponse, err := receiver.queueClient.DeleteMessage(receiver.ctx, messageId, popReceipt, nil)
+		err = receiver.deleteMessage(message)
 		if err != nil {
-			slog.Error("Unable to delete message", slog.Any("error", err))
+			slog.Warn("Failed to delete message", slog.Any("error", err))
 			return err
 		}
-
-		slog.Info("message deleted", slog.Any("delete message response", deleteResponse))
 	}
 
 	return nil
