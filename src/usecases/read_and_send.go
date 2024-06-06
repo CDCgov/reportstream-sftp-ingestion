@@ -1,9 +1,8 @@
 package usecases
 
 import (
-	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
-	"github.com/CDCgov/reportstream-sftp-ingestion/local"
-	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
+	"github.com/CDCgov/reportstream-sftp-ingestion/senders"
+	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
 	"log/slog"
 	"os"
 )
@@ -16,7 +15,7 @@ type ReadAndSendUsecase struct {
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 
 	azureBlobConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
-	blobHandler, err := azure.NewStorageHandler(azureBlobConnectionString)
+	blobHandler, err := storage.NewStorageHandler(azureBlobConnectionString)
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		return ReadAndSendUsecase{}, err
@@ -26,13 +25,13 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	var messageSender MessageSender
 
 	if reportStreamBaseUrl == "" {
-		slog.Info("REPORT_STREAM_URL_PREFIX not set, using file sender instead")
-		messageSender = local.FileSender{}
+		slog.Info("REPORT_STREAM_URL_PREFIX not set, using file senders instead")
+		messageSender = senders.FileSender{}
 	} else {
 		slog.Info("Found REPORT_STREAM_URL_PREFIX, will send to ReportStream")
-		messageSender, err = report_stream.NewSender()
+		messageSender, err = senders.NewSender()
 		if err != nil {
-			slog.Warn("Failed to construct the ReportStream sender", slog.Any("error", err))
+			slog.Warn("Failed to construct the ReportStream senders", slog.Any("error", err))
 			return ReadAndSendUsecase{}, err
 		}
 	}

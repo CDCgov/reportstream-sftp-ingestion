@@ -1,4 +1,4 @@
-package report_stream
+package senders
 
 type Report struct {
 	ReportId string `json:"reportId"`
@@ -28,7 +28,7 @@ Success:
   "timestamp" : "2024-05-20T21:11:36.144Z",
   "plannedCompletionAt" : null,
   "actualCompletionAt" : null,
-  "sender" : "flexion.simulated-hospital",
+  "senders" : "flexion.simulated-hospital",
   "reportItemCount" : 1,
   "errorCount" : 0,
   "warningCount" : 0,
@@ -53,7 +53,7 @@ JSON Error:
     "timestamp": "2024-05-23T21:36:46.879Z",
     "plannedCompletionAt": null,
     "actualCompletionAt": null,
-    "sender": "",
+    "senders": "",
     "reportItemCount": null,
     "errorCount": 1,
     "warningCount": 0,

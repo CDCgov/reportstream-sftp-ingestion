@@ -1,4 +1,4 @@
-package azure
+package secrets
 
 import (
 	"context"
@@ -16,7 +16,6 @@ type SecretGetter struct {
 	client *azsecrets.Client
 }
 
-// TODO - refactor out of the Azure folder and make something domain-specific
 func NewSecretGetter() (SecretGetter, error) {
 
 	// Create a credential using the NewDefaultAzureCredential type.

@@ -106,6 +106,6 @@ func (receiver QueueHandler) ListenToQueue() error {
 				}
 			}()
 		}
-		time.Sleep(1 * time.Minute)
+		time.Sleep(10 * time.Second)
 	}
 }
