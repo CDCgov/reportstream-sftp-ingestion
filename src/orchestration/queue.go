@@ -3,6 +3,8 @@ package orchestration
 import (
 	"context"
 	"encoding/base64"
+	"errors"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"log/slog"
@@ -58,12 +60,45 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		slog.Warn("Failed to init the usecase", slog.Any("error", err))
 		slog.Info("Continuing for now while debugging")
 	}
-	filepathBytes, err := base64.StdEncoding.DecodeString(messageText)
+	// changing from a message body that looks like 'msg2.hl7' to a message body that's a json
+	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
 
-	filepath := string(filepathBytes)
+	// Map bytes json to Event object format (shape)
+	var event azeventgrid.Event
+	err = event.UnmarshalJSON(eventBytes)
+	if err != nil {
+		slog.Error("Failed to unmarshal event", slog.Any("error", err))
+		return err
+	}
 
-	err = usecase.ReadAndSend(filepath)
+	slog.Info("Event", slog.Any("body", event))
 
+	slog.Info("Event", slog.Any("data", event.Data))
+
+	// Data is an 'any' type. We need to tell Go that it's a map
+	eventData, ok := event.Data.(map[string]any)
+
+	if !ok {
+		slog.Error("Could not assert event data to a map", slog.Any("event", event))
+		return errors.New("could not assert event data to a map")
+	}
+
+	// Extract blob url from Event's data
+	eventUrl, ok := eventData["url"].(string)
+
+	if !ok {
+		slog.Error("Could not assert event data url to a string", slog.Any("event", event))
+		return errors.New("could not assert event data url to a string")
+	}
+
+	// TODO - update readandsend to use whole blob url instead of just filepath
+	err = usecase.ReadAndSend(eventUrl)
+
+	// TODO - how do we decide when to move a file from import to failure/error?
+	// If a queue message ends up on the poison queue, should the file still be in `import`
+	// or should we know to move it to `error`? Does it matter if it's e.g. a non-success response from RS
+	// vs an error calling them?
+	// TODO - minimum option is to check the dequeue count, and if we're over the threshold, log an error so we at least know something failed
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
 	} else {
