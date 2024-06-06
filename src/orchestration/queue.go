@@ -9,6 +9,7 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -71,28 +72,22 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		return err
 	}
 
-	slog.Info("Event", slog.Any("body", event))
+	eventSubject := *event.Subject
 
-	slog.Info("Event", slog.Any("data", event.Data))
+	eventSubjectParts := strings.Split(eventSubject, "/blobs/")
 
-	// Data is an 'any' type. We need to tell Go that it's a map
-	eventData, ok := event.Data.(map[string]any)
-
-	if !ok {
-		slog.Error("Could not assert event data to a map", slog.Any("event", event))
-		return errors.New("could not assert event data to a map")
+	// Determines whether a blob was given and split properly
+	// EX: "subject":"/blobServices/default/containers/sftp/blobs/customer/import/msg2.hl7"
+	// If more than 2 pieces result, there's something confusing about the file path
+	// If fewer than 2 pieces result, this is probably not a blob
+	if len(eventSubjectParts) != 2 {
+		slog.Error("Failed to parse subject", slog.String("subject", eventSubject))
+		return errors.New("failed to parse subject")
 	}
 
-	// Extract blob url from Event's data
-	eventUrl, ok := eventData["url"].(string)
+	filePath := eventSubjectParts[1]
 
-	if !ok {
-		slog.Error("Could not assert event data url to a string", slog.Any("event", event))
-		return errors.New("could not assert event data url to a string")
-	}
-
-	// TODO - update readandsend to use whole blob url instead of just filepath
-	err = usecase.ReadAndSend(eventUrl)
+	err = usecase.ReadAndSend(filePath)
 
 	// TODO - how do we decide when to move a file from import to failure/error?
 	// If a queue message ends up on the poison queue, should the file still be in `import`
