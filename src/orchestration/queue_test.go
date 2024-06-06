@@ -1,8 +1,11 @@
 package orchestration
 
 import (
+	"context"
 	"encoding/base64"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"testing"
 )
 
@@ -44,3 +47,32 @@ func Test_getFilePathFromMessage_returnsErrorWhenMessageNotEvent(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, expected, actual)
 }
+
+type MockQueueClient struct {
+	mock.Mock
+}
+
+// receiver.ctx, messageId, popReceipt, nil)
+func (receiver MockQueueClient) DeleteMessage(ctx context.Context, messageID string, popReceipt string, o *azqueue.DeleteMessageOptions) (azqueue.DeleteMessageResponse, error) {
+	args := receiver.Called(ctx, messageID, popReceipt, o)
+	return args.Get(0).(azqueue.DeleteMessageResponse), args.Error(1)
+}
+func (receiver MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error) {
+	return azqueue.DequeueMessagesResponse{}, nil
+}
+
+func Test_deleteMessage_returnNilWhenMessageCanBeDeleted(t *testing.T) {
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	queueHandler := QueueHandler{queueClient: mockQueueClient, ctx: context.Background()}
+
+	messageId := "1234"
+	popReceipt := "abcd"
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt}
+
+	actual := queueHandler.deleteMessage(message)
+
+	assert.Nil(t, actual)
+}
+
+//func Test_deleteMessage_returnErrorWhenMessageCannotBeDeleted(t *testing.T)

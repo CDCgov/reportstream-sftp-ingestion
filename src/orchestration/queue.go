@@ -33,8 +33,13 @@ import (
 	}
 */
 type QueueHandler struct {
-	queueClient *azqueue.QueueClient
+	queueClient QueueClient
 	ctx         context.Context
+}
+
+type QueueClient interface {
+	DeleteMessage(ctx context.Context, messageID string, popReceipt string, o *azqueue.DeleteMessageOptions) (azqueue.DeleteMessageResponse, error)
+	DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error)
 }
 
 func NewQueueHandler() (QueueHandler, error) {
