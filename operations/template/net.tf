@@ -36,7 +36,7 @@ resource "azurerm_subnet" "app" {
 }
 
 resource "azurerm_network_security_group" "app_security_group" {
-  name                = "app-security-group"
+  name                = "sftp-app-security-group"
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
 }
