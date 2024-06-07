@@ -47,6 +47,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
     storage_account_id          = azurerm_storage_account.storage.id
     storage_blob_container_name = azurerm_storage_container.sftp_container_dead_letter.name
   }
+
+  depends_on = [azurerm_role_assignment.allow_event_read_write]
 }
 
 # resource "azurerm_role_definition" "event_grid_role" {
