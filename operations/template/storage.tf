@@ -17,7 +17,7 @@ resource "azurerm_storage_container" "sftp_container" {
 }
 
 resource "azurerm_storage_container" "sftp_container_dead_letter" {
-  name                  = "sftp_dead_letter"
+  name                  = "sftp-dead-letter"
   storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
 }
