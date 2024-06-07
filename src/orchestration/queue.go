@@ -35,6 +35,7 @@ import (
 type QueueHandler struct {
 	queueClient QueueClient
 	ctx         context.Context
+	usecase     usecases.ReadAndSend
 }
 
 type QueueClient interface {
@@ -53,7 +54,14 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	return QueueHandler{queueClient: client, ctx: context.Background()}, nil
+	usecase, err := usecases.NewReadAndSendUsecase()
+
+	if err != nil {
+		slog.Error("Unable to create Usecase", err)
+		return QueueHandler{}, err
+	}
+
+	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: usecase}, nil
 }
 
 func getFilePathFromMessage(messageText string) (string, error) {
@@ -99,11 +107,6 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-	usecase, err := usecases.NewReadAndSendUsecase()
-	if err != nil {
-		slog.Warn("Failed to init the usecase", slog.Any("error", err))
-		slog.Info("Continuing for now while debugging")
-	}
 
 	filePath, err := getFilePathFromMessage(*message.MessageText)
 
@@ -112,7 +115,7 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		return err
 	}
 
-	err = usecase.ReadAndSend(filePath)
+	err = receiver.usecase.ReadAndSend(filePath)
 
 	// TODO - how do we decide when to move a file from import to failure/error?
 	// If a queue message ends up on the poison queue, should the file still be in `import`

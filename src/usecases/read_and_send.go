@@ -7,9 +7,13 @@ import (
 	"os"
 )
 
+type ReadAndSend interface {
+	ReadAndSend(filepath string) error
+}
+
 type ReadAndSendUsecase struct {
 	blobHandler   BlobHandler
-	messageSender MessageSender
+	messageSender senders.MessageSender
 }
 
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
@@ -22,7 +26,7 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	}
 
 	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
-	var messageSender MessageSender
+	var messageSender senders.MessageSender
 
 	if reportStreamBaseUrl == "" {
 		slog.Info("REPORT_STREAM_URL_PREFIX not set, using file senders instead")
