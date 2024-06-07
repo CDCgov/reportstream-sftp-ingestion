@@ -11,7 +11,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
 
   name                = "topic-event-subscription"
   resource_group_name = data.azurerm_resource_group.group.name
-  system_topic        = azurerm_eventgrid_system_topic.topic
+  system_topic        = azurerm_eventgrid_system_topic.topic.name
 
   storage_queue_endpoint {
     queue_name         = azurerm_storage_queue.message_queue.name
