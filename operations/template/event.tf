@@ -5,6 +5,12 @@ resource "azurerm_eventgrid_system_topic" "topic" {
   resource_group_name    = data.azurerm_resource_group.group.name
   source_arm_resource_id = azurerm_storage_account.storage.id
   topic_type             = "Microsoft.Storage.StorageAccounts"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
