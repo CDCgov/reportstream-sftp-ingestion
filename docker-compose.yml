@@ -48,7 +48,7 @@ services:
       - |
         az storage container create -n sftp
         az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name order_message.hl7 --file mock_data/order_message.hl7
-        az storage queue create -n flexion-local
+        az storage queue create -n blob-message-queue
     environment:
       AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1; # pragma: allowlist secret
     networks:

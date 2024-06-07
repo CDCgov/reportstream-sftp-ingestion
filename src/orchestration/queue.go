@@ -46,7 +46,7 @@ func NewQueueHandler() (QueueHandler, error) {
 	azureQueueConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
 	//TODO: Revisit options to review queue settings
-	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "flexion-local", nil)
+	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
 	// TODO - bubble up error and do correct logging
 	if err != nil {
 		slog.Error("Unable to create Azure Queue Client", err)
