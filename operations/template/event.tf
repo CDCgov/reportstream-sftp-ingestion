@@ -38,7 +38,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   }
 
   storage_blob_dead_letter_destination {
-    storage_account_id          = azurerm_storage_queue.message_dead_letter_queue.id
+    storage_account_id          = azurerm_storage_account.storage.id
     storage_blob_container_name = azurerm_storage_queue.message_dead_letter_queue.name
   }
 }
