@@ -102,6 +102,12 @@ match your newly-created file
    ```
 4. The app should now read this message and attempt to process it
 
+#### Manual cloud testing
+To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure portal.
+In the `sftp` container, upload a file to an `import` folder. If that folder doesn't already exist, you can create
+it by going to `Upload`, expanding `Advanced`, and putting `import` in the `Upload to folder` box!
+[upload_file.png](docs/upload_file.png)
+
 #### End-to-end Tests
 
 #### Load Testing
