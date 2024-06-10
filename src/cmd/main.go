@@ -22,11 +22,7 @@ func main() {
 	}
 
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
-	err = queueHandler.ListenToQueue()
-	if err != nil {
-		slog.Warn("ListenToQueue failed", slog.Any("error", err))
-	}
-
+	queueHandler.ListenToQueue()
 }
 
 func setupLogging() {

@@ -155,16 +155,23 @@ func Test_ReceiveQueue_HappyPath(t *testing.T) {
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
-	queueHandler.receiveQueue()
+	err := queueHandler.receiveQueue()
 
 	mockQueueClient.AssertCalled(t, "DequeueMessage", mock.Anything, mock.Anything)
+	assert.NoError(t, err)
 }
 
-func Test_ReceiveQueue_UnableToDequeuePath(t *testing.T) {
+func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DequeueMessage", mock.Anything, mock.Anything).Return(azqueue.DequeueMessagesResponse{}, errors.New("dequeue message failed"))
 
-}
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
-func Test_ReceiveQueue_UnableToHandleMessagePath(t *testing.T) {
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+	err := queueHandler.receiveQueue()
+
+	assert.Error(t, err)
 
 }
 
@@ -196,7 +203,6 @@ type MockReadAndSendUsecase struct {
 	mock.Mock
 }
 
-// receiver.ctx, messageId, popReceipt, nil)
 func (receiver *MockQueueClient) DeleteMessage(ctx context.Context, messageID string, popReceipt string, o *azqueue.DeleteMessageOptions) (azqueue.DeleteMessageResponse, error) {
 	args := receiver.Called(ctx, messageID, popReceipt, o)
 	return args.Get(0).(azqueue.DeleteMessageResponse), args.Error(1)
@@ -204,8 +210,6 @@ func (receiver *MockQueueClient) DeleteMessage(ctx context.Context, messageID st
 func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error) {
 	args := receiver.Called(ctx, o)
 	return args.Get(0).(azqueue.DequeueMessagesResponse), args.Error(1)
-	//receiver.Called(ctx, o)
-	//return azqueue.DequeueMessagesResponse{}, nil
 }
 
 func (receiver *MockReadAndSendUsecase) ReadAndSend(filepath string) error {

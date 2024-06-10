@@ -117,15 +117,19 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 func (receiver QueueHandler) ListenToQueue() {
 	for {
-		receiver.receiveQueue()
+		err := receiver.receiveQueue()
+		if err != nil {
+			slog.Error("Failed to receive message", slog.Any("error", err))
+		}
 		time.Sleep(10 * time.Second)
 	}
 }
 
-func (receiver QueueHandler) receiveQueue() {
+func (receiver QueueHandler) receiveQueue() error {
 	messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
 	if err != nil {
 		slog.Error("Unable to dequeue messages", err)
+		return err
 	} else {
 		var messageCount int
 
@@ -142,4 +146,5 @@ func (receiver QueueHandler) receiveQueue() {
 			}()
 		}
 	}
+	return nil
 }
