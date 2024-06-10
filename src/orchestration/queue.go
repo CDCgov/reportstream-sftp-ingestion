@@ -46,9 +46,7 @@ type QueueClient interface {
 func NewQueueHandler() (QueueHandler, error) {
 	azureQueueConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
-	//TODO: Revisit options to review queue settings
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
-	// TODO - bubble up error and do correct logging
 	if err != nil {
 		slog.Error("Unable to create Azure Queue Client", err)
 		return QueueHandler{}, err
@@ -141,23 +139,21 @@ func (receiver QueueHandler) ListenToQueue() error {
 		messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
 		if err != nil {
 			slog.Error("Unable to dequeue messages", err)
-			return err
-		}
-		// TODO - dequeue multiple messages, loop over them and kick off go routine for each
-		var messageCount int
+		} else {
+			var messageCount int
 
-		messageCount = len(messageResponse.Messages)
-		slog.Info("", slog.Any("Number of messages in the queue", messageCount))
+			messageCount = len(messageResponse.Messages)
+			slog.Info("", slog.Any("Number of messages in the queue", messageCount))
 
-		if messageCount > 0 {
-			message := *messageResponse.Messages[0]
-			go func() {
-				err := receiver.handleMessage(message)
-				if err != nil {
-					slog.Error("Unable to handle message", err)
-					// TODO - decide what to do with errored messages
-				}
-			}()
+			if messageCount > 0 {
+				message := *messageResponse.Messages[0]
+				go func() {
+					err := receiver.handleMessage(message)
+					if err != nil {
+						slog.Error("Unable to handle message", err)
+					}
+				}()
+			}
 		}
 		time.Sleep(10 * time.Second)
 	}
