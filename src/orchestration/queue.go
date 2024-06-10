@@ -45,6 +45,10 @@ func NewQueueHandler() (QueueHandler, error) {
 
 func getFilePathFromMessage(messageText string) (string, error) {
 	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
+	if err != nil {
+		slog.Error("Failed to decode message text", slog.Any("error", err))
+		return "", err
+	}
 
 	// Map bytes json to Event object format (shape)
 	var event azeventgrid.Event
