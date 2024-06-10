@@ -18,8 +18,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   system_topic        = azurerm_eventgrid_system_topic.topic.name
 
   storage_queue_endpoint {
-    queue_name         = azurerm_storage_queue.message_queue.name
-    storage_account_id = azurerm_storage_account.storage.id
+    queue_name                            = azurerm_storage_queue.message_queue.name
+    storage_account_id                    = azurerm_storage_account.storage.id
     queue_message_time_to_live_in_seconds = 604800 # in seconds
   }
 
@@ -27,7 +27,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
 
   advanced_filter {
     string_contains {
-      key = "subject"
+      key    = "subject"
       values = ["import"]
     }
   }
@@ -47,21 +47,20 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   }
 }
 
-# resource "azurerm_role_definition" "event_grid_role" {
-#   name        = "event-grid-role"
-#   scope       = data.azurerm_resource_group.group.id
-#   description = "Role to allow eventgrid to trigger on blob create and send queue messages"
-#
-#   permissions {
-#     actions     = []
-#     not_actions = []
-#     data_actions = ["Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write"]
-#   }
-# }
+resource "azurerm_role_definition" "event_grid_role" {
+  name        = "event-grid-role"
+  scope       = data.azurerm_resource_group.group.id
+  description = "Role to allow eventgrid to trigger on blob create and send queue messages"
+
+  permissions {
+    actions      = []
+    not_actions  = []
+    data_actions = ["Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write"]
+  }
+}
 
 resource "azurerm_role_assignment" "allow_event_read_write" {
-  scope                = azurerm_storage_account.storage.id
-#   role_definition_id   = azurerm_role_definition.event_grid_role.id
-  role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
+  scope              = azurerm_storage_account.storage.id
+  role_definition_id = azurerm_role_definition.event_grid_role.id
+  principal_id       = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
 }
