@@ -58,6 +58,7 @@ Run `docker-compose`, which will spin up both an Azurite container and the app. 
 URL prefix environment variable empty, and we'll use a mock response rather than calling ReportStream. Uncomment
 the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to call locally-running ReportStream instead.
 
+
 ### Testing
 
 #### Unit Tests
@@ -65,6 +66,41 @@ the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to ca
 ```shell
 make unitTests
 ```
+
+#### Manual local testing
+In the cloud, EventGrid monitors the blob storage container and sends file creation events to our queue for the app to read.
+In the local Azurite tool, there are no events to connect the blob storage container to the queue.
+To mimic the deployed behavior so our app can read queue messages and access the file specified in the message:
+1. Upload a file to your local Azurite sftp container
+2. In Azure Storage Explorer, find the `flexion-local` queue that the service currently reads from
+3. Add a file create event message to that queue. You can start with this base message and edit the `subject` to
+match your newly-created file
+   ```json
+   {
+   "topic": "/subscriptions/52203171-a2ed-4f6c-b5cf-9b368c43f15b/resourceGroups/csels-rsti-internal-moderate-rg/providers/Microsoft.Storage/storageAccounts/cdcrssftpinternal",
+   "subject": "/blobServices/default/containers/sftp/blobs/order_message.hl7",
+   "eventType": "Microsoft.Storage.BlobCreated",
+   "id": "dac45448-001e-0031-7649-b8ad2c06c977",
+   "data": {
+   "api": "PutBlob",
+   "clientRequestId": "d621de4c-d460-4af1-85f9-126d06328012",
+   "requestId": "dac45448-001e-0031-7649-b8ad2c000000",
+   "eTag": "0x8DC8660D8D1AE8B",
+   "contentType": "application/octet-stream",
+   "contentLength": 1122,
+   "blobType": "BlockBlob",
+   "url": "https://cdcrssftpinternal.blob.core.windows.net/sftp/order_message.hl7",
+   "sequencer": "00000000000000000000000000024DA1000000000006ab03",
+   "storageDiagnostics": {
+   "batchId": "6677b768-3006-0093-0049-b89735000000"
+           }
+       },
+   "dataVersion": "",
+   "metadataVersion": "1",
+   "eventTime": "2024-06-06T19:42:49.2380563Z"
+   }
+   ```
+4. The app should now read this message and attempt to process it
 
 #### End-to-end Tests
 
