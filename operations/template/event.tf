@@ -61,6 +61,6 @@ resource "azurerm_role_definition" "event_grid_role" {
 
 resource "azurerm_role_assignment" "allow_event_read_write" {
   scope              = azurerm_storage_account.storage.id
-  role_definition_id = azurerm_role_definition.event_grid_role.id
+  role_definition_id = azurerm_role_definition.event_grid_role.role_definition_resource_id
   principal_id       = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
 }
