@@ -48,7 +48,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
 }
 
 resource "azurerm_role_definition" "event_grid_role" {
-  name        = "event-grid-role"
+  name        = "event-grid-role-${var.environment}"
   scope       = data.azurerm_resource_group.group.id
   description = "Role to allow eventgrid to trigger on blob create and send queue messages"
 
