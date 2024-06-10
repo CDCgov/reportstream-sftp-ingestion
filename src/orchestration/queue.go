@@ -13,25 +13,6 @@ import (
 	"time"
 )
 
-/*
-	func listenToQueue(sqsService *sqs.SQS, queueUrl *string) {
-		log.Printf("Starting to listen to queue %s", *queueUrl)
-		for {
-			queueMessages, err := sqsService.ReceiveMessage(&sqs.ReceiveMessageInput{
-				QueueUrl: queueUrl,
-				MaxNumberOfMessages: aws.Int64(5),
-				WaitTimeSeconds: aws.Int64(5),
-			})
-			if err != nil {
-				log.Printf("AWS SQS queue messages weren't able to be retrieved; %+v", err)
-			}
-
-			for _, message := range queueMessages.Messages {
-				go handleQueueMessage(message, sqsService, queueUrl)
-			}
-		}
-	}
-*/
 type QueueHandler struct {
 	queueClient QueueClient
 	ctx         context.Context
@@ -59,7 +40,7 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: usecase}, nil
+	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: &usecase}, nil
 }
 
 func getFilePathFromMessage(messageText string) (string, error) {
@@ -134,27 +115,31 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	return nil
 }
 
-func (receiver QueueHandler) ListenToQueue() error {
+func (receiver QueueHandler) ListenToQueue() {
 	for {
-		messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
-		if err != nil {
-			slog.Error("Unable to dequeue messages", err)
-		} else {
-			var messageCount int
-
-			messageCount = len(messageResponse.Messages)
-			slog.Info("", slog.Any("Number of messages in the queue", messageCount))
-
-			if messageCount > 0 {
-				message := *messageResponse.Messages[0]
-				go func() {
-					err := receiver.handleMessage(message)
-					if err != nil {
-						slog.Error("Unable to handle message", err)
-					}
-				}()
-			}
-		}
+		receiver.receiveQueue()
 		time.Sleep(10 * time.Second)
+	}
+}
+
+func (receiver QueueHandler) receiveQueue() {
+	messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
+	if err != nil {
+		slog.Error("Unable to dequeue messages", err)
+	} else {
+		var messageCount int
+
+		messageCount = len(messageResponse.Messages)
+		slog.Info("", slog.Any("Number of messages in the queue", messageCount))
+
+		if messageCount > 0 {
+			message := *messageResponse.Messages[0]
+			go func() {
+				err := receiver.handleMessage(message)
+				if err != nil {
+					slog.Error("Unable to handle message", err)
+				}
+			}()
+		}
 	}
 }
