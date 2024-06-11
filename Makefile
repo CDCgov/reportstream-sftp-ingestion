@@ -2,7 +2,10 @@ compile:
 	cd ./src/ && go build -o ../reportstream-sftp-ingestion ./cmd/
 
 unitTests:
-	cd ./src/ && go test ./...
+	cd ./src/ && go test ./... -cover -coverprofile=coverage.out
+
+unitTestsWithCoverageThreshold: unitTests
+	./codeCoverageThresholdCheck.sh
 
 vet:
 	cd ./src/ && go vet ./...

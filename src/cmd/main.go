@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
-	"github.com/CDCgov/reportstream-sftp-ingestion/local"
-	"github.com/CDCgov/reportstream-sftp-ingestion/report_stream"
+	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 )
@@ -15,40 +14,24 @@ func main() {
 
 	slog.Info("Hello World")
 
-	azureBlobConnectionString := os.Getenv("AZURE_BLOB_CONNECTION_STRING")
-	blobHandler, err := azure.NewBlobHandler(azureBlobConnectionString)
+	go setupHealthCheck()
+
+	usecase, err := NewReadAndSendUsecase()
 	if err != nil {
-		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
-		os.Exit(1)
+		slog.Warn("Failed to init the usecase", slog.Any("error", err))
+		slog.Info("Continuing for now while debugging")
 	}
 
-	content, err := readAzureFile(blobHandler, "reportstream.txt")
+	err = usecase.ReadAndSend()
 	if err != nil {
-		slog.Error("Failed to read the file", slog.Any("error", err))
-		os.Exit(1)
+		slog.Warn("Usecase failed", slog.Any("error", err))
+		slog.Info("Continuing for now while debugging")
 	}
-
-	reportStreamBaseUrl := os.Getenv("REPORT_STREAM_URL_PREFIX")
-	var messageSender MessageSender
-
-	if reportStreamBaseUrl == "" {
-		messageSender = local.FileSender{}
-	} else {
-		messageSender = report_stream.Sender{BaseUrl: reportStreamBaseUrl}
-	}
-
-	reportId, err := messageSender.SendMessage(content)
-	if err != nil {
-		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err))
-		os.Exit(1)
-	}
-
-	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
 	for {
 		t := time.Now()
 		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
-		time.Sleep(10 * time.Second)
+		time.Sleep(4 * time.Minute)
 	}
 }
 
@@ -65,18 +48,20 @@ func setupLogging() {
 	}
 }
 
-type BlobHandler interface {
-	FetchFile(blobPath string) ([]byte, error)
-}
+func setupHealthCheck() {
+	slog.Info("Bootstrapping health check")
 
-func readAzureFile(blobHandler BlobHandler, filePath string) ([]byte, error) {
-	content, err := blobHandler.FetchFile(filePath)
+	http.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
+		slog.Info("Health check ping", slog.String("method", request.Method), slog.String("path", request.URL.String()))
+
+		_, err := io.WriteString(response, "Operational")
+		if err != nil {
+			slog.Error("Failed to respond to health check", slog.Any("error", err))
+		}
+	})
+
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		return nil, err
+		slog.Error("Failed to start health check", slog.Any("error", err))
 	}
-
-	//TODO: Auth and call ReportStream
-	slog.Info(string(content))
-
-	return content, nil
 }
