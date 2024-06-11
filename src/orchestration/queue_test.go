@@ -88,6 +88,7 @@ func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_handleMessage_returnErrorWhenFailureGettingFilePathFromMessage(t *testing.T) {
@@ -130,7 +131,7 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(errors.New("failed to read and send"))
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createGoodMessage()
@@ -139,6 +140,7 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
+	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_ReceiveQueue_HappyPath(t *testing.T) {
@@ -213,6 +215,6 @@ func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.
 }
 
 func (receiver *MockReadAndSendUsecase) ReadAndSend(filepath string) error {
-	receiver.Called(filepath)
-	return nil
+	args := receiver.Called(filepath)
+	return args.Error(0)
 }

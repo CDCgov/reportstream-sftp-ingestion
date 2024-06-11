@@ -100,11 +100,6 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 	err = receiver.usecase.ReadAndSend(filePath)
 
-	// TODO - how do we decide when to move a file from import to failure/error?
-	// If a queue message ends up on the poison queue, should the file still be in `import`
-	// or should we know to move it to `error`? Does it matter if it's e.g. a non-success response from RS
-	// vs an error calling them?
-	// TODO - minimum option is to check the dequeue count, and if we're over the threshold, log an error so we at least know something failed
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
 	} else {
