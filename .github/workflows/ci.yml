@@ -21,7 +21,7 @@ jobs:
           cache-dependency-path: ./src/go.sum
 
       - name: Run unit tests
-        run: make unitTests
+        run: make unitTestsWithCoverageThreshold
 
   lint:
     name: Linting
