@@ -53,7 +53,7 @@ JSON Error:
     "timestamp": "2024-05-23T21:36:46.879Z",
     "plannedCompletionAt": null,
     "actualCompletionAt": null,
-    "senders": "",
+    "sender": "",
     "reportItemCount": null,
     "errorCount": 1,
     "warningCount": 0,
