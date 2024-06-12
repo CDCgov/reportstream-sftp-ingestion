@@ -28,7 +28,7 @@ Success:
   "timestamp" : "2024-05-20T21:11:36.144Z",
   "plannedCompletionAt" : null,
   "actualCompletionAt" : null,
-  "senders" : "flexion.simulated-hospital",
+  "sender" : "flexion.simulated-hospital",
   "reportItemCount" : 1,
   "errorCount" : 0,
   "warningCount" : 0,
