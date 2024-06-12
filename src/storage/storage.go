@@ -8,11 +8,15 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"time"
 )
 
 type StorageHandler struct {
 	blobClient *azblob.Client
 }
+
+// The container name for CA will be added as part of card 1077 and will be configurable in 1081
+const containerName = "sftp"
 
 func NewStorageHandler(conn string) (StorageHandler, error) {
 	blobClient, err := azblob.NewClientFromConnectionString(conn, nil)
@@ -25,9 +29,6 @@ func NewStorageHandler(conn string) (StorageHandler, error) {
 
 // FetchFile retrieves the specified blob from Azure. The `blobPath` is everything after the container in the URL
 func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
-	// The container name for CA will be added as part of card 1077 and will be configurable in 1081
-	containerName := "sftp"
-
 	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, blobPath, &azblob.DownloadStreamOptions{})
 	if err != nil {
 		return nil, err
@@ -41,21 +42,48 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 
 func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPath string) error {
 
-	// Borrowed from https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/storage/azblob/blob/examples_test.go
-	accountName, accountKey := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"), os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
+	// Borrowed from https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/storage/azblob/blob/examples_test.go#L208
+	//accountName, accountKey := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"), os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
 	// Create a containerClient object to a container where we'll create a blob and its snapshot.
 	// Create a blockBlobClient object to a blob in the container.
-	blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/mycontainer/CopiedBlob.bin", accountName)
-	credential, err := blob.NewSharedKeyCredential(accountName, accountKey)
 
-	blobClient, err := blob.NewClientWithSharedKeyCredential(blobURL, credential, nil)
+	//blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/mycontainer/CopiedBlob.bin", accountName)
+	//credential, err := blob.NewSharedKeyCredential(accountName, accountKey)
+	//
+	//blobClient, err := blob.NewClientWithSharedKeyCredential(blobURL, credential, nil)
+	//if err != nil {
+	//	slog.Error("Error")
+	//	return err
+	//}
+
+	// diff from example - make blob client from connection string
+	blobClient, err := blob.NewClientFromConnectionString(os.Getenv("AZURE_STORAGE_CONNECTION_STRING"), containerName, destinationBlobPath, nil)
 	if err != nil {
-		slog.Error("Error")
+		slog.Error("Error creating blob client")
 		return err
 	}
+
+	// TODO - how to get source blob URL from source blob path?
 	src := "https://cdn2.auth0.com/docs/media/addons/azure_blob.svg"
 	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), src, nil)
+	if err != nil {
+		slog.Error("Error starting blob copy")
+		return err
+	}
+
+	copyID := *startCopy.CopyID
+	copyStatus := *startCopy.CopyStatus
+	for copyStatus == blob.CopyStatusTypePending {
+		time.Sleep(time.Second * 2)
+		getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
+		if err != nil {
+			slog.Error("Error during blob copy")
+			return err
+		}
+		copyStatus = *getMetadata.CopyStatus
+	}
+	fmt.Printf("Copy from %s to %s: ID=%s, Status=%s\n", src, blobClient.URL(), copyID, copyStatus)
 
 	/* Notes on above:
 	- it feels icky to be creating a new client for each `move` action
