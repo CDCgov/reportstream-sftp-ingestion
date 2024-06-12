@@ -2,8 +2,12 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"io"
+	"log/slog"
+	"os"
 )
 
 type StorageHandler struct {
@@ -32,4 +36,23 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	defer retryReader.Close()
 
 	return io.ReadAll(retryReader)
+}
+
+func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPath string) error {
+
+	accountName, accountKey := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"), os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
+
+	// Create a containerClient object to a container where we'll create a blob and its snapshot.
+	// Create a blockBlobClient object to a blob in the container.
+	blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/mycontainer/CopiedBlob.bin", accountName)
+	credential, err := blob.NewSharedKeyCredential(accountName, accountKey)
+
+	blobClient, err := blob.NewClientWithSharedKeyCredential(blobURL, credential, nil)
+	if err != nil {
+		slog.Error("Error")
+		return err
+	}
+	src := "https://cdn2.auth0.com/docs/media/addons/azure_blob.svg"
+	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), src, nil)
+
 }
