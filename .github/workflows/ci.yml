@@ -60,6 +60,8 @@ jobs:
           args: >
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion
             -Dsonar.organization=cdcgov
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*_test.go
             -Dsonar.go.coverage.reportPaths=coverage.out
 
   securityScanAnalyze:
