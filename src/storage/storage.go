@@ -2,11 +2,14 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 )
@@ -37,7 +40,23 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	retryReader := streamResponse.NewRetryReader(context.Background(), &azblob.RetryReaderOptions{})
 	defer retryReader.Close()
 
-	return io.ReadAll(retryReader)
+	resp, err := io.ReadAll(retryReader)
+
+	//borrowed from https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azcore#ResponseError
+	//TODO - return special stuff so we know when to retry or not
+	var respErr *azcore.ResponseError
+	if errors.As(err, &respErr) {
+		// Handle Error
+		if respErr.StatusCode == http.StatusNotFound {
+			fmt.Printf("Repository could not be found: %v", respErr)
+		} else if respErr.StatusCode == http.StatusForbidden {
+			fmt.Printf("You do not have permission to access this repository: %v", respErr)
+		} else {
+			// ...
+		}
+	}
+
+	return resp, err
 }
 
 func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPath string) error {
