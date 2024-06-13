@@ -53,6 +53,4 @@ resource "azurerm_role_assignment" "allow_event_read_write" {
   scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
-
-  depends_on = [azurerm_eventgrid_system_topic.topic]
 }
