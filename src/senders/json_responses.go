@@ -1,4 +1,4 @@
-package report_stream
+package senders
 
 type Report struct {
 	ReportId string `json:"reportId"`

@@ -64,13 +64,12 @@ resource "azurerm_linux_web_app" "sftp" {
     WEBSITES_PORT                   = 8080
     PORT                            = 8080
 
-    ENV                          = var.environment
-    AZURE_BLOB_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
-    REPORT_STREAM_URL_PREFIX     = "https://${local.rs_domain_prefix}prime.cdc.gov"
-    FLEXION_PRIVATE_KEY_NAME     = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
-    AZURE_KEY_VAULT_URI          = azurerm_key_vault.key_storage.vault_uri
-    FLEXION_CLIENT_NAME          = "flexion.simulated-lab"
-    AZURE_SDK_GO_LOGGING         = "all"
+    ENV                             = var.environment
+    AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
+    REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
+    FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
+    AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
+    FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
   }
 
   identity {

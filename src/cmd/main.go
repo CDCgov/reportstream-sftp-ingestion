@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 )
 
 func main() {
@@ -16,23 +16,13 @@ func main() {
 
 	go setupHealthCheck()
 
-	usecase, err := NewReadAndSendUsecase()
+	queueHandler, err := orchestration.NewQueueHandler()
 	if err != nil {
-		slog.Warn("Failed to init the usecase", slog.Any("error", err))
-		slog.Info("Continuing for now while debugging")
+		slog.Warn("Failed to create queueHandler", slog.Any("error", err))
 	}
 
-	err = usecase.ReadAndSend()
-	if err != nil {
-		slog.Warn("Usecase failed", slog.Any("error", err))
-		slog.Info("Continuing for now while debugging")
-	}
-
-	for {
-		t := time.Now()
-		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
-		time.Sleep(4 * time.Minute)
-	}
+	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
+	queueHandler.ListenToQueue()
 }
 
 func setupLogging() {

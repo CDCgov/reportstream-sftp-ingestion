@@ -16,6 +16,12 @@ resource "azurerm_storage_container" "sftp_container" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_container" "sftp_container_dead_letter" {
+  name                  = "sftp-dead-letter"
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
 resource "azurerm_role_assignment" "allow_app_read_write" {
   scope                = azurerm_storage_container.sftp_container.resource_manager_id
   role_definition_name = "Storage Blob Data Contributor"

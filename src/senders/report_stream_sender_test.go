@@ -1,4 +1,4 @@
-package report_stream
+package senders
 
 import (
 	"crypto/rand"

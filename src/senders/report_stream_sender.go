@@ -1,11 +1,10 @@
-package report_stream
+package senders
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/CDCgov/reportstream-sftp-ingestion/azure"
-	"github.com/CDCgov/reportstream-sftp-ingestion/local"
+	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -35,11 +34,11 @@ func NewSender() (Sender, error) {
 
 	if environment == "local" {
 		slog.Info("Using local credentials")
-		credentialGetter = local.CredentialGetter{}
+		credentialGetter = secrets.CredentialGetter{}
 	} else {
 		slog.Info("Using Azure credentials")
 		var err error
-		credentialGetter, err = azure.NewSecretGetter()
+		credentialGetter, err = secrets.NewSecretGetter()
 		if err != nil {
 			return Sender{}, err
 		}
