@@ -29,6 +29,8 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # helps with Sonar scanning
 
       - uses: actions/setup-go@v5
         with:
@@ -44,6 +46,21 @@ jobs:
       - name: Terraform Formatting
         working-directory: operations
         run: terraform fmt -recursive -check
+
+      - name: Unit Tests with Code Coverage
+        run: make unitTests
+
+      - name: Sonar
+        uses: sonarsource/sonarcloud-github-action@v2.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
+        with:
+          projectBaseDir: src
+          args: >
+            -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion
+            -Dsonar.organization=cdcgov
+            -Dsonar.go.coverage.reportPaths=coverage.out
 
   securityScanAnalyze:
     name: CodeQL Security Scan
