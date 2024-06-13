@@ -37,7 +37,4 @@ resource "azurerm_monitor_diagnostic_setting" "app_to_logs" {
   enabled_log {
     category = "AppServiceHTTPLogs"
   }
-  enabled_log {
-    category = "AppServicePlatformLogs"
-  }
 }
