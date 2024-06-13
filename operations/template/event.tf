@@ -49,20 +49,8 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   depends_on = [azurerm_role_assignment.allow_event_read_write]
 }
 
-resource "azurerm_role_definition" "event_grid_role" {
-  name        = "event-grid-role-${var.environment}"
-  scope       = data.azurerm_resource_group.group.id
-  description = "Role to allow eventgrid to trigger on blob create and send queue messages"
-
-  permissions {
-    actions      = []
-    not_actions  = []
-    data_actions = ["Microsoft.Storage/storageAccounts/blobServices/containers/blobs/write"]
-  }
-}
-
 resource "azurerm_role_assignment" "allow_event_read_write" {
-  scope              = azurerm_storage_account.storage.id
-  role_definition_id = azurerm_role_definition.event_grid_role.role_definition_resource_id
-  principal_id       = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
+  scope                = azurerm_storage_account.storage.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = azurerm_eventgrid_system_topic.topic.identity.0.principal_id
 }
