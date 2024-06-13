@@ -51,15 +51,13 @@ jobs:
       - name: Sonar
         uses: sonarsource/sonarcloud-github-action@v2.2.0
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SFTP_INGESTION_SONAR_TOKEN }}
         with:
           projectBaseDir: src
           args: >
             -Dsonar.projectKey=CDCgov_reportstream-sftp-ingestion
             -Dsonar.organization=cdcgov
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=.
-            -Dsonar.tests=.
             -Dsonar.go.coverage.reportPaths=coverage.out
 
   securityScanAnalyze:
