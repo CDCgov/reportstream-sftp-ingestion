@@ -59,7 +59,7 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	return resp, err
 }
 
-func (receiver StorageHandler) MoveFile(sourceBlobUrl string, destinationBlobPath string) error {
+func (receiver StorageHandler) MoveFile(sourceBlobUrl string, sourceBlobPath string, destinationBlobPath string) error {
 	// the storage account-level azblob client doesn't have a `copy` function, so we have to use the blob-specific client instead
 	blobClient, err := blob.NewClientFromConnectionString(os.Getenv("AZURE_STORAGE_CONNECTION_STRING"), containerName, destinationBlobPath, nil)
 	if err != nil {
@@ -67,15 +67,12 @@ func (receiver StorageHandler) MoveFile(sourceBlobUrl string, destinationBlobPat
 		return err
 	}
 
-	// TODO - how to get source blob URL from source blob path?
-	src := "https://cdn2.auth0.com/docs/media/addons/azure_blob.svg"
 	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceBlobUrl, nil)
 	if err != nil {
 		slog.Error("Error starting blob copy")
 		return err
 	}
 
-	copyID := *startCopy.CopyID
 	copyStatus := *startCopy.CopyStatus
 	for copyStatus == blob.CopyStatusTypePending {
 		time.Sleep(time.Second * 2)
@@ -86,22 +83,12 @@ func (receiver StorageHandler) MoveFile(sourceBlobUrl string, destinationBlobPat
 		}
 		copyStatus = *getMetadata.CopyStatus
 	}
+	slog.Info("Copied blob", slog.String("source URL", sourceBlobUrl), slog.String("destination path", destinationBlobPath))
 
-	// TODO - what next?
-	fmt.Printf("Copy from %s to %s: ID=%s, Status=%s\n", src, blobClient.URL(), copyID, copyStatus)
-
-	/* Notes on above:
-	- it feels icky to be creating a new client for each `move` action
-	- but it probably feels even worse to download a file just to upload it again
-	- not totally sure if `CopyFromUrl` would work for us - don't know if it needs to be a public URL?
-		Might just need to update TF permissions
-	- we can't use the `blob` client created in this method as a general client because it is blob-specific, so we
-		can't just swap this new buddy into NewStorageHandler
-	- we don't currently have env vars for account name and key. Could use `blob.NewClientFromConnectionString`, but
-		that will also need a blob URL
-	- if we have to use blob URLs (rather than paths), we're going to have to either build them from pieces, or get the
-		URL out of the file create event (which means going back to parsing the `data` object)
-
-	*/
+	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceBlobPath, &azblob.DeleteBlobOptions{})
+	if err != nil {
+		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceBlobUrl))
+		return err
+	}
 	return nil
 }
