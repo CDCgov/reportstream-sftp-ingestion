@@ -59,24 +59,8 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	return resp, err
 }
 
-func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPath string) error {
-
-	// Borrowed from https://github.com/Azure/azure-sdk-for-go/blob/main/sdk/storage/azblob/blob/examples_test.go#L208
-	//accountName, accountKey := os.Getenv("AZURE_STORAGE_ACCOUNT_NAME"), os.Getenv("AZURE_STORAGE_ACCOUNT_KEY")
-
-	// Create a containerClient object to a container where we'll create a blob and its snapshot.
-	// Create a blockBlobClient object to a blob in the container.
-
-	//blobURL := fmt.Sprintf("https://%s.blob.core.windows.net/mycontainer/CopiedBlob.bin", accountName)
-	//credential, err := blob.NewSharedKeyCredential(accountName, accountKey)
-	//
-	//blobClient, err := blob.NewClientWithSharedKeyCredential(blobURL, credential, nil)
-	//if err != nil {
-	//	slog.Error("Error")
-	//	return err
-	//}
-
-	// diff from example - make blob client from connection string
+func (receiver StorageHandler) MoveFile(sourceBlobUrl string, destinationBlobPath string) error {
+	// the storage account-level azblob client doesn't have a `copy` function, so we have to use the blob-specific client instead
 	blobClient, err := blob.NewClientFromConnectionString(os.Getenv("AZURE_STORAGE_CONNECTION_STRING"), containerName, destinationBlobPath, nil)
 	if err != nil {
 		slog.Error("Error creating blob client")
@@ -85,7 +69,7 @@ func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPa
 
 	// TODO - how to get source blob URL from source blob path?
 	src := "https://cdn2.auth0.com/docs/media/addons/azure_blob.svg"
-	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), src, nil)
+	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceBlobUrl, nil)
 	if err != nil {
 		slog.Error("Error starting blob copy")
 		return err
@@ -102,6 +86,8 @@ func (receiver StorageHandler) MoveFile(sourceBlobPath string, destinationBlobPa
 		}
 		copyStatus = *getMetadata.CopyStatus
 	}
+
+	// TODO - what next?
 	fmt.Printf("Copy from %s to %s: ID=%s, Status=%s\n", src, blobClient.URL(), copyID, copyStatus)
 
 	/* Notes on above:

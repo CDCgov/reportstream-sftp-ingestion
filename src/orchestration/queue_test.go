@@ -11,43 +11,91 @@ import (
 	"testing"
 )
 
-func Test_getFilePathFromMessage_returnsFilePathWhenSubjectIsValid(t *testing.T) {
+func Test_getFilePathAndUrlFromMessage_returnsFilePathWhenSubjectIsValidAndUrlWhenDataIsValid(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := "customer/import/msg2.hl7"
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedPath := "customer/import/msg2.hl7"
+	expectedUrl := "https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7"
 	assert.Nil(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expectedPath, actualPath)
+	assert.Equal(t, expectedUrl, actualUrl)
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenSubjectDoesNotContainBlobs(t *testing.T) {
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageText)
+	expectedError := "illegal base64 data at input byte 0"
+
+	assert.Error(t, err)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
+}
+
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":\"the data\",\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
+
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedError := "could not assert event data to a map"
+
+	assert.Error(t, err)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
+}
+
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
+
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedError := "could not assert event data url to a string"
+
+	assert.Error(t, err)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
+}
+
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenSubjectDoesNotContainBlobs(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := ""
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedError := "failed to parse subject"
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenSubjectContainsMoreThanOneBlobs(t *testing.T) {
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenSubjectContainsMoreThanOneBlobs(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := ""
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedError := "failed to parse subject"
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
+
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenMessageNotEvent(t *testing.T) {
+func Test_getFilePathAndUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageText)
-	expected := ""
+	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	expectedError := "unmarshalling type *azeventgrid.Event"
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualPath)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
 }
 
 func Test_deleteMessage_returnNilWhenMessageCanBeDeleted(t *testing.T) {

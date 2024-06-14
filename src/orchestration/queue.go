@@ -45,11 +45,11 @@ func NewQueueHandler() (QueueHandler, error) {
 	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: &usecase}, nil
 }
 
-func getFilePathFromMessage(messageText string) (string, error) {
+func getFilePathAndUrlFromMessage(messageText string) (string, string, error) {
 	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
 	if err != nil {
 		slog.Error("Failed to decode message text", slog.Any("error", err))
-		return "", err
+		return "", "", err
 	}
 
 	// Map bytes json to Event object format (shape)
@@ -57,7 +57,23 @@ func getFilePathFromMessage(messageText string) (string, error) {
 	err = event.UnmarshalJSON(eventBytes)
 	if err != nil {
 		slog.Error("Failed to unmarshal event", slog.Any("error", err))
-		return "", err
+		return "", "", err
+	}
+
+	// Data is an 'any' type. We need to tell Go that it's a map
+	eventData, ok := event.Data.(map[string]any)
+
+	if !ok {
+		slog.Error("Could not assert event data to a map", slog.Any("event", event))
+		return "", "", errors.New("could not assert event data to a map")
+	}
+
+	// Extract blob url from Event's data
+	eventUrl, ok := eventData["url"].(string)
+
+	if !ok {
+		slog.Error("Could not assert event data url to a string", slog.Any("event", event))
+		return "", "", errors.New("could not assert event data url to a string")
 	}
 
 	eventSubject := *event.Subject
@@ -70,10 +86,10 @@ func getFilePathFromMessage(messageText string) (string, error) {
 	// If fewer than 2 pieces result, this is probably not a blob
 	if len(eventSubjectParts) != 2 {
 		slog.Error("Failed to parse subject", slog.String("subject", eventSubject))
-		return "", errors.New("failed to parse subject")
+		return "", "", errors.New("failed to parse subject")
 	}
 
-	return eventSubjectParts[1], nil
+	return eventSubjectParts[1], eventUrl, nil
 }
 
 func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) error {
@@ -92,7 +108,8 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-	filePath, err := getFilePathFromMessage(*message.MessageText)
+	// TODO - Put blobUrl into variable for usage
+	filePath, _, err := getFilePathAndUrlFromMessage(*message.MessageText)
 
 	if err != nil {
 		slog.Error("Failed to get the file path", slog.Any("error", err))
