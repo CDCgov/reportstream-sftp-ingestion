@@ -5,10 +5,11 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type ReadAndSend interface {
-	ReadAndSend(filepath string) error
+	ReadAndSend(sourceUrl string, filepath string) error
 }
 
 type ReadAndSendUsecase struct {
@@ -46,7 +47,7 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	}, nil
 }
 
-func (receiver *ReadAndSendUsecase) ReadAndSend(filepath string) error {
+func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string, filepath string) error {
 	content, err := receiver.blobHandler.FetchFile(filepath)
 	if err != nil {
 		slog.Error("Failed to read the file", slog.String("filepath", filepath), slog.Any("error", err))
@@ -55,11 +56,24 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(filepath string) error {
 
 	reportId, err := receiver.messageSender.SendMessage(content)
 	if err != nil {
+		// TODO - move file to failure folder
 		slog.Error("Failed to send the file", slog.Any("error", err))
 		return err
 	}
 
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
+
+	destinationPath := strings.Replace(filepath, "import", "success", 1)
+	if destinationPath == filepath {
+		slog.Error("Unexpected source filepath, did not move", slog.String("filepath", filepath))
+	} else {
+		err = receiver.blobHandler.MoveFile(sourceUrl, filepath, destinationPath)
+		if err != nil {
+			slog.Error("Failed to move file after processing", slog.Any("error", err))
+			// TODO - should we not return an error here? or should we return one but handle it?
+			return err
+		}
+	}
 
 	return nil
 }

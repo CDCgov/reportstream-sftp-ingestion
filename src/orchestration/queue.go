@@ -108,15 +108,16 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-	// TODO - Put blobUrl into variable for usage
-	filePath, _, err := getFilePathAndUrlFromMessage(*message.MessageText)
+	// TODO - should we just return the URL and parse the filepath out of that elsewhere? having two similar
+	// string params for readandsend is getting confusing
+	filePath, sourceUrl, err := getFilePathAndUrlFromMessage(*message.MessageText)
 
 	if err != nil {
 		slog.Error("Failed to get the file path", slog.Any("error", err))
 		return err
 	}
 
-	err = receiver.usecase.ReadAndSend(filePath)
+	err = receiver.usecase.ReadAndSend(sourceUrl, filePath)
 	/*
 			Four possible scenarios to handle:
 			- Success from reportstream - move to 'success' folder and delete message
@@ -137,6 +138,8 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 			slog.Error(err.Error())
 		}
 	} else {
+		// After successful message handling, move source file
+
 		// Only delete message if file successfully sent to ReportStream
 		err = receiver.deleteMessage(message)
 		if err != nil {
