@@ -20,7 +20,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   storage_queue_endpoint {
     queue_name                            = azurerm_storage_queue.message_queue.name
     storage_account_id                    = azurerm_storage_account.storage.id
-    queue_message_time_to_live_in_seconds = 604800 # in seconds
+    queue_message_time_to_live_in_seconds = 604800 # 7 days in seconds
   }
 
   included_event_types = ["Microsoft.Storage.BlobCreated"]
@@ -33,7 +33,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   }
 
   retry_policy {
-    event_time_to_live    = 1440 #in minutes
+    event_time_to_live    = 1440 # 1 day in minutes
     max_delivery_attempts = 10
   }
 

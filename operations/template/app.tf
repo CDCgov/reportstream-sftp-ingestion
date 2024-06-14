@@ -70,6 +70,7 @@ resource "azurerm_linux_web_app" "sftp" {
     FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
     AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
     FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
+    QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.max_delivery_attempts
   }
 
   identity {

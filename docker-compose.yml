@@ -9,6 +9,7 @@ services:
       REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
       FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
+      QUEUE_MAX_DELIVERY_ATTEMPTS: 5
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/reportstream:/localdata

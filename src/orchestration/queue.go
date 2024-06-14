@@ -9,6 +9,7 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -90,7 +91,6 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-
 	filePath, err := getFilePathFromMessage(*message.MessageText)
 
 	if err != nil {
@@ -118,6 +118,7 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
+		checkDeliveryAttempts(message)
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		err = receiver.deleteMessage(message)
@@ -128,6 +129,22 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	}
 
 	return nil
+}
+
+// checkDeliveryAttempts checks whether the max delivery attempts for the message have been reached.
+// If the threshold has been reached, the message should go to dead letter storage.
+func checkDeliveryAttempts(message azqueue.DequeuedMessage) {
+	maxDeliveryCount, err := strconv.ParseInt(os.Getenv("QUEUE_MAX_DELIVERY_ATTEMPTS"), 10, 64)
+
+	if err != nil {
+		maxDeliveryCount = 5
+		slog.Error("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to",
+			slog.Any("maxDeliveryCount", maxDeliveryCount), slog.Any("error", err))
+	}
+
+	if *message.DequeueCount >= maxDeliveryCount {
+		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
+	}
 }
 
 func (receiver QueueHandler) ListenToQueue() {
