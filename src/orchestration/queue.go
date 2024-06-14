@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
@@ -110,15 +111,14 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 		How do we decide if a reportstream error is transient?
 
-		How do we know when we've crossed the retry threshold/something unexpected has gone wrong for a long time?
-		'Make someone check the import folder manually every day' is not a good solution
-		 One option is to check the dequeue count, and if we're over the threshold, log an error so we at least know
-		 something failed. Alternatively, is there a way to have some kind of age-related event trigger on the container?
 	*/
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
-		checkDeliveryAttempts(message)
+		err := checkDeliveryAttempts(message)
+		if err != nil {
+			slog.Error(err.Error())
+		}
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		err = receiver.deleteMessage(message)
@@ -133,18 +133,23 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 // checkDeliveryAttempts checks whether the max delivery attempts for the message have been reached.
 // If the threshold has been reached, the message should go to dead letter storage.
-func checkDeliveryAttempts(message azqueue.DequeuedMessage) {
+func checkDeliveryAttempts(message azqueue.DequeuedMessage) error {
 	maxDeliveryCount, err := strconv.ParseInt(os.Getenv("QUEUE_MAX_DELIVERY_ATTEMPTS"), 10, 64)
-
+	errorMessage := ""
 	if err != nil {
 		maxDeliveryCount = 5
-		slog.Error("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to",
-			slog.Any("maxDeliveryCount", maxDeliveryCount), slog.Any("error", err))
+		errorMessage = fmt.Sprintf("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to %d. Error: %s. ", maxDeliveryCount, err.Error())
 	}
 
 	if *message.DequeueCount >= maxDeliveryCount {
-		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
+		errorMessage = errorMessage + fmt.Sprintf("Message reached maximum number of delivery attempts %v", message)
 	}
+
+	if errorMessage != "" {
+		return errors.New(errorMessage)
+	}
+
+	return nil
 }
 
 func (receiver QueueHandler) ListenToQueue() {

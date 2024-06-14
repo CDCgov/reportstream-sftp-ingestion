@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"os"
 	"testing"
 )
 
@@ -177,13 +178,40 @@ func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
 
 }
 
+func Test_checkDeliveryAttempts_returnNilWhenDeliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createGoodMessage()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.NoError(t, err)
+}
+
+// TODO - add add'l tests for error scenarios
+
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createGoodMessage()
+
+	err := checkDeliveryAttempts(message)
+	expected := "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS"
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), expected)
+}
+
 // Helper functions for tests
 func createGoodMessage() azqueue.DequeuedMessage {
 	messageId := "1234"
 	popReceipt := "abcd"
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody}
+	var dequeueCount int64 = 4
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody, DequeueCount: &dequeueCount}
 	return message
 }
 
