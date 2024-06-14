@@ -189,7 +189,18 @@ func Test_checkDeliveryAttempts_returnNilWhenDeliveryCountParsedAndUnderDequeueT
 	assert.NoError(t, err)
 }
 
-// TODO - add add'l tests for error scenarios
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createMessageOverDequeueThreshold()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.Error(t, err)
+	assert.NotContains(t, err.Error(), cannotParseMessage)
+	assert.Contains(t, err.Error(), overDequeueMessage)
+}
 
 func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
@@ -198,10 +209,33 @@ func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndUnderD
 	message := createGoodMessage()
 
 	err := checkDeliveryAttempts(message)
-	expected := "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS"
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), expected)
+	assert.Contains(t, err.Error(), cannotParseMessage)
+	assert.NotContains(t, err.Error(), overDequeueMessage)
+}
+
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createMessageOverDequeueThreshold()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), cannotParseMessage)
+	assert.Contains(t, err.Error(), overDequeueMessage)
+}
+
+func createMessageOverDequeueThreshold() azqueue.DequeuedMessage {
+	messageId := "1234"
+	popReceipt := "abcd"
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
+	var dequeueCount int64 = 6
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody, DequeueCount: &dequeueCount}
+	return message
 }
 
 // Helper functions for tests
@@ -246,3 +280,7 @@ func (receiver *MockReadAndSendUsecase) ReadAndSend(filepath string) error {
 	args := receiver.Called(filepath)
 	return args.Error(0)
 }
+
+// Constants for tests
+const cannotParseMessage = "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS"
+const overDequeueMessage = "Message reached maximum number of delivery attempts"
