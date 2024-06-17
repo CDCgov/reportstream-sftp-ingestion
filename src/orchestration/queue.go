@@ -94,28 +94,14 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
-	// TODO - should we just return the URL and parse the filepath out of that elsewhere? having two similar
-	// string params for readandsend is getting confusing
 	sourceUrl, err := getUrlFromMessage(*message.MessageText)
 
 	if err != nil {
-		slog.Error("Failed to get the file path", slog.Any("error", err))
+		slog.Error("Failed to get the file URL", slog.Any("error", err))
 		return err
 	}
 
 	err = receiver.usecase.ReadAndSend(sourceUrl)
-	/*
-			Four possible scenarios to handle:
-			- Success from reportstream - move to 'success' folder and delete message
-			- Transient error from reportstream (like a 404, 502 (bad gateway), or 503 (service unavailable) status)
-				- this is something to retry, so leave message on queue and don't move file
-			- Non-transient errors from reportstream (e.g. message body is wrong shape or credentials are wrong - need to
-				look at their error responses). No point retrying, so move file to 'failure' folder and delete q message
-			- Azure errors - these are probably transient, so leave message on queue and don't move file
-
-		How do we decide if a reportstream error is transient?
-
-	*/
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
