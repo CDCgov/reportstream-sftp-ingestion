@@ -68,16 +68,7 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err), slog.String("sourceUrl", sourceUrl))
 
 		// Move file to the `failure` folder
-		destinationUrl := strings.Replace(sourceUrl, "import", "failure", 1)
-		if destinationUrl == sourceUrl {
-			slog.Error("Unexpected source URL, did not move", slog.String("sourceUrl", sourceUrl))
-		} else {
-			// After successful message handling, move source file
-			moveErr := receiver.blobHandler.MoveFile(sourceUrl, destinationUrl)
-			if moveErr != nil {
-				slog.Error("Failed to move file after processing", slog.Any("error", moveErr))
-			}
-		}
+		receiver.moveFile(sourceUrl, "failure")
 
 		// Return an error so that we'll leave the message on the queue and keep retrying
 		// TODO - differentiate between transient and non-transient RS errors - here or in queue.go?
@@ -86,19 +77,22 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
-	destinationUrl := strings.Replace(sourceUrl, "import", "success", 1)
-	if destinationUrl == sourceUrl {
-		slog.Error("Unexpected source URL, did not move", slog.String("sourceUrl", sourceUrl))
-	} else {
-		// After successful message handling, move source file
-		err = receiver.blobHandler.MoveFile(sourceUrl, destinationUrl)
-		if err != nil {
-			slog.Error("Failed to move file after processing", slog.Any("error", err))
-			// Log an error, but return nil. We've successfully sent the file to ReportStream,
-			// so we should delete the queue message
-			return nil
-		}
-	}
+	receiver.moveFile(sourceUrl, "success")
 
 	return nil
+}
+
+func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName string) {
+	destinationUrl := strings.Replace(sourceUrl, "import", newFolderName, 1)
+
+	if destinationUrl == sourceUrl {
+		slog.Error("Unexpected source URL, did not move", slog.String("sourceUrl", sourceUrl))
+		return
+	}
+
+	// After successful message handling, move source file
+	err := receiver.blobHandler.MoveFile(sourceUrl, destinationUrl)
+	if err != nil {
+		slog.Error("Failed to move file after processing", slog.Any("error", err))
+	}
 }
