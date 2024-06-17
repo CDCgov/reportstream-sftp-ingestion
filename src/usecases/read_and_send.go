@@ -52,7 +52,8 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	/*
 			Four possible scenarios to handle:
 			- Success from reportstream - move to 'success' folder and delete message
-			- Transient error from reportstream (like a 404, 502 (bad gateway), or 503 (service unavailable) status)
+			- Transient error from reportstream (like a 404 [....which might be transient or not], 502 (bad gateway),
+				or 503 (service unavailable) status)
 				- this is something to retry, so leave message on queue and don't move file
 			- Non-transient errors from reportstream (e.g. message body is wrong shape or credentials are wrong - need to
 				look at their error responses). No point retrying, so move file to 'failure' folder and delete q message
