@@ -18,11 +18,11 @@ type StorageHandler struct {
 	blobClient *azblob.Client
 }
 
-// The container name for CA will be added as part of card 1077 and will be configurable in 1081
 const containerName = "sftp"
 
-func NewStorageHandler(conn string) (StorageHandler, error) {
-	blobClient, err := azblob.NewClientFromConnectionString(conn, nil)
+func NewStorageHandler() (StorageHandler, error) {
+	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
+	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
 	if err != nil {
 		return StorageHandler{}, err
 	}
@@ -31,8 +31,14 @@ func NewStorageHandler(conn string) (StorageHandler, error) {
 }
 
 // FetchFile retrieves the specified blob from Azure. The `blobPath` is everything after the container in the URL
-func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
-	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, blobPath, &azblob.DownloadStreamOptions{})
+func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
+	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
+	if err != nil {
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
+		return nil, err
+	}
+
+	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DownloadStreamOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -59,15 +65,28 @@ func (receiver StorageHandler) FetchFile(blobPath string) ([]byte, error) {
 	return resp, err
 }
 
-func (receiver StorageHandler) MoveFile(sourceBlobUrl string, sourceBlobPath string, destinationBlobPath string) error {
-	// the storage account-level azblob client doesn't have a `copy` function, so we have to use the blob-specific client instead
-	blobClient, err := blob.NewClientFromConnectionString(os.Getenv("AZURE_STORAGE_CONNECTION_STRING"), containerName, destinationBlobPath, nil)
+func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string) error {
+	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
+	if err != nil {
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
+		return err
+	}
+	destinationUrlParts, err := azblob.ParseURL(sourceUrl)
+	if err != nil {
+		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl))
+		return err
+	}
+
+	// the storage account-level azblob client used on the StorageHandler struct doesn't have a `copy` function,
+	// so we have to use a blob-file-specific client for copying
+	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
+	blobClient, err := blob.NewClientFromConnectionString(connectionString, containerName, destinationUrlParts.BlobName, nil)
 	if err != nil {
 		slog.Error("Error creating blob client")
 		return err
 	}
 
-	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceBlobUrl, nil)
+	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceUrl, nil)
 	if err != nil {
 		slog.Error("Error starting blob copy")
 		return err
@@ -83,11 +102,11 @@ func (receiver StorageHandler) MoveFile(sourceBlobUrl string, sourceBlobPath str
 		}
 		copyStatus = *getMetadata.CopyStatus
 	}
-	slog.Info("Copied blob", slog.String("source URL", sourceBlobUrl), slog.String("destination path", destinationBlobPath))
+	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl))
 
-	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceBlobPath, &azblob.DeleteBlobOptions{})
+	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DeleteBlobOptions{})
 	if err != nil {
-		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceBlobUrl))
+		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl))
 		return err
 	}
 	return nil

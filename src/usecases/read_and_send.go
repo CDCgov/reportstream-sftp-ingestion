@@ -9,7 +9,7 @@ import (
 )
 
 type ReadAndSend interface {
-	ReadAndSend(sourceUrl string, filepath string) error
+	ReadAndSend(sourceUrl string) error
 }
 
 type ReadAndSendUsecase struct {
@@ -18,9 +18,7 @@ type ReadAndSendUsecase struct {
 }
 
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
-
-	azureBlobConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
-	blobHandler, err := storage.NewStorageHandler(azureBlobConnectionString)
+	blobHandler, err := storage.NewStorageHandler()
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		return ReadAndSendUsecase{}, err
@@ -47,10 +45,10 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	}, nil
 }
 
-func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string, filepath string) error {
-	content, err := receiver.blobHandler.FetchFile(filepath)
+func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
+	content, err := receiver.blobHandler.FetchFile(sourceUrl)
 	if err != nil {
-		slog.Error("Failed to read the file", slog.String("filepath", filepath), slog.Any("error", err))
+		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any("error", err))
 		return err
 	}
 
@@ -63,11 +61,12 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string, filepath strin
 
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
-	destinationPath := strings.Replace(filepath, "import", "success", 1)
-	if destinationPath == filepath {
-		slog.Error("Unexpected source filepath, did not move", slog.String("filepath", filepath))
+	destinationUrl := strings.Replace(sourceUrl, "import", "success", 1)
+	if destinationUrl == sourceUrl {
+		slog.Error("Unexpected source URL, did not move", slog.String("sourceUrl", sourceUrl))
 	} else {
-		err = receiver.blobHandler.MoveFile(sourceUrl, filepath, destinationPath)
+		// After successful message handling, move source file
+		err = receiver.blobHandler.MoveFile(sourceUrl, destinationUrl)
 		if err != nil {
 			slog.Error("Failed to move file after processing", slog.Any("error", err))
 			// TODO - should we not return an error here? or should we return one but handle it?

@@ -11,89 +11,58 @@ import (
 	"testing"
 )
 
-func Test_getFilePathAndUrlFromMessage_returnsFilePathWhenSubjectIsValidAndUrlWhenDataIsValid(t *testing.T) {
+func Test_getUrlFromMessage_returnsUrlWhenDataIsValid(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
-	expectedPath := "customer/import/msg2.hl7"
+	actualUrl, err := getUrlFromMessage(messageBody)
 	expectedUrl := "https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7"
 	assert.Nil(t, err)
-	assert.Equal(t, expectedPath, actualPath)
 	assert.Equal(t, expectedUrl, actualUrl)
 }
 
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T) {
+func Test_getUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageText)
+	actualUrl, err := getUrlFromMessage(messageText)
 	expectedError := "illegal base64 data at input byte 0"
 
 	assert.Error(t, err)
-	assert.Empty(t, actualPath)
 	assert.Empty(t, actualUrl)
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
+func Test_getUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":\"the data\",\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	actualUrl, err := getUrlFromMessage(messageBody)
 	expectedError := "could not assert event data to a map"
 
 	assert.Error(t, err)
-	assert.Empty(t, actualPath)
 	assert.Empty(t, actualUrl)
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
+func Test_getUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	actualUrl, err := getUrlFromMessage(messageBody)
 	expectedError := "could not assert event data url to a string"
 
 	assert.Error(t, err)
-	assert.Empty(t, actualPath)
 	assert.Empty(t, actualUrl)
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenSubjectDoesNotContainBlobs(t *testing.T) {
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
-	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
-	expectedError := "failed to parse subject"
-	assert.Error(t, err)
-	assert.Empty(t, actualPath)
-	assert.Empty(t, actualUrl)
-	assert.Contains(t, err.Error(), expectedError)
-}
-
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenSubjectContainsMoreThanOneBlobs(t *testing.T) {
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
-	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
-	expectedError := "failed to parse subject"
-	assert.Error(t, err)
-	assert.Empty(t, actualPath)
-	assert.Empty(t, actualUrl)
-	assert.Contains(t, err.Error(), expectedError)
-
-}
-
-func Test_getFilePathAndUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T) {
+func Test_getUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actualPath, actualUrl, err := getFilePathAndUrlFromMessage(messageBody)
+	actualUrl, err := getUrlFromMessage(messageBody)
 	expectedError := "unmarshalling type *azeventgrid.Event"
 	assert.Error(t, err)
-	assert.Empty(t, actualPath)
 	assert.Empty(t, actualUrl)
 	assert.Contains(t, err.Error(), expectedError)
 }
@@ -128,7 +97,7 @@ func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createGoodMessage()
@@ -136,25 +105,8 @@ func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
 	err := queueHandler.handleMessage(message)
 
 	assert.NoError(t, err)
-	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
+	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
-}
-
-func Test_handleMessage_returnErrorWhenFailureGettingFilePathFromMessage(t *testing.T) {
-	mockQueueClient := MockQueueClient{}
-	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
-
-	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
-
-	message := createBadMessageMissingBlobs()
-
-	err := queueHandler.handleMessage(message)
-
-	assert.Error(t, err)
-	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
 }
 
 func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
@@ -163,7 +115,7 @@ func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createGoodMessage()
@@ -171,7 +123,7 @@ func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
 	err := queueHandler.handleMessage(message)
 
 	assert.Error(t, err)
-	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
+	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 }
 
 func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
@@ -180,7 +132,7 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(errors.New("failed to read and send"))
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(errors.New("failed to read and send"))
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createGoodMessage()
@@ -188,7 +140,7 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 	err := queueHandler.handleMessage(message)
 
 	assert.NoError(t, err)
-	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string"))
+	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
@@ -203,7 +155,7 @@ func Test_ReceiveQueue_HappyPath(t *testing.T) {
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 	err := queueHandler.receiveQueue()
@@ -217,7 +169,7 @@ func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
 	mockQueueClient.On("DequeueMessage", mock.Anything, mock.Anything).Return(azqueue.DequeueMessagesResponse{}, errors.New("dequeue message failed"))
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(nil)
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 	err := queueHandler.receiveQueue()
@@ -297,15 +249,6 @@ func createGoodMessage() azqueue.DequeuedMessage {
 	return message
 }
 
-func createBadMessageMissingBlobs() azqueue.DequeuedMessage {
-	messageId := "1234"
-	popReceipt := "abcd"
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
-	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody}
-	return message
-}
-
 // Mocks for test
 type MockQueueClient struct {
 	mock.Mock
@@ -324,8 +267,8 @@ func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.
 	return args.Get(0).(azqueue.DequeueMessagesResponse), args.Error(1)
 }
 
-func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string, sourcePath string) error {
-	args := receiver.Called(sourceUrl, sourcePath)
+func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
+	args := receiver.Called(sourceUrl)
 	return args.Error(0)
 }
 

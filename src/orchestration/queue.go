@@ -11,7 +11,6 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -45,11 +44,11 @@ func NewQueueHandler() (QueueHandler, error) {
 	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: &usecase}, nil
 }
 
-func getFilePathAndUrlFromMessage(messageText string) (string, string, error) {
+func getUrlFromMessage(messageText string) (string, error) {
 	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
 	if err != nil {
 		slog.Error("Failed to decode message text", slog.Any("error", err))
-		return "", "", err
+		return "", err
 	}
 
 	// Map bytes json to Event object format (shape)
@@ -57,7 +56,7 @@ func getFilePathAndUrlFromMessage(messageText string) (string, string, error) {
 	err = event.UnmarshalJSON(eventBytes)
 	if err != nil {
 		slog.Error("Failed to unmarshal event", slog.Any("error", err))
-		return "", "", err
+		return "", err
 	}
 
 	// Data is an 'any' type. We need to tell Go that it's a map
@@ -65,7 +64,7 @@ func getFilePathAndUrlFromMessage(messageText string) (string, string, error) {
 
 	if !ok {
 		slog.Error("Could not assert event data to a map", slog.Any("event", event))
-		return "", "", errors.New("could not assert event data to a map")
+		return "", errors.New("could not assert event data to a map")
 	}
 
 	// Extract blob url from Event's data
@@ -73,23 +72,10 @@ func getFilePathAndUrlFromMessage(messageText string) (string, string, error) {
 
 	if !ok {
 		slog.Error("Could not assert event data url to a string", slog.Any("event", event))
-		return "", "", errors.New("could not assert event data url to a string")
+		return "", errors.New("could not assert event data url to a string")
 	}
 
-	eventSubject := *event.Subject
-
-	eventSubjectParts := strings.Split(eventSubject, "blobs/")
-
-	// Determines whether a blob was given and split properly
-	// EX: "subject":"/blobServices/default/containers/sftp/blobs/customer/import/msg2.hl7"
-	// If more than 2 pieces result, there's something confusing about the file path
-	// If fewer than 2 pieces result, this is probably not a blob
-	if len(eventSubjectParts) != 2 {
-		slog.Error("Failed to parse subject", slog.String("subject", eventSubject))
-		return "", "", errors.New("failed to parse subject")
-	}
-
-	return eventSubjectParts[1], eventUrl, nil
+	return eventUrl, nil
 }
 
 func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) error {
@@ -110,14 +96,14 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
 	// TODO - should we just return the URL and parse the filepath out of that elsewhere? having two similar
 	// string params for readandsend is getting confusing
-	filePath, sourceUrl, err := getFilePathAndUrlFromMessage(*message.MessageText)
+	sourceUrl, err := getUrlFromMessage(*message.MessageText)
 
 	if err != nil {
 		slog.Error("Failed to get the file path", slog.Any("error", err))
 		return err
 	}
 
-	err = receiver.usecase.ReadAndSend(sourceUrl, filePath)
+	err = receiver.usecase.ReadAndSend(sourceUrl)
 	/*
 			Four possible scenarios to handle:
 			- Success from reportstream - move to 'success' folder and delete message
@@ -138,8 +124,6 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 			slog.Error(err.Error())
 		}
 	} else {
-		// After successful message handling, move source file
-
 		// Only delete message if file successfully sent to ReportStream
 		err = receiver.deleteMessage(message)
 		if err != nil {
