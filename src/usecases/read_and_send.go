@@ -45,6 +45,9 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	}, nil
 }
 
+// ReadAndSend retrieves the specified blob from Azure and sends it to ReportStream. On a success response from ReportStream,
+// we move the file to a `success` folder. On a non-transient error, we move the file to a `failure` folder. On a
+// transient error, we return an error, which will cause the queue message to retry later
 func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	/*
 			Four possible scenarios to handle:
