@@ -60,6 +60,13 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 			- Azure errors - these are probably transient, so leave message on queue and don't move file
 
 		TODO - How do we decide if a reportstream error or azure error is transient?
+		- Figure out what kinds of errors Azure Fetch File might return
+		- Figure out what kinds of errors ReportStream might return
+		- Maybe convert errors into objects?
+		- Decide which Azure and which RS errors are transient vs should not be retried
+		- Return different kinds of errors if transient or not
+		- In queue.go, decide whether to delete message based on error type
+
 	*/
 	content, err := receiver.blobHandler.FetchFile(sourceUrl)
 	if err != nil {
