@@ -76,6 +76,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 	copyResponse, err := blobClient.CopyFromURL(context.TODO(), sourceUrl, nil)
 	if err != nil {
 		slog.Error("Error copying file", slog.String("sourceUrl", sourceUrl), slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
+		return err
 	}
 
 	//startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceUrl, nil)
