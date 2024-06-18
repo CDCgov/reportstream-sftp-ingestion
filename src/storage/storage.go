@@ -9,7 +9,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"time"
 )
 
 type StorageHandler struct {
@@ -74,28 +73,32 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 		slog.Error("Error creating blob client")
 		return err
 	}
-
-	startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceUrl, nil)
+	copyResponse, err := blobClient.CopyFromURL(context.TODO(), sourceUrl, nil)
 	if err != nil {
-		slog.Error("Error starting blob copy")
-		return err
+		slog.Error("Error copying file", slog.String("sourceUrl", sourceUrl), slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
 	}
 
-	copyStatus := *startCopy.CopyStatus
-	slog.Info("copy status before copy", slog.Any("copyStatus", copyStatus))
-	for copyStatus == blob.CopyStatusTypePending {
-		time.Sleep(time.Second * 2)
-		getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
-		if err != nil {
-			slog.Error("Error during blob copy")
-			return err
-		}
-		copyStatus = *getMetadata.CopyStatus
-		slog.Info("copy status during copy", slog.Any("copyStatus", copyStatus))
-		slog.Info("metadata during copy", slog.Any("getMetadata", getMetadata))
-	}
-	slog.Info("copy status after copy", slog.Any("copyStatus", copyStatus))
-	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl), slog.Any("copyStatus", copyStatus))
+	//startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceUrl, nil)
+	//if err != nil {
+	//	slog.Error("Error starting blob copy")
+	//	return err
+	//}
+	//
+	//copyStatus := *startCopy.CopyStatus
+	//slog.Info("copy status before copy", slog.Any("copyStatus", copyStatus))
+	//for copyStatus == blob.CopyStatusTypePending {
+	//	time.Sleep(time.Second * 2)
+	//	getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
+	//	if err != nil {
+	//		slog.Error("Error during blob copy")
+	//		return err
+	//	}
+	//	copyStatus = *getMetadata.CopyStatus
+	//	slog.Info("copy status during copy", slog.Any("copyStatus", copyStatus))
+	//	slog.Info("metadata during copy", slog.Any("getMetadata", getMetadata))
+	//}
+	//slog.Info("copy status after copy", slog.Any("copyStatus", copyStatus))
+	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl), slog.Any("copyReponse", copyResponse))
 	getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
 	slog.Info("metadata after copy", slog.Any("getMetadata", getMetadata))
 
