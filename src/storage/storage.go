@@ -3,13 +3,11 @@ package storage
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"io"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 )
@@ -30,7 +28,6 @@ func NewStorageHandler() (StorageHandler, error) {
 	return StorageHandler{blobClient: blobClient}, nil
 }
 
-// FetchFile retrieves the specified blob from Azure. The `blobPath` is everything after the container in the URL
 func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
@@ -48,18 +45,10 @@ func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
 
 	resp, err := io.ReadAll(retryReader)
 
-	//borrowed from https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/azcore#ResponseError
-	//TODO - return special stuff so we know when to retry or not
+	// As of June 2024, we're treating all Azure errors as transient/retryable
 	var respErr *azcore.ResponseError
 	if errors.As(err, &respErr) {
-		// Handle Error
-		if respErr.StatusCode == http.StatusNotFound {
-			fmt.Printf("Repository could not be found: %v", respErr)
-		} else if respErr.StatusCode == http.StatusForbidden {
-			fmt.Printf("You do not have permission to access this repository: %v", respErr)
-		} else {
-			// ...
-		}
+		slog.Error("Error fetching file", slog.Any("error", respErr), slog.String("sourceUrl", sourceUrl))
 	}
 
 	return resp, err
