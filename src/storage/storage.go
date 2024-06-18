@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blob"
 	"io"
 	"log/slog"
 	"os"
@@ -63,34 +64,34 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl))
 		return err
 	}
-
-	fileBytes, err := receiver.FetchFile(sourceUrl)
-	if err != nil {
-		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl))
-		return err
-	}
-
-	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), containerName, destinationUrlParts.BlobName, fileBytes, nil)
-	if err != nil {
-		slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl))
-		return err
-	}
-
-	slog.Info("Successfully uploaded file", slog.String("destinationUrl", destinationUrl), slog.Any("uploadResponse", uploadResponse))
-
-	//// the storage account-level azblob client used on the StorageHandler struct doesn't have a `copy` function,
-	//// so we have to use a blob-file-specific client for copying
-	//connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
-	//blobClient, err := blob.NewClientFromConnectionString(connectionString, containerName, destinationUrlParts.BlobName, nil)
+	//
+	//fileBytes, err := receiver.FetchFile(sourceUrl)
 	//if err != nil {
-	//	slog.Error("Error creating blob client")
+	//	slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl))
 	//	return err
 	//}
-	//copyResponse, err := blobClient.CopyFromURL(context.TODO(), sourceUrl, nil)
+	//
+	//uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), containerName, destinationUrlParts.BlobName, fileBytes, nil)
 	//if err != nil {
-	//	slog.Error("Error copying file", slog.String("sourceUrl", sourceUrl), slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
+	//	slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl))
 	//	return err
 	//}
+	//
+	//slog.Info("Successfully uploaded file", slog.String("destinationUrl", destinationUrl), slog.Any("uploadResponse", uploadResponse))
+
+	// the storage account-level azblob client used on the StorageHandler struct doesn't have a `copy` function,
+	// so we have to use a blob-file-specific client for copying
+	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
+	blobClient, err := blob.NewClientFromConnectionString(connectionString, containerName, destinationUrlParts.BlobName, nil)
+	if err != nil {
+		slog.Error("Error creating blob client")
+		return err
+	}
+	copyResponse, err := blobClient.CopyFromURL(context.TODO(), sourceUrl, nil)
+	if err != nil {
+		slog.Error("Error copying file", slog.String("sourceUrl", sourceUrl), slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
+		return err
+	}
 
 	//startCopy, err := blobClient.StartCopyFromURL(context.TODO(), sourceUrl, nil)
 	//if err != nil {
@@ -112,9 +113,9 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 	//	slog.Info("metadata during copy", slog.Any("getMetadata", getMetadata))
 	//}
 	//slog.Info("copy status after copy", slog.Any("copyStatus", copyStatus))
-	//slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl), slog.Any("copyReponse", copyResponse))
-	//getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
-	//slog.Info("metadata after copy", slog.Any("getMetadata", getMetadata))
+	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl), slog.Any("copyReponse", copyResponse))
+	getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
+	slog.Info("metadata after copy", slog.Any("getMetadata", getMetadata))
 
 	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DeleteBlobOptions{})
 	if err != nil {
