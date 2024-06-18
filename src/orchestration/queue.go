@@ -111,6 +111,7 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		}
 	} else {
 		// Only delete message if file successfully sent to ReportStream
+		// (or if there's a known non-transient error and we've moved the file to `failure`)
 		err = receiver.deleteMessage(message)
 		if err != nil {
 			slog.Warn("Failed to delete message", slog.Any("error", err))

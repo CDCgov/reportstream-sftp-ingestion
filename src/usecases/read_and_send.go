@@ -46,28 +46,10 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 }
 
 // ReadAndSend retrieves the specified blob from Azure and sends it to ReportStream. On a success response from ReportStream,
-// we move the file to a `success` folder. On a non-transient error, we move the file to a `failure` folder. On a
-// transient error, we return an error, which will cause the queue message to retry later
+// we move the file to a `success` folder. On a non-transient error, we move the file to a `failure` folder and return
+// `nil` so that we'll delete the queue message and not retry. On a transient error or an unknown error, we return
+// an error, which will cause the queue message to retry later
 func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
-	/*
-			Four possible scenarios to handle:
-			- Success from reportstream - move to 'success' folder and delete message
-			- Transient error from reportstream (like a 404 [....which might be transient or not], 502 (bad gateway),
-				or 503 (service unavailable) status)
-				- this is something to retry, so leave message on queue and don't move file
-			- Non-transient errors from reportstream (e.g. message body is wrong shape or credentials are wrong - need to
-				look at their error responses). No point retrying, so move file to 'failure' folder and delete q message
-			- Azure errors - these are probably transient, so leave message on queue and don't move file
-
-		TODO - How do we decide if a reportstream error or azure error is transient?
-		- Figure out what kinds of errors Azure Fetch File might return
-		- Figure out what kinds of errors ReportStream might return
-		- Maybe convert errors into objects?
-		- Decide which Azure and which RS errors are transient vs should not be retried
-		- Return different kinds of errors if transient or not
-		- In queue.go, decide whether to delete message based on error type
-
-	*/
 	content, err := receiver.blobHandler.FetchFile(sourceUrl)
 	if err != nil {
 		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any("error", err))
@@ -78,11 +60,13 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	if err != nil {
 		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err), slog.String("sourceUrl", sourceUrl))
 
-		// Move file to the `failure` folder
-		receiver.moveFile(sourceUrl, "failure")
+		// If the file contains bad input data, move to the `failure` folder and return nil so we'll delete the queue message
+		if strings.Contains(err.Error(), "400") {
+			receiver.moveFile(sourceUrl, "failure")
+			return nil
+		}
 
-		// Return an error so that we'll leave the message on the queue and keep retrying
-		// TODO - differentiate between transient and non-transient RS errors - here or in queue.go?
+		// For any other failures,  return an error so that we'll leave the message on the queue and keep retrying
 		return err
 	}
 
