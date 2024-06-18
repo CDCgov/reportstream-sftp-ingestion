@@ -82,6 +82,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 	}
 
 	copyStatus := *startCopy.CopyStatus
+	slog.Info("copy status before copy", slog.Any("copyStatus", copyStatus))
 	for copyStatus == blob.CopyStatusTypePending {
 		time.Sleep(time.Second * 2)
 		getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
@@ -90,8 +91,13 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 			return err
 		}
 		copyStatus = *getMetadata.CopyStatus
+		slog.Info("copy status during copy", slog.Any("copyStatus", copyStatus))
+		slog.Info("metadata during copy", slog.Any("getMetadata", getMetadata))
 	}
-	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl))
+	slog.Info("copy status after copy", slog.Any("copyStatus", copyStatus))
+	slog.Info("Copied blob", slog.String("source URL", sourceUrl), slog.String("destination URL", destinationUrl), slog.Any("copyStatus", copyStatus))
+	getMetadata, err := blobClient.GetProperties(context.TODO(), nil)
+	slog.Info("metadata after copy", slog.Any("getMetadata", getMetadata))
 
 	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DeleteBlobOptions{})
 	if err != nil {
