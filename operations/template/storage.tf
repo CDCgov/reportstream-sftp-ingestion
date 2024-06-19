@@ -29,6 +29,8 @@ resource "azurerm_role_assignment" "allow_app_read_write" {
 }
 
 locals {
+  # The below value needs to match the RS retention policy value so that we fall within their ATO.
+  # Do not change it unless directed to do so by someone from the CDC security team
   retention_days = 60
 }
 
