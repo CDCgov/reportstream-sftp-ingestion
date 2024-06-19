@@ -48,6 +48,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
 		return err
 	}
+
 	destinationUrlParts, err := azblob.ParseURL(destinationUrl)
 	if err != nil {
 		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
@@ -73,5 +74,6 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl), slog.Any("error", err))
 		return err
 	}
+
 	return nil
 }

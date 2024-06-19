@@ -73,7 +73,9 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	}
 
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
+
 	receiver.moveFile(sourceUrl, "success")
+
 	return nil
 }
 

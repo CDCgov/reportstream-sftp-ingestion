@@ -6,31 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
-	"os"
 	"testing"
 )
 
 const sourceUrl = "http://localhost/sftp/customer/import/order_message.hl7"
 const successUrl = "http://localhost/sftp/customer/success/order_message.hl7"
 const failureUrl = "http://localhost/sftp/customer/failure/order_message.hl7"
-
-func Test_NewReadAndSendUsecase_whenUsingLocalFileSender(t *testing.T) {
-	os.Setenv("REPORT_STREAM_URL_PREFIX", "")
-	defer os.Unsetenv("REPORT_STREAM_URL_PREFIX")
-
-}
-
-func Test_NewReadAndSendUsecase_whenUsingReportStreamSenderSuccess(t *testing.T) {
-
-}
-
-func Test_NewReadAndSendUsecase_whenUnableToInitAzureBlobClient(t *testing.T) {
-
-}
-
-func Test_NewReadAndSendUsecase_whenUnableToConstructReportStreamSender(t *testing.T) {
-
-}
 
 func Test_ReadAndSend_failsToReadBlob(t *testing.T) {
 	mockBlobHandler := &MockBlobHandler{}
@@ -132,10 +113,6 @@ func Test_moveFile_blobHandlerFailsToMoveFile(t *testing.T) {
 	usecase.moveFile(sourceUrl, "failed")
 
 	assert.Contains(t, buffer.String(), "Failed to move file after processing")
-}
-
-type MockStorageHandler struct {
-	mock.Mock
 }
 
 type MockBlobHandler struct {
