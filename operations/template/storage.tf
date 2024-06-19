@@ -27,3 +27,33 @@ resource "azurerm_role_assignment" "allow_app_read_write" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_linux_web_app.sftp.identity.0.principal_id
 }
+
+locals {
+  retention_days = 60
+}
+
+
+resource "azurerm_storage_management_policy" "retention_policy" {
+  storage_account_id = azurerm_storage_account.storage.id
+
+  rule {
+    name    = "pii_retention"
+    enabled = true
+
+    filters {
+      blob_types = ["blockBlob", "appendBlob"]
+    }
+
+    actions {
+      base_blob {
+        delete_after_days_since_creation_greater_than = local.retention_days
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = local.retention_days
+      }
+      version {
+        delete_after_days_since_creation = local.retention_days
+      }
+    }
+  }
+}
