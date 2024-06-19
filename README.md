@@ -67,6 +67,8 @@ the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to ca
 make unitTests
 ```
 
+To update which files are excluded from the test coverage report update the `codeCoverageFilter.sh`script.
+
 #### Manual local testing
 In the cloud, EventGrid monitors the blob storage container and sends file creation events to our queue for the app to read.
 In the local Azurite tool, there are no events to connect the blob storage container to the queue.

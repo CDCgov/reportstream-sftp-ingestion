@@ -5,6 +5,7 @@ unitTests:
 	cd ./src/ && go test ./... -cover -coverprofile=coverage.out
 
 unitTestsWithCoverageThreshold: unitTests
+	./codeCoverageFilter.sh
 	./codeCoverageThresholdCheck.sh
 
 vet:
