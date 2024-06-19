@@ -18,7 +18,7 @@ type ReadAndSendUsecase struct {
 }
 
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
-	blobHandler, err := storage.NewStorageHandler()
+	blobHandler, err := storage.NewAzureBlobHandler()
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		return ReadAndSendUsecase{}, err

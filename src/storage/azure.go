@@ -8,21 +8,21 @@ import (
 	"os"
 )
 
-type StorageHandler struct {
+type AzureBlobHandler struct {
 	blobClient *azblob.Client
 }
 
-func NewStorageHandler() (StorageHandler, error) {
+func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
 	if err != nil {
-		return StorageHandler{}, err
+		return AzureBlobHandler{}, err
 	}
 
-	return StorageHandler{blobClient: blobClient}, nil
+	return AzureBlobHandler{blobClient: blobClient}, nil
 }
 
-func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
+func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
 		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
@@ -42,7 +42,7 @@ func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	return resp, err
 }
 
-func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string) error {
+func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl string) error {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
 		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
