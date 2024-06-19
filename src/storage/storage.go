@@ -14,8 +14,6 @@ type StorageHandler struct {
 	blobClient *azblob.Client
 }
 
-const containerName = "sftp"
-
 func NewStorageHandler() (StorageHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
@@ -33,12 +31,12 @@ func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
 		return nil, err
 	}
 
-	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DownloadStreamOptions{})
+	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	retryReader := streamResponse.NewRetryReader(context.Background(), &azblob.RetryReaderOptions{})
+	retryReader := streamResponse.NewRetryReader(context.Background(), nil)
 	defer retryReader.Close()
 
 	resp, err := io.ReadAll(retryReader)
@@ -70,7 +68,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 		return err
 	}
 
-	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), containerName, destinationUrlParts.BlobName, fileBytes, nil)
+	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), destinationUrlParts.ContainerName, destinationUrlParts.BlobName, fileBytes, nil)
 	if err != nil {
 		slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl))
 		return err
@@ -78,7 +76,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 
 	slog.Info("Successfully uploaded file", slog.String("destinationUrl", destinationUrl), slog.Any("uploadResponse", uploadResponse))
 
-	_, err = receiver.blobClient.DeleteBlob(context.Background(), containerName, sourceUrlParts.BlobName, &azblob.DeleteBlobOptions{})
+	_, err = receiver.blobClient.DeleteBlob(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
 	if err != nil {
 		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl))
 		return err

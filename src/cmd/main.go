@@ -1,7 +1,6 @@
 package main
 
 import (
-	azlog "github.com/Azure/azure-sdk-for-go/sdk/azcore/log"
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
 	"io"
 	"log/slog"
@@ -38,9 +37,6 @@ func setupLogging() {
 		slog.SetDefault(logger)
 	}
 
-	azlog.SetListener(func(event azlog.Event, s string) {
-		slog.Info(s)
-	})
 }
 
 func setupHealthCheck() {
