@@ -23,7 +23,7 @@ resource "azurerm_storage_container" "sftp_container_dead_letter" {
 }
 
 resource "azurerm_role_assignment" "allow_app_read_write" {
-  scope                = azurerm_storage_container.sftp_container.resource_manager_id
+  scope                = azurerm_storage_account.storage.id
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = azurerm_linux_web_app.sftp.identity.0.principal_id
 }

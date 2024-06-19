@@ -36,6 +36,7 @@ func setupLogging() {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 		slog.SetDefault(logger)
 	}
+
 }
 
 func setupHealthCheck() {

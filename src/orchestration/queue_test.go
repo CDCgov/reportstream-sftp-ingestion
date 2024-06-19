@@ -7,46 +7,64 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"os"
 	"testing"
 )
 
-func Test_getFilePathFromMessage_returnsFilePathWhenSubjectIsValid(t *testing.T) {
+func Test_getUrlFromMessage_returnsUrlWhenDataIsValid(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := "customer/import/msg2.hl7"
+	actualUrl, err := getUrlFromMessage(messageBody)
+	expectedUrl := "https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7"
 	assert.Nil(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expectedUrl, actualUrl)
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenSubjectDoesNotContainBlobs(t *testing.T) {
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+func Test_getUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+
+	actualUrl, err := getUrlFromMessage(messageText)
+	expectedError := "illegal base64 data at input byte 0"
+
+	assert.Error(t, err)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
+}
+
+func Test_getUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":\"the data\",\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := ""
+	actualUrl, err := getUrlFromMessage(messageBody)
+	expectedError := "could not assert event data to a map"
+
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenSubjectContainsMoreThanOneBlobs(t *testing.T) {
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+func Test_getUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageBody)
-	expected := ""
+	actualUrl, err := getUrlFromMessage(messageBody)
+	expectedError := "could not assert event data url to a string"
+
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getFilePathFromMessage_returnsErrorWhenMessageNotEvent(t *testing.T) {
+func Test_getUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
-	actual, err := getFilePathFromMessage(messageText)
-	expected := ""
+	actualUrl, err := getUrlFromMessage(messageBody)
+	expectedError := "unmarshalling type *azeventgrid.Event"
 	assert.Error(t, err)
-	assert.Equal(t, expected, actual)
+	assert.Empty(t, actualUrl)
+	assert.Contains(t, err.Error(), expectedError)
 }
 
 func Test_deleteMessage_returnNilWhenMessageCanBeDeleted(t *testing.T) {
@@ -91,7 +109,7 @@ func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_handleMessage_returnErrorWhenFailureGettingFilePathFromMessage(t *testing.T) {
+func Test_handleMessage_returnErrorWhenFailedToGetFileUrl(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
@@ -100,12 +118,13 @@ func Test_handleMessage_returnErrorWhenFailureGettingFilePathFromMessage(t *test
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
-	message := createBadMessageMissingBlobs()
+	message := createBadMessage()
 
 	err := queueHandler.handleMessage(message)
 
 	assert.Error(t, err)
 	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
+	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
@@ -177,22 +196,84 @@ func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
 
 }
 
+func Test_checkDeliveryAttempts_returnNilWhenDeliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createGoodMessage()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.NoError(t, err)
+}
+
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createMessageOverDequeueThreshold()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.Error(t, err)
+	assert.NotContains(t, err.Error(), cannotParseMessage)
+	assert.Contains(t, err.Error(), overDequeueMessage)
+}
+
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createGoodMessage()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), cannotParseMessage)
+	assert.NotContains(t, err.Error(), overDequeueMessage)
+}
+
+func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	message := createMessageOverDequeueThreshold()
+
+	err := checkDeliveryAttempts(message)
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), cannotParseMessage)
+	assert.Contains(t, err.Error(), overDequeueMessage)
+}
+
+func createMessageOverDequeueThreshold() azqueue.DequeuedMessage {
+	messageId := "1234"
+	popReceipt := "abcd"
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
+	var dequeueCount int64 = 6
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody, DequeueCount: &dequeueCount}
+	return message
+}
+
 // Helper functions for tests
 func createGoodMessage() azqueue.DequeuedMessage {
 	messageId := "1234"
 	popReceipt := "abcd"
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody}
+	var dequeueCount int64 = 4
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody, DequeueCount: &dequeueCount}
 	return message
 }
 
-func createBadMessageMissingBlobs() azqueue.DequeuedMessage {
+func createBadMessage() azqueue.DequeuedMessage {
 	messageId := "1234"
 	popReceipt := "abcd"
-	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
+	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
-	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody}
+	var dequeueCount int64 = 4
+	message := azqueue.DequeuedMessage{MessageID: &messageId, PopReceipt: &popReceipt, MessageText: &messageBody, DequeueCount: &dequeueCount}
 	return message
 }
 
@@ -214,7 +295,11 @@ func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.
 	return args.Get(0).(azqueue.DequeueMessagesResponse), args.Error(1)
 }
 
-func (receiver *MockReadAndSendUsecase) ReadAndSend(filepath string) error {
-	args := receiver.Called(filepath)
+func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
+	args := receiver.Called(sourceUrl)
 	return args.Error(0)
 }
+
+// Constants for tests
+const cannotParseMessage = "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS"
+const overDequeueMessage = "Message reached maximum number of delivery attempts"
