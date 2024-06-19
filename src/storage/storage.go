@@ -2,8 +2,6 @@ package storage
 
 import (
 	"context"
-	"errors"
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"io"
 	"log/slog"
@@ -41,36 +39,30 @@ func (receiver StorageHandler) FetchFile(sourceUrl string) ([]byte, error) {
 
 	resp, err := io.ReadAll(retryReader)
 
-	// As of June 2024, we're treating all Azure errors as transient/retryable
-	var respErr *azcore.ResponseError
-	if errors.As(err, &respErr) {
-		slog.Error("Error fetching file", slog.Any("error", respErr), slog.String("sourceUrl", sourceUrl))
-	}
-
 	return resp, err
 }
 
 func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string) error {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
 		return err
 	}
 	destinationUrlParts, err := azblob.ParseURL(destinationUrl)
 	if err != nil {
-		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl))
+		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
 		return err
 	}
 
 	fileBytes, err := receiver.FetchFile(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl))
+		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
 		return err
 	}
 
 	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), destinationUrlParts.ContainerName, destinationUrlParts.BlobName, fileBytes, nil)
 	if err != nil {
-		slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl))
+		slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
 		return err
 	}
 
@@ -78,7 +70,7 @@ func (receiver StorageHandler) MoveFile(sourceUrl string, destinationUrl string)
 
 	_, err = receiver.blobClient.DeleteBlob(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
 	if err != nil {
-		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl))
+		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl), slog.Any("error", err))
 		return err
 	}
 	return nil
