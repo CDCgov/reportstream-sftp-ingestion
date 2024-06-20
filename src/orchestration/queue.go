@@ -15,14 +15,16 @@ import (
 )
 
 type QueueHandler struct {
-	queueClient QueueClient
-	ctx         context.Context
-	usecase     usecases.ReadAndSend
+	queueClient           QueueClient
+	deadLetterQueueClient QueueClient
+	ctx                   context.Context
+	usecase               usecases.ReadAndSend
 }
 
 type QueueClient interface {
 	DeleteMessage(ctx context.Context, messageID string, popReceipt string, o *azqueue.DeleteMessageOptions) (azqueue.DeleteMessageResponse, error)
 	DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error)
+	EnqueueMessage(ctx context.Context, content string, o *azqueue.EnqueueMessageOptions) (azqueue.EnqueueMessagesResponse, error)
 }
 
 func NewQueueHandler() (QueueHandler, error) {
@@ -30,7 +32,13 @@ func NewQueueHandler() (QueueHandler, error) {
 
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client", err)
+		slog.Error("Unable to create Azure Queue Client for primary queue", err)
+		return QueueHandler{}, err
+	}
+
+	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-dead-letter-queue", nil)
+	if err != nil {
+		slog.Error("Unable to create Azure Queue Client for dead letter queue", err)
 		return QueueHandler{}, err
 	}
 
@@ -41,7 +49,7 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: &usecase}, nil
+	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, ctx: context.Background(), usecase: &usecase}, nil
 }
 
 func getUrlFromMessage(messageText string) (string, error) {
@@ -134,6 +142,9 @@ func checkDeliveryAttempts(message azqueue.DequeuedMessage) error {
 
 	if *message.DequeueCount >= maxDeliveryCount {
 		errorMessage = errorMessage + fmt.Sprintf("Message reached maximum number of delivery attempts %v", message)
+		//TODO: call separate method to copy the message to the DLQ and delete the message on the primary queue
+		// also change how we are handling this `errorMessage`?
+		// This method returns an error because we wrote it before we could mock Slog. It may not make sense to return an error any more
 	}
 
 	if errorMessage != "" {

@@ -294,6 +294,10 @@ func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.
 	args := receiver.Called(ctx, o)
 	return args.Get(0).(azqueue.DequeueMessagesResponse), args.Error(1)
 }
+func (receiver *MockQueueClient) EnqueueMessage(ctx context.Context, content string, o *azqueue.EnqueueMessageOptions) (azqueue.EnqueueMessagesResponse, error) {
+	args := receiver.Called(ctx, content, o)
+	return args.Get(0).(azqueue.EnqueueMessagesResponse), args.Error(1)
+}
 
 func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	args := receiver.Called(sourceUrl)
