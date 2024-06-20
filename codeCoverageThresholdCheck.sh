@@ -3,7 +3,7 @@ set -e
 
 pushd ./src/ || exit
 
-THRESHOLD=40
+THRESHOLD=50
 COVERAGE=$(go tool cover -func ./coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+')
 
 echo "Code coverage is $COVERAGE%, and the threshold is $THRESHOLD%"
