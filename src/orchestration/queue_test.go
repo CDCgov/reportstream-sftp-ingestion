@@ -299,6 +299,57 @@ func Test_checkDeliveryAttempts_deliveryCountCannotParseAndOverDequeueThreshold(
 	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
 }
 
+func Test_deadLetter_addedMessageToDLQAndSuccessfullyDeletedMessageFromOriginalQueue(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
+
+	message := createMessageOverDequeueThreshold()
+	err := queueHandler.deadLetter(message)
+
+	assert.NoError(t, err)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_deadLetter_cannotAddMessageToDLQ(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, errors.New("couldn't enqueue message"))
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
+
+	message := createMessageOverDequeueThreshold()
+	err := queueHandler.deadLetter(message)
+
+	assert.Error(t, err)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_deadLetter_failedToDeleteMessageFromOriginalQueue(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, errors.New("couldn't delete message from original queue"))
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
+
+	message := createMessageOverDequeueThreshold()
+	err := queueHandler.deadLetter(message)
+
+	assert.Error(t, err)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
 func createMessageOverDequeueThreshold() azqueue.DequeuedMessage {
 	messageId := "1234"
 	popReceipt := "abcd"
