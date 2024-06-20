@@ -165,6 +165,26 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
+func Test_handleMessage_returnErrorWhenOverDequeueThreshold(t *testing.T) {
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
+	message := createMessageOverDequeueThreshold()
+
+	err := queueHandler.handleMessage(message)
+
+	assert.Error(t, err)
+	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
 func Test_ReceiveQueue_HappyPath(t *testing.T) {
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
@@ -230,7 +250,7 @@ func Test_ReceiveQueue_logsErrorWhenUnableToHandleMessage(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Unable to handle message")
 }
 
-func Test_checkDeliveryAttempts_deliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_deliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -246,16 +266,17 @@ func Test_checkDeliveryAttempts_deliveryCountParsedAndUnderDequeueThreshold(t *t
 
 	message := createGoodMessage()
 
-	queueHandler.checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
 
 	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
 	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, false, overThreshold)
 
 }
 
-func Test_checkDeliveryAttempts_deliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
-	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "6")
+func Test_overDeliveryThreshold_deliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
 	defaultLogger := slog.Default()
@@ -273,15 +294,16 @@ func Test_checkDeliveryAttempts_deliveryCountParsedAndOverDequeueThreshold(t *te
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createMessageOverDequeueThreshold()
-	queueHandler.checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
 
 	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
 	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
+	assert.Equal(t, true, overThreshold)
 }
 
-func Test_checkDeliveryAttempts_deliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_deliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -297,14 +319,15 @@ func Test_checkDeliveryAttempts_deliveryCountCannotParseAndUnderDequeueThreshold
 
 	message := createGoodMessage()
 
-	queueHandler.checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
 
 	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
 	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, false, overThreshold)
 }
 
-func Test_checkDeliveryAttempts_deliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_deliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -323,16 +346,17 @@ func Test_checkDeliveryAttempts_deliveryCountCannotParseAndOverDequeueThreshold(
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
 
 	message := createMessageOverDequeueThreshold()
-	queueHandler.checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
 
 	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
 	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
+	assert.Equal(t, true, overThreshold)
 }
 
-func Test_checkDeliveryAttempts_overThresholdAndUnableToDeadLetter(t *testing.T) {
-	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "6")
+func Test_overDeliveryThreshold_overThresholdAndUnableToDeadLetter(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
 	defaultLogger := slog.Default()
@@ -349,9 +373,10 @@ func Test_checkDeliveryAttempts_overThresholdAndUnableToDeadLetter(t *testing.T)
 	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
 
 	message := createMessageOverDequeueThreshold()
-	queueHandler.checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
 
 	assert.Contains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, true, overThreshold)
 }
 
 func Test_deadLetter_addedMessageToDLQAndSuccessfullyDeletedMessageFromOriginalQueue(t *testing.T) {

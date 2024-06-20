@@ -102,6 +102,11 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
+	overThreshold := receiver.overDeliveryThreshold(message)
+	if overThreshold {
+		return errors.New("message delivery threshold exceeded")
+	}
+
 	sourceUrl, err := getUrlFromMessage(*message.MessageText)
 
 	if err != nil {
@@ -113,7 +118,6 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
-		receiver.checkDeliveryAttempts(message)
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		// (or if there's a known non-transient error and we've moved the file to `failure`)
@@ -127,9 +131,10 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	return nil
 }
 
-// checkDeliveryAttempts checks whether the max delivery attempts for the message have been reached.
+// overDeliveryThreshold checks whether the max delivery attempts for the message have been reached.
 // If the threshold has been reached, the message should go to dead letter storage.
-func (receiver QueueHandler) checkDeliveryAttempts(message azqueue.DequeuedMessage) {
+// Return true if we're over the threshold and should stop processing, else return false
+func (receiver QueueHandler) overDeliveryThreshold(message azqueue.DequeuedMessage) bool {
 	maxDeliveryCount, err := strconv.ParseInt(os.Getenv("QUEUE_MAX_DELIVERY_ATTEMPTS"), 10, 64)
 
 	if err != nil {
@@ -137,13 +142,15 @@ func (receiver QueueHandler) checkDeliveryAttempts(message azqueue.DequeuedMessa
 		slog.Warn("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5", slog.Any("error", err))
 	}
 
-	if *message.DequeueCount >= maxDeliveryCount {
+	if *message.DequeueCount > maxDeliveryCount {
 		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
 		err := receiver.deadLetter(message)
 		if err != nil {
 			slog.Error("Failed to move message to the DLQ", slog.Any("message", message))
 		}
+		return true
 	}
+	return false
 }
 
 func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
