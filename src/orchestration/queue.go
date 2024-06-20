@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
@@ -113,10 +113,7 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
-		err := checkDeliveryAttempts(message)
-		if err != nil {
-			slog.Error(err.Error())
-		}
+		receiver.checkDeliveryAttempts(message)
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		// (or if there's a known non-transient error and we've moved the file to `failure`)
@@ -132,24 +129,40 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 // checkDeliveryAttempts checks whether the max delivery attempts for the message have been reached.
 // If the threshold has been reached, the message should go to dead letter storage.
-func checkDeliveryAttempts(message azqueue.DequeuedMessage) error {
+func (receiver QueueHandler) checkDeliveryAttempts(message azqueue.DequeuedMessage) {
 	maxDeliveryCount, err := strconv.ParseInt(os.Getenv("QUEUE_MAX_DELIVERY_ATTEMPTS"), 10, 64)
-	errorMessage := ""
+
 	if err != nil {
 		maxDeliveryCount = 5
-		errorMessage = fmt.Sprintf("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to %d. Error: %s. ", maxDeliveryCount, err.Error())
+		slog.Warn("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5", slog.Any("error", err))
 	}
 
 	if *message.DequeueCount >= maxDeliveryCount {
-		errorMessage = errorMessage + fmt.Sprintf("Message reached maximum number of delivery attempts %v", message)
-		//TODO: call separate method to copy the message to the DLQ and delete the message on the primary queue
-		// also change how we are handling this `errorMessage`?
-		// This method returns an error because we wrote it before we could mock Slog. It may not make sense to return an error any more
+		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
+		err := receiver.deadLetter(message)
+		if err != nil {
+			slog.Error("Failed to move message to the DLQ", slog.Any("message", message))
+		}
+	}
+}
+
+func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
+
+	// a TimeToLive of -1 means the message will not expire
+	opts := &azqueue.EnqueueMessageOptions{TimeToLive: to.Ptr(int32(-1))}
+	_, err := receiver.deadLetterQueueClient.EnqueueMessage(context.Background(), *message.MessageText, opts)
+	if err != nil {
+		slog.Error("Failed to add the message to the DLQ", slog.Any("error", err))
+		return err
 	}
 
-	if errorMessage != "" {
-		return errors.New(errorMessage)
+	err = receiver.deleteMessage(message)
+	if err != nil {
+		slog.Error("Failed to delete the message to the original queue after adding it to the DLQ", slog.Any("error", err))
+		return err
 	}
+
+	slog.Info("Successfully moved the message to the DLQ")
 
 	return nil
 }
