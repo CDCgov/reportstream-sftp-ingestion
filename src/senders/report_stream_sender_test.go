@@ -37,6 +37,10 @@ func (m *MockCredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.Privat
 	args := m.Called(privateKeyName)
 	return args.Get(0).(*rsa.PrivateKey), args.Error(1)
 }
+func (m *MockCredentialGetter) GetSecret(secretName string) (string, error) {
+	args := m.Called(secretName)
+	return args.Get(0).(string), args.Error(1)
+}
 
 func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
 
