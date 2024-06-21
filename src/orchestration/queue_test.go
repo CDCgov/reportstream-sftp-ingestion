@@ -1,14 +1,17 @@
 package orchestration
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"log/slog"
 	"os"
 	"testing"
+	"time"
 )
 
 func Test_getUrlFromMessage_returnsUrlWhenDataIsValid(t *testing.T) {
@@ -162,6 +165,26 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
+func Test_handleMessage_returnErrorWhenOverDequeueThreshold(t *testing.T) {
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
+	message := createMessageOverDequeueThreshold()
+
+	err := queueHandler.handleMessage(message)
+
+	assert.Error(t, err)
+	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+}
+
 func Test_ReceiveQueue_HappyPath(t *testing.T) {
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
@@ -193,57 +216,218 @@ func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
 	err := queueHandler.receiveQueue()
 
 	assert.Error(t, err)
-
 }
 
-func Test_checkDeliveryAttempts_returnNilWhenDeliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
+func Test_ReceiveQueue_logsErrorWhenUnableToHandleMessage(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	// Setup for DequeueMessage
+	mockQueueClient := MockQueueClient{}
+	message := createGoodMessage()
+	dequeuedMessageResponse := azqueue.DequeueMessagesResponse{Messages: []*azqueue.DequeuedMessage{&message}}
+	mockQueueClient.On("DequeueMessage", mock.Anything, mock.Anything).Return(dequeuedMessageResponse, nil)
+
+	// Setup for handleMessage (to avoid adding otherwise unneeded interface for QueueHandler)
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, errors.New("failed to delete"))
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+	err := queueHandler.receiveQueue()
+
+	mockQueueClient.AssertCalled(t, "DequeueMessage", mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+
+	// The `slog.Error` call we're checking for happens in a GoRoutine, which completes immediately after the
+	// receiveQueue function. Since no production code is called after this GoRoutine is done, there is no race
+	// condition to worry about, and we can just wait a short time in this test to ensure all calls are completed
+	time.Sleep(1 * time.Second)
+	assert.Contains(t, buffer.String(), "Unable to handle message")
+}
+
+func Test_overDeliveryThreshold_deliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockQueueClient := MockQueueClient{}
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
 	message := createGoodMessage()
 
-	err := checkDeliveryAttempts(message)
+	overThreshold := queueHandler.overDeliveryThreshold(message)
+
+	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
+	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, false, overThreshold)
+
+}
+
+func Test_overDeliveryThreshold_deliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
+	message := createMessageOverDequeueThreshold()
+	overThreshold := queueHandler.overDeliveryThreshold(message)
+
+	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
+	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
+	assert.Equal(t, true, overThreshold)
+}
+
+func Test_overDeliveryThreshold_deliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockQueueClient := MockQueueClient{}
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
+	message := createGoodMessage()
+
+	overThreshold := queueHandler.overDeliveryThreshold(message)
+
+	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
+	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, false, overThreshold)
+}
+
+func Test_overDeliveryThreshold_deliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+
+	message := createMessageOverDequeueThreshold()
+	overThreshold := queueHandler.overDeliveryThreshold(message)
+
+	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
+	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
+	assert.Equal(t, true, overThreshold)
+}
+
+func Test_overDeliveryThreshold_overThresholdAndUnableToDeadLetter(t *testing.T) {
+	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
+	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, errors.New("DLQ failed"))
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
+
+	message := createMessageOverDequeueThreshold()
+	overThreshold := queueHandler.overDeliveryThreshold(message)
+
+	assert.Contains(t, buffer.String(), "Failed to move message to the DLQ")
+	assert.Equal(t, true, overThreshold)
+}
+
+func Test_deadLetter_addedMessageToDLQAndSuccessfullyDeletedMessageFromOriginalQueue(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
+
+	message := createMessageOverDequeueThreshold()
+	err := queueHandler.deadLetter(message)
 
 	assert.NoError(t, err)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
-	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
-	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+func Test_deadLetter_cannotAddMessageToDLQ(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, errors.New("couldn't enqueue message"))
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
 
 	message := createMessageOverDequeueThreshold()
-
-	err := checkDeliveryAttempts(message)
-
-	assert.Error(t, err)
-	assert.NotContains(t, err.Error(), cannotParseMessage)
-	assert.Contains(t, err.Error(), overDequeueMessage)
-}
-
-func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
-	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
-	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
-
-	message := createGoodMessage()
-
-	err := checkDeliveryAttempts(message)
+	err := queueHandler.deadLetter(message)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), cannotParseMessage)
-	assert.NotContains(t, err.Error(), overDequeueMessage)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_checkDeliveryAttempts_returnErrorWhenDeliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
-	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
-	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
+func Test_deadLetter_failedToDeleteMessageFromOriginalQueue(t *testing.T) {
+	mockDeadLetterQueueClient := MockQueueClient{}
+	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
+
+	mockQueueClient := MockQueueClient{}
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, errors.New("couldn't delete message from original queue"))
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, ctx: context.Background()}
 
 	message := createMessageOverDequeueThreshold()
-
-	err := checkDeliveryAttempts(message)
+	err := queueHandler.deadLetter(message)
 
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), cannotParseMessage)
-	assert.Contains(t, err.Error(), overDequeueMessage)
+	mockDeadLetterQueueClient.AssertCalled(t, "EnqueueMessage", mock.Anything, mock.Anything, mock.Anything)
+	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
 func createMessageOverDequeueThreshold() azqueue.DequeuedMessage {
@@ -278,11 +462,8 @@ func createBadMessage() azqueue.DequeuedMessage {
 }
 
 // Mocks for test
-type MockQueueClient struct {
-	mock.Mock
-}
 
-type MockReadAndSendUsecase struct {
+type MockQueueClient struct {
 	mock.Mock
 }
 
@@ -293,6 +474,14 @@ func (receiver *MockQueueClient) DeleteMessage(ctx context.Context, messageID st
 func (receiver *MockQueueClient) DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error) {
 	args := receiver.Called(ctx, o)
 	return args.Get(0).(azqueue.DequeueMessagesResponse), args.Error(1)
+}
+func (receiver *MockQueueClient) EnqueueMessage(ctx context.Context, content string, o *azqueue.EnqueueMessageOptions) (azqueue.EnqueueMessagesResponse, error) {
+	args := receiver.Called(ctx, content, o)
+	return args.Get(0).(azqueue.EnqueueMessagesResponse), args.Error(1)
+}
+
+type MockReadAndSendUsecase struct {
+	mock.Mock
 }
 
 func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {

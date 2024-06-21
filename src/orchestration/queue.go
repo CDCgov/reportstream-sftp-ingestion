@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
-	"fmt"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
@@ -15,14 +15,16 @@ import (
 )
 
 type QueueHandler struct {
-	queueClient QueueClient
-	ctx         context.Context
-	usecase     usecases.ReadAndSend
+	queueClient           QueueClient
+	deadLetterQueueClient QueueClient
+	ctx                   context.Context
+	usecase               usecases.ReadAndSend
 }
 
 type QueueClient interface {
 	DeleteMessage(ctx context.Context, messageID string, popReceipt string, o *azqueue.DeleteMessageOptions) (azqueue.DeleteMessageResponse, error)
 	DequeueMessage(ctx context.Context, o *azqueue.DequeueMessageOptions) (azqueue.DequeueMessagesResponse, error)
+	EnqueueMessage(ctx context.Context, content string, o *azqueue.EnqueueMessageOptions) (azqueue.EnqueueMessagesResponse, error)
 }
 
 func NewQueueHandler() (QueueHandler, error) {
@@ -30,7 +32,13 @@ func NewQueueHandler() (QueueHandler, error) {
 
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client", err)
+		slog.Error("Unable to create Azure Queue Client for primary queue", err)
+		return QueueHandler{}, err
+	}
+
+	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-dead-letter-queue", nil)
+	if err != nil {
+		slog.Error("Unable to create Azure Queue Client for dead letter queue", err)
 		return QueueHandler{}, err
 	}
 
@@ -41,7 +49,7 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	return QueueHandler{queueClient: client, ctx: context.Background(), usecase: &usecase}, nil
+	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, ctx: context.Background(), usecase: &usecase}, nil
 }
 
 func getUrlFromMessage(messageText string) (string, error) {
@@ -94,6 +102,11 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
+	overThreshold := receiver.overDeliveryThreshold(message)
+	if overThreshold {
+		return errors.New("message delivery threshold exceeded")
+	}
+
 	sourceUrl, err := getUrlFromMessage(*message.MessageText)
 
 	if err != nil {
@@ -105,10 +118,6 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 
 	if err != nil {
 		slog.Warn("Failed to read/send file", slog.Any("error", err))
-		err := checkDeliveryAttempts(message)
-		if err != nil {
-			slog.Error(err.Error())
-		}
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		// (or if there's a known non-transient error and we've moved the file to `failure`)
@@ -122,23 +131,45 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	return nil
 }
 
-// checkDeliveryAttempts checks whether the max delivery attempts for the message have been reached.
+// overDeliveryThreshold checks whether the max delivery attempts for the message have been reached.
 // If the threshold has been reached, the message should go to dead letter storage.
-func checkDeliveryAttempts(message azqueue.DequeuedMessage) error {
+// Return true if we're over the threshold and should stop processing, else return false
+func (receiver QueueHandler) overDeliveryThreshold(message azqueue.DequeuedMessage) bool {
 	maxDeliveryCount, err := strconv.ParseInt(os.Getenv("QUEUE_MAX_DELIVERY_ATTEMPTS"), 10, 64)
-	errorMessage := ""
+
 	if err != nil {
 		maxDeliveryCount = 5
-		errorMessage = fmt.Sprintf("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to %d. Error: %s. ", maxDeliveryCount, err.Error())
+		slog.Warn("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5", slog.Any("error", err))
 	}
 
-	if *message.DequeueCount >= maxDeliveryCount {
-		errorMessage = errorMessage + fmt.Sprintf("Message reached maximum number of delivery attempts %v", message)
+	if *message.DequeueCount > maxDeliveryCount {
+		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
+		err := receiver.deadLetter(message)
+		if err != nil {
+			slog.Error("Failed to move message to the DLQ", slog.Any("message", message))
+		}
+		return true
+	}
+	return false
+}
+
+func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
+
+	// a TimeToLive of -1 means the message will not expire
+	opts := &azqueue.EnqueueMessageOptions{TimeToLive: to.Ptr(int32(-1))}
+	_, err := receiver.deadLetterQueueClient.EnqueueMessage(context.Background(), *message.MessageText, opts)
+	if err != nil {
+		slog.Error("Failed to add the message to the DLQ", slog.Any("error", err))
+		return err
 	}
 
-	if errorMessage != "" {
-		return errors.New(errorMessage)
+	err = receiver.deleteMessage(message)
+	if err != nil {
+		slog.Error("Failed to delete the message to the original queue after adding it to the DLQ", slog.Any("error", err))
+		return err
 	}
+
+	slog.Info("Successfully moved the message to the DLQ")
 
 	return nil
 }
