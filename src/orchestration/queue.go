@@ -102,6 +102,7 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
+
 	slog.Info("Handling message", slog.String("id", *message.MessageID))
 
 	overThreshold := receiver.overDeliveryThreshold(message)
