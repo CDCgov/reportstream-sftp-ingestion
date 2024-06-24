@@ -102,6 +102,9 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 }
 
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
+
+	slog.Info("Handling message", slog.String("id", *message.MessageID))
+
 	overThreshold := receiver.overDeliveryThreshold(message)
 	if overThreshold {
 		return errors.New("message delivery threshold exceeded")
@@ -185,25 +188,24 @@ func (receiver QueueHandler) ListenToQueue() {
 }
 
 func (receiver QueueHandler) receiveQueue() error {
+
+	slog.Info("Trying to dequeue")
+
 	messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
 	if err != nil {
 		slog.Error("Unable to dequeue messages", err)
 		return err
-	} else {
-		var messageCount int
-
-		messageCount = len(messageResponse.Messages)
-		slog.Info("", slog.Any("Number of messages in the queue", messageCount))
-
-		if messageCount > 0 {
-			message := *messageResponse.Messages[0]
-			go func() {
-				err := receiver.handleMessage(message)
-				if err != nil {
-					slog.Error("Unable to handle message", err)
-				}
-			}()
-		}
 	}
+
+	for _, dequeuedMessage := range messageResponse.Messages {
+		message := *dequeuedMessage
+		go func() {
+			err := receiver.handleMessage(message)
+			if err != nil {
+				slog.Error("Unable to handle message", err)
+			}
+		}()
+	}
+
 	return nil
 }
