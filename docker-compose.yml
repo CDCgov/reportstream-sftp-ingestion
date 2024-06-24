@@ -12,7 +12,7 @@ services:
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
     volumes:
       # map to Azurite data objects to the build directory
-      - ./localdata/reportstream:/localdata
+      - ./localdata/data/reportstream:/localdata
       - ./mock_credentials:/mock_credentials
     ports:
       - "8081:8080" # default api endpoint port
@@ -22,6 +22,8 @@ services:
         condition: service_started
       azure-cli:
         condition: service_completed_successfully
+      sftp-server:
+        condition: service_started
     networks:
       - sftp
 
@@ -31,7 +33,7 @@ services:
     # command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0
     volumes:
       # map to Azurite data objects to the build directory
-      - ./localdata/azurite:/data
+      - ./localdata/data/azurite:/data
     ports:
       - "12000:10000"
       - "12001:10001"
@@ -58,6 +60,18 @@ services:
     depends_on:
       - sftp-Azurite
 
+  sftp-server:
+    image: atmoz/sftp
+    environment:
+      SFTP_USERS: ti_user:ti_password:::files
+    volumes:
+      - ./mock_credentials/sftp_server_user.pub:/home/ti_user/.ssh/keys/id_rsa.pub:ro
+      - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh
+      - ./localdata/data/sftp:/home/ti_user/files
+    ports:
+      - "2223:22"
+    networks:
+      - sftp
 
 networks:
   sftp:
