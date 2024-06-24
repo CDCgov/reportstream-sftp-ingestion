@@ -10,6 +10,9 @@ services:
       FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
+      SFTP_USER: placeholder #TODO - update
+      SFTP_PASSWORD: placeholder #TODO - update #pragma: allowlist secret
+      SFTP_KEY_NAME: placeholder #TODO - update #pragma: allowlist secret
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/reportstream:/localdata

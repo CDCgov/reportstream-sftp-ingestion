@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -30,18 +29,10 @@ func NewSender() (Sender, error) {
 		environment = "local"
 	}
 
-	var credentialGetter utils.CredentialGetter
-
-	if environment == "local" {
-		slog.Info("Using local credentials")
-		credentialGetter = secrets.CredentialGetter{}
-	} else {
-		slog.Info("Using Azure credentials")
-		var err error
-		credentialGetter, err = secrets.NewSecretGetter()
-		if err != nil {
-			return Sender{}, err
-		}
+	credentialGetter, err := utils.GetCredentialGetter()
+	if err != nil {
+		slog.Error("Unable to initialize credential getter", slog.String("error", err.Error()))
+		return Sender{}, err
 	}
 
 	return Sender{
