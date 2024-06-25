@@ -17,7 +17,6 @@ import (
 type QueueHandler struct {
 	queueClient           QueueClient
 	deadLetterQueueClient QueueClient
-	ctx                   context.Context
 	usecase               usecases.ReadAndSend
 }
 
@@ -49,7 +48,7 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, ctx: context.Background(), usecase: &usecase}, nil
+	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, usecase: &usecase}, nil
 }
 
 func getUrlFromMessage(messageText string) (string, error) {
@@ -90,7 +89,7 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 	messageId := *message.MessageID
 	popReceipt := *message.PopReceipt
 
-	deleteResponse, err := receiver.queueClient.DeleteMessage(receiver.ctx, messageId, popReceipt, nil)
+	deleteResponse, err := receiver.queueClient.DeleteMessage(context.Background(), messageId, popReceipt, nil)
 	if err != nil {
 		slog.Error("Unable to delete message", slog.Any("error", err))
 		return err
@@ -191,7 +190,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	slog.Info("Trying to dequeue")
 
-	messageResponse, err := receiver.queueClient.DequeueMessage(receiver.ctx, nil)
+	messageResponse, err := receiver.queueClient.DequeueMessage(context.Background(), nil)
 	if err != nil {
 		slog.Error("Unable to dequeue messages", err)
 		return err
