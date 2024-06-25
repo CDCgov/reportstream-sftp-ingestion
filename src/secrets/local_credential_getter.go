@@ -2,7 +2,6 @@ package secrets
 
 import (
 	"crypto/rsa"
-	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"log/slog"
 	"os"
@@ -31,7 +30,7 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 func (credentialGetter CredentialGetter) GetSecret(secretName string) (string, error) {
 	slog.Info("Reading secret from local hard drive", slog.String("name", secretName))
 
-	secret, err := os.ReadFile(filepath.Join("mock_credentials", fmt.Sprintf("%s.pem", secretName)))
+	secret, err := os.ReadFile(filepath.Join("mock_credentials", secretName))
 	if err != nil {
 		return "", err
 	}

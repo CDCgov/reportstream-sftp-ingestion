@@ -2,6 +2,7 @@ package sftp
 
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
+	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -12,12 +13,12 @@ import (
 )
 
 type SftpHandler struct {
-	sshClient  *ssh.Client
-	sftpClient *sftp.Client
+	sshClient   *ssh.Client
+	sftpClient  *sftp.Client
+	blobHandler usecases.BlobHandler
 }
 
 func NewSftpHandler() (*SftpHandler, error) {
-	// TODO - update docker-compose env vars, add env vars to TF
 	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
 	secretName := os.Getenv("SFTP_KEY_NAME")
 
@@ -45,11 +46,11 @@ func NewSftpHandler() (*SftpHandler, error) {
 			ssh.PublicKeys(pem),
 			ssh.Password(os.Getenv("SFTP_PASSWORD")),
 		},
-		// TODO - confirm if we want the next line
+		// TODO - InsecureIgnoreHostKey should not be used in prod code. Need public key for SFTP server?
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER"), config)
+	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
 
 	if err != nil {
 		slog.Error("Failed to make SSH client", slog.Any("error", err))
@@ -62,44 +63,53 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	blobHandler, err := storage.NewAzureBlobHandler()
+	if err != nil {
+		slog.Error("Failed to init Azure blob client", slog.String("BlobOpenError", err.Error()))
+		return nil, err
+	}
+
 	return &SftpHandler{
-		sshClient:  sshClient,
-		sftpClient: sftpClient,
+		sshClient:   sshClient,
+		sftpClient:  sftpClient,
+		blobHandler: blobHandler,
 	}, nil
 }
 
 func (receiver *SftpHandler) Close() {
-	// TODO - error handling on closes
+	// TODO - error handling on closes?
 	receiver.sftpClient.Close()
 	receiver.sshClient.Close()
+	slog.Info("SFTP handler closed")
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	// TODO - use "." for readDir for now, but maybe replace with an env var for whatever directory we should start in
+	// TODO - use "files" for readDir for now, but maybe replace with an env var for whatever directory we should start in
 	//readDir using sftp client
-	fileInfos, err := receiver.sftpClient.ReadDir(".")
+	fileInfos, err := receiver.sftpClient.ReadDir("files")
 	if err != nil {
-		log.Fatal("Failed to stat ", err)
+		log.Fatal("Failed to read directory ", err)
 	}
 
 	//loop through files
 	for index, fileInfo := range fileInfos {
 		go func() {
-			slog.Debug("fileinfo", slog.Any("file info", fileInfo), slog.Any("file number", index))
-			file, err := receiver.sftpClient.Open(fileInfo.Name())
+			slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
+			if fileInfo.IsDir() {
+				slog.Info("Skipping directory", slog.String("file name", fileInfo.Name()))
+				return
+			}
+			// TODO - create path some better way than this - should match path used in `ReadDir` above
+			file, err := receiver.sftpClient.Open("files/" + fileInfo.Name())
 
 			if err != nil {
 				slog.Error("Failed to open file", slog.String("FileOpenError", err.Error()))
+				return
 			}
 			fileBytes, err := io.ReadAll(file)
 
-			// TODO - initialize this somewhere else?
-			blobHandler, err := storage.NewAzureBlobHandler()
-			if err != nil {
-				slog.Error("Failed to open blob handler", slog.String("BlobOpenError", err.Error()))
-			}
 			// TODO - build a better path (unzip? import? how do we know?)
-			err = blobHandler.UploadFile(fileBytes, fileInfo.Name())
+			err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
 
 			if err != nil {
 				slog.Error("Failed to upload file", slog.String("BlobUploadError", err.Error()))

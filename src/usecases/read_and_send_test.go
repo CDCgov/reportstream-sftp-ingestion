@@ -129,6 +129,11 @@ func (receiver *MockBlobHandler) MoveFile(sourceUrl string, destinationUrl strin
 	return args.Error(0)
 }
 
+func (receiver *MockBlobHandler) UploadFile(fileBytes []byte, blobPath string) error {
+	args := receiver.Called(fileBytes, blobPath)
+	return args.Error(0)
+}
+
 type MockMessageSender struct {
 	mock.Mock
 }

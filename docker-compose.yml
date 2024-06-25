@@ -7,12 +7,13 @@ services:
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise we'll use a mock response
       REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
-      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local #pragma: allowlist secret
+      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
-      SFTP_USER: placeholder #TODO - update
-      SFTP_PASSWORD: placeholder #TODO - update #pragma: allowlist secret
-      SFTP_KEY_NAME: placeholder #TODO - update #pragma: allowlist secret
+      SFTP_USER: ti_user
+      SFTP_PASSWORD: ti_password #TODO - update #pragma: allowlist secret
+      SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #TODO - update #pragma: allowlist secret
+      SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata
