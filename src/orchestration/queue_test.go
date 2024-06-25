@@ -250,6 +250,34 @@ func Test_ReceiveQueue_logsErrorWhenUnableToHandleMessage(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Unable to handle message")
 }
 
+func Test_ReceiveQueue_handlesMultipleMessages(t *testing.T) {
+
+	// Setup for DequeueMessage
+	mockQueueClient := MockQueueClient{}
+	message1 := createGoodMessage()
+	message2 := createGoodMessage()
+	message3 := createGoodMessage()
+	messages := []*azqueue.DequeuedMessage{&message1, &message2, &message3}
+	dequeuedMessageResponse := azqueue.DequeueMessagesResponse{Messages: messages}
+	mockQueueClient.On("DequeueMessage", mock.Anything, mock.Anything).Return(dequeuedMessageResponse, nil)
+
+	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
+
+	mockReadAndSendUsecase := MockReadAndSendUsecase{}
+	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
+
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, ctx: context.Background(), usecase: &mockReadAndSendUsecase}
+	err := queueHandler.receiveQueue()
+
+	assert.NoError(t, err)
+
+	// The assertions below happens in a GoRoutine, which completes immediately after the
+	// receiveQueue function. Since no production code is called after this GoRoutine is done, there is no race
+	// condition to worry about, and we can just wait a short time in this test to ensure all calls are completed
+	time.Sleep(1 * time.Second)
+	mockReadAndSendUsecase.AssertNumberOfCalls(t, "ReadAndSend", len(messages))
+}
+
 func Test_overDeliveryThreshold_deliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
