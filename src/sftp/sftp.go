@@ -40,18 +40,35 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
+	serverKey, err := credentialGetter.GetSecret(serverKeyName)
+	if err != nil {
+		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.String("Error", err.Error()))
+		return nil, err
+	}
+
+	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
+	if err != nil {
+		slog.Error("Failed to parse authorized key", slog.String("Error", err.Error()))
+		return nil, err
+	}
+
+	parsedKey, err := ssh.ParsePublicKey(pk.Marshal())
+	if err != nil {
+		slog.Error("Unable to parse server key", slog.String("Error", err.Error()))
+		return nil, err
+	}
+
 	config := &ssh.ClientConfig{
 		User: os.Getenv("SFTP_USER"),
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(pem),
 			ssh.Password(os.Getenv("SFTP_PASSWORD")),
 		},
-		// TODO - InsecureIgnoreHostKey should not be used in prod code. Need public key for SFTP server?
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: ssh.FixedHostKey(parsedKey),
 	}
 
 	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
-
 	if err != nil {
 		slog.Error("Failed to make SSH client", slog.Any("error", err))
 		return nil, err

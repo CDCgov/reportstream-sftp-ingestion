@@ -14,6 +14,7 @@ services:
       SFTP_PASSWORD: ti_password #TODO - update #pragma: allowlist secret
       SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #TODO - update #pragma: allowlist secret
       SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
+      SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata
@@ -70,6 +71,7 @@ services:
       SFTP_USERS: ti_user:ti_password:::files
     volumes:
       - ./mock_credentials/sftp_server_user.pub:/home/ti_user/.ssh/keys/id_rsa.pub:ro
+      - ./mock_credentials/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key
       - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh
       - ./localdata/data/sftp:/home/ti_user/files
     ports:
