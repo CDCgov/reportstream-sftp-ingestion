@@ -94,9 +94,14 @@ func NewSftpHandler() (*SftpHandler, error) {
 }
 
 func (receiver *SftpHandler) Close() {
-	// TODO - error handling on closes?
-	receiver.sftpClient.Close()
-	receiver.sshClient.Close()
+	err := receiver.sftpClient.Close()
+	if err != nil {
+		slog.Error("Failed to close SFTP client", slog.String("Error", err.Error()))
+	}
+	err = receiver.sshClient.Close()
+	if err != nil {
+		slog.Error("Failed to close SSH client", slog.String("Error", err.Error()))
+	}
 	slog.Info("SFTP handler closed")
 }
 
