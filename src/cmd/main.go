@@ -29,6 +29,7 @@ func main() {
 		// Don't return, we want to let things keep going for now
 	}
 	defer sftpHandler.Close()
+
 	sftpHandler.CopyFiles()
 
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application

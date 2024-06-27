@@ -9,6 +9,9 @@ EXCLUDE_FILES=(
   github.com/CDCgov/reportstream-sftp-ingestion/secrets/azure_secret_getter.go
   github.com/CDCgov/reportstream-sftp-ingestion/secrets/local_credential_getter.go
   github.com/CDCgov/reportstream-sftp-ingestion/senders/local_sender.go
+  github.com/CDCgov/reportstream-sftp-ingestion/mocks/blob_handler.go
+  github.com/CDCgov/reportstream-sftp-ingestion/utils/constants.go
+
 )
 
 for exclusion in "${EXCLUDE_FILES[@]}"

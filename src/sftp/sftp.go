@@ -14,58 +14,52 @@ import (
 
 type SftpHandler struct {
 	sshClient   *ssh.Client
-	sftpClient  *sftp.Client
+	sftpClient  SftpClient
 	blobHandler usecases.BlobHandler
+}
+
+type SftpClient interface {
+	ReadDir(path string) ([]os.FileInfo, error)
+	Open(path string) (*sftp.File, error)
+	Close() error
 }
 
 func NewSftpHandler() (*SftpHandler, error) {
 	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
-	secretName := os.Getenv("SFTP_KEY_NAME")
 
 	credentialGetter, err := utils.GetCredentialGetter()
 	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.String("error", err.Error()))
+		slog.Error("Unable to initialize credential getter", slog.Any("error", err))
 		return nil, err
 	}
 
-	key, err := credentialGetter.GetSecret(secretName)
+	pem, err := getPublicKeysForSshClient(credentialGetter)
 	if err != nil {
-		slog.Error("Unable to retrieve SFTP Key", slog.String("KeyName", secretName), slog.String("Error", err.Error()))
-		return nil, err
-	}
-
-	pem, err := ssh.ParsePrivateKey([]byte(key))
-	if err != nil {
-		slog.Error("Unable to parse private key", slog.String("Error", err.Error()))
 		return nil, err
 	}
 
 	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
+
 	serverKey, err := credentialGetter.GetSecret(serverKeyName)
+
 	if err != nil {
-		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.String("Error", err.Error()))
+		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any("error", err))
 		return nil, err
 	}
 
-	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
+	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 	if err != nil {
-		slog.Error("Failed to parse authorized key", slog.String("Error", err.Error()))
 		return nil, err
 	}
-
-	parsedKey, err := ssh.ParsePublicKey(pk.Marshal())
-	if err != nil {
-		slog.Error("Unable to parse server key", slog.String("Error", err.Error()))
-		return nil, err
-	}
-
+	slog.Info("Creating SSH client")
+	//TODO: Figure out if the ssh client config and the creation of the sftp client should go inside it's own function
 	config := &ssh.ClientConfig{
 		User: os.Getenv("SFTP_USER"),
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(pem),
 			ssh.Password(os.Getenv("SFTP_PASSWORD")),
 		},
-		HostKeyCallback: ssh.FixedHostKey(parsedKey),
+		HostKeyCallback: hostKeyCallback,
 	}
 
 	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
@@ -82,7 +76,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	blobHandler, err := storage.NewAzureBlobHandler()
 	if err != nil {
-		slog.Error("Failed to init Azure blob client", slog.String("BlobOpenError", err.Error()))
+		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
 		return nil, err
 	}
 
@@ -93,22 +87,51 @@ func NewSftpHandler() (*SftpHandler, error) {
 	}, nil
 }
 
+func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) {
+	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
+	if err != nil {
+		slog.Error("Failed to parse authorized key", slog.Any("error", err))
+		return nil, err
+	}
+
+	return ssh.FixedHostKey(pk), nil
+}
+
+func getPublicKeysForSshClient(credentialGetter utils.CredentialGetter) (ssh.Signer, error) {
+	secretName := os.Getenv("SFTP_KEY_NAME")
+
+	key, err := credentialGetter.GetSecret(secretName)
+	if err != nil {
+		slog.Error("Unable to retrieve SFTP Key", slog.String("KeyName", secretName), slog.Any("error", err))
+		return nil, err
+	}
+
+	pem, err := ssh.ParsePrivateKey([]byte(key))
+	if err != nil {
+		slog.Error("Unable to parse private key", slog.Any("error", err))
+		return nil, err
+	}
+	return pem, err
+}
+
 func (receiver *SftpHandler) Close() {
 	err := receiver.sftpClient.Close()
 	if err != nil {
-		slog.Error("Failed to close SFTP client", slog.String("Error", err.Error()))
+		slog.Error("Failed to close SFTP client", slog.Any("error", err))
 	}
 	err = receiver.sshClient.Close()
 	if err != nil {
-		slog.Error("Failed to close SSH client", slog.String("Error", err.Error()))
+		slog.Error("Failed to close SSH client", slog.Any("error", err))
 	}
 	slog.Info("SFTP handler closed")
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	// TODO - use "files" for readDir for now, but maybe replace with an env var for whatever directory we should start in
+	// TODO - use "files" for readDir for now, but maybe replace with an env var for whatever directory
+	// 	we should start in - this should also be used in sftpClient.open below
+	directory := "files"
 	//readDir using sftp client
-	fileInfos, err := receiver.sftpClient.ReadDir("files")
+	fileInfos, err := receiver.sftpClient.ReadDir(directory)
 	if err != nil {
 		log.Fatal("Failed to read directory ", err)
 	}
@@ -121,20 +144,24 @@ func (receiver *SftpHandler) CopyFiles() {
 				slog.Info("Skipping directory", slog.String("file name", fileInfo.Name()))
 				return
 			}
-			// TODO - create path some better way than this - should match path used in `ReadDir` above
-			file, err := receiver.sftpClient.Open("files/" + fileInfo.Name())
+
+			file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
 
 			if err != nil {
-				slog.Error("Failed to open file", slog.String("FileOpenError", err.Error()))
+				slog.Error("Failed to open file", slog.Any("error", err))
 				return
 			}
-			fileBytes, err := io.ReadAll(file)
+			var read = fileIoWrapper{}
+			fileBytes, err := read.ReadBytesFromFile(file)
+			if err != nil {
+				slog.Error("Failed to read file", slog.Any("error", err))
+				return
+			}
 
 			// TODO - build a better path (unzip? import? how do we know?)
 			err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
-
 			if err != nil {
-				slog.Error("Failed to upload file", slog.String("BlobUploadError", err.Error()))
+				slog.Error("Failed to upload file", slog.Any("error", err))
 			}
 		}()
 	}
@@ -147,4 +174,12 @@ func (receiver *SftpHandler) CopyFiles() {
 		- have a type or enum or something for allowed destination subfolders? E.g. import, unzip, failure, success, etc.
 	*/
 
+}
+
+type IoWrapper interface {
+	ReadBytesFromFile(file *sftp.File) ([]byte, error)
+}
+
+func (receiver SftpHandler) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
+	return io.ReadAll(file)
 }
