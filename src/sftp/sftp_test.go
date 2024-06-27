@@ -106,10 +106,9 @@ func Test_CopyFiles_happyPath(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
-
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler}
-
 	mockIoWrapper := new(MockIoWrapper)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
 
 	fileBytes, _ := os.ReadFile(filePath)
 	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)

@@ -16,6 +16,7 @@ type SftpHandler struct {
 	sshClient   *ssh.Client
 	sftpClient  SftpClient
 	blobHandler usecases.BlobHandler
+	IoWrapper   IoWrapper
 }
 
 type SftpClient interface {
@@ -151,8 +152,8 @@ func (receiver *SftpHandler) CopyFiles() {
 				slog.Error("Failed to open file", slog.Any("error", err))
 				return
 			}
-			var read = fileIoWrapper{}
-			fileBytes, err := read.ReadBytesFromFile(file)
+
+			fileBytes, err := receiver.IoWrapper.ReadBytesFromFile(file)
 			if err != nil {
 				slog.Error("Failed to read file", slog.Any("error", err))
 				return
@@ -180,6 +181,6 @@ type IoWrapper interface {
 	ReadBytesFromFile(file *sftp.File) ([]byte, error)
 }
 
-func (receiver SftpHandler) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
+func (receiver *SftpHandler) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
 	return io.ReadAll(file)
 }
