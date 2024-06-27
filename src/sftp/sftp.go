@@ -7,7 +7,6 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
-	"log"
 	"log/slog"
 	"os"
 )
@@ -134,7 +133,8 @@ func (receiver *SftpHandler) CopyFiles() {
 	//readDir using sftp client
 	fileInfos, err := receiver.sftpClient.ReadDir(directory)
 	if err != nil {
-		log.Fatal("Failed to read directory ", err)
+		slog.Error("Failed to read directory ", slog.Any("error", err))
+		return
 	}
 
 	//loop through files
