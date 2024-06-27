@@ -79,4 +79,28 @@ JSON Error:
 String error:
 Expected a 'client' query parameter
 
+Successful token response:
+{
+    "sub": "flexion.*.report_e6b68103-dd38-420e-8118-2b2f6c9fa3c4",
+    "access_token": "eyJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MTk1MjcyNzgsInNjb3BlIjoiZmxleGlvbi4qLnJlcG9ydCIsInN1YiI6ImZsZXhpb24uKi5yZXBvcnRfZTZiNjgxMDMtZGQzOC00MjBlLTgxMTgtMmIyZjZjOWZhM2M0In0.liHv9SJYxztgMmCPKGIF2lzcMMMzFAoatLlIC33uz5jbA5wSJa8iIa5yzJ1ZaECI", //pragma: allowlist secret
+    "token_type": "bearer",
+    "expires_in": 300,
+    "expires_at_seconds": 1719527278,
+    "scope": "flexion.*.report"
+}
+
+expired token:
+{
+    "error": "invalid_client",
+    "error_description": "expired_token",
+    "error_uri": "https://github.com/CDCgov/prime-reportstream/blob/master/prime-router/examples/generate-jwt-python/jwt-errors.md#expired-token"
+}
+
+bad request:
+{
+    "error": "invalid_request",
+    "error_description": "unsigned_jwt",
+    "error_uri": "https://github.com/CDCgov/prime-reportstream/blob/master/prime-router/examples/generate-jwt-python/jwt-errors.md#unsigned-jwt"
+}
+
 */
