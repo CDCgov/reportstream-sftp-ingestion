@@ -230,6 +230,42 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsErrorWhenUnableToMarsh
 	assert.Equal(suite.T(), "", token)
 }
 
+//func (suite *SenderTestSuite) Test_Sender_SendMessage_sendMessage() {
+//	sender, err := NewSender()
+//	assert.NoError(suite.T(), err)
+//
+//	mockCredentialGetter := new(MockCredentialGetter)
+//	sender.credentialGetter = mockCredentialGetter
+//
+//	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
+//	assert.NoError(suite.T(), err)
+//
+//	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+//
+//	// Set up a test server for ReportStream
+//	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
+//	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+//		w.WriteHeader(http.StatusOK)
+//		w.Write([]byte(`{
+//    "sub": "flexion.*.report_e6b68103-dd38-420e-8118-2b2f6c9fa3c4",
+//    "access_token": "eyJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MTk1MjcyNzgsInNjb3BlIjoiZmxleGlvbi4qLnJlcG9ydCIsInN1YiI6ImZsZXhpb24uKi5yZXBvcnRfZTZiNjgxMDMtZGQzOC00MjBlLTgxMTgtMmIyZjZjOWZhM2M0In0.liHv9SJYxztgMmCPKGIF2lzcMMMzFAoatLlIC33uz5jbA5wSJa8iIa5yzJ1ZaECI",
+//    "token_type": "bearer",
+//    "expires_in": 300,
+//    "expires_at_seconds": 1719527278,
+//    "scope": "flexion.*.report"
+//}
+//`))
+//	}))
+//	defer server.Close()
+//
+//	sender.baseUrl = server.URL
+//
+//
+//
+//	reportId, err := sender.SendMessage(message)
+//
+//}
+
 func Test_SenderTestSuite(t *testing.T) {
 	suite.Run(t, new(SenderTestSuite))
 }

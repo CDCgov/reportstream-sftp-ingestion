@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
 
 func Test_getSshClientHostKeyCallback_returnFixedHostKeyCallback(t *testing.T) {
@@ -109,21 +108,8 @@ func Test_CopyFiles_happyPath(t *testing.T) {
 
 	sftpHandler.CopyFiles()
 
-	// The `slog.Error` call we're checking for happens in a GoRoutine, which completes immediately after the
-	// receiveQueue function. Since no production code is called after this GoRoutine is done, there is no race
-	// condition to worry about, and we can just wait a short time in this test to ensure all calls are completed
-	time.Sleep(1 * time.Second)
-
 	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
-	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
-	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
-	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
 	assert.NotContains(t, buffer.String(), "Failed to read directory ")
-	assert.Contains(t, buffer.String(), "Considering file")
-	assert.NotContains(t, buffer.String(), "Skipping directory")
-	assert.NotContains(t, buffer.String(), "Failed to open file")
-	assert.NotContains(t, buffer.String(), "Failed to read file")
-	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
 func Test_CopyFiles_failToReadDirectory(t *testing.T) {
@@ -135,21 +121,25 @@ func Test_CopyFiles_failToReadDirectory(t *testing.T) {
 
 	mockSftpClient := new(MockSftpClient)
 
-	var fileInfo []os.FileInfo
-	mockSftpClient.On("ReadDir", mock.Anything).Return(fileInfo, errors.New("error"))
+	var files []os.FileInfo
+
+	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
+
+	files = append(files, fileInfo)
+
+	mockSftpClient.On("ReadDir", mock.Anything).Return(files, errors.New("error"))
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
 
 	sftpHandler.CopyFiles()
 
-	time.Sleep(1 * time.Second)
-
 	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
+
 	assert.Contains(t, buffer.String(), "Failed to read directory ")
-	assert.NotContains(t, buffer.String(), "Considering file")
 }
 
-func Test_CopyFiles_fileIsADirectory(t *testing.T) {
+func Test_copySingleFile_happyPath(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -157,102 +147,114 @@ func Test_CopyFiles_fileIsADirectory(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpClient)
-
-	var files []os.FileInfo
-
-	filePath := filepath.Join("..", "..", "mock_data")
-	fileInfo, _ := os.Stat(filePath)
-
-	files = append(files, fileInfo)
-
-	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
-
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
-
-	sftpHandler.CopyFiles()
-
-	time.Sleep(1 * time.Second)
-
-	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
-
-	assert.NotContains(t, buffer.String(), "Failed to read directory ")
-	assert.Contains(t, buffer.String(), "Considering file")
-	assert.Contains(t, buffer.String(), "Skipping directory")
-}
-
-func Test_CopyFiles_failToOpenFile(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
-
-	mockSftpClient := new(MockSftpClient)
-
-	var files []os.FileInfo
-
-	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt")
-	fileInfo, _ := os.Stat(filePath)
-
-	files = append(files, fileInfo)
-
-	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
-	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, errors.New("error"))
-
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
-
-	sftpHandler.CopyFiles()
-
-	time.Sleep(1 * time.Second)
-
-	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
-	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
-	assert.NotContains(t, buffer.String(), "Failed to read directory ")
-	assert.Contains(t, buffer.String(), "Considering file")
-	assert.NotContains(t, buffer.String(), "Skipping directory")
-	assert.Contains(t, buffer.String(), "Failed to open file")
-}
-
-func Test_CopyFiles_failToReadFile(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
-
-	mockSftpClient := new(MockSftpClient)
-
-	var files []os.FileInfo
-
-	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt")
-	fileInfo, _ := os.Stat(filePath)
-
-	files = append(files, fileInfo)
-
-	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
 
 	mockIoWrapper := new(MockIoWrapper)
 
-	var fileBytes []byte
-	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, errors.New("error"))
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, IoWrapper: mockIoWrapper}
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
 
-	sftpHandler.CopyFiles()
+	fileBytes, _ := os.ReadFile(filePath)
+	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)
 
-	time.Sleep(1 * time.Second)
+	mockBlobHandler := &mocks.MockBlobHandler{}
 
-	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
-	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
 	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
-	assert.NotContains(t, buffer.String(), "Failed to read directory ")
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	assert.Contains(t, buffer.String(), "Considering file")
+	assert.NotContains(t, buffer.String(), "Skipping directory")
+	assert.NotContains(t, buffer.String(), "Failed to open file")
+	assert.NotContains(t, buffer.String(), "Failed to read file")
+	assert.NotContains(t, buffer.String(), "Failed to upload file")
+}
+
+func Test_copySingleFile_failedToReadDirectory(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpClient)
+
+	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	fileInfo, _ := os.Stat(fileDirectory)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	assert.Contains(t, buffer.String(), "Considering file")
+	assert.Contains(t, buffer.String(), "Skipping directory")
+	assert.NotContains(t, buffer.String(), "Failed to open file")
+	assert.NotContains(t, buffer.String(), "Failed to read file")
+	assert.NotContains(t, buffer.String(), "Failed to upload file")
+}
+
+func Test_copySingleFile_failedToOpenFile(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpClient)
+	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, errors.New("error"))
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	assert.Contains(t, buffer.String(), "Considering file")
+	assert.NotContains(t, buffer.String(), "Skipping directory")
+	assert.Contains(t, buffer.String(), "Failed to open file")
+	assert.NotContains(t, buffer.String(), "Failed to read file")
+	assert.NotContains(t, buffer.String(), "Failed to upload file")
+}
+
+func Test_copySingleFile_failedToReadFile(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpClient)
+	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
+
+	mockIoWrapper := new(MockIoWrapper)
+	var emptyBytes []byte
+	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(emptyBytes, errors.New("error"))
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, IoWrapper: mockIoWrapper}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
 	assert.Contains(t, buffer.String(), "Considering file")
 	assert.NotContains(t, buffer.String(), "Skipping directory")
 	assert.NotContains(t, buffer.String(), "Failed to open file")
 	assert.Contains(t, buffer.String(), "Failed to read file")
+	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
-func Test_CopyFiles_failToUploadFile(t *testing.T) {
+func Test_copySingleFile_failToUploadFile(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -260,36 +262,25 @@ func Test_CopyFiles_failToUploadFile(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpClient)
-
-	var files []os.FileInfo
-
-	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt")
-	fileInfo, _ := os.Stat(filePath)
-
-	files = append(files, fileInfo)
-
-	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
 
-	mockIoWrapper := new(MockIoWrapper)
-
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
 	fileBytes, _ := os.ReadFile(filePath)
+
+	mockIoWrapper := new(MockIoWrapper)
 	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New("error"))
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
-	sftpHandler.CopyFiles()
-
-	time.Sleep(1 * time.Second)
-
-	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
-	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
 	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
-	assert.NotContains(t, buffer.String(), "Failed to read directory ")
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
 	assert.Contains(t, buffer.String(), "Considering file")
 	assert.NotContains(t, buffer.String(), "Skipping directory")
 	assert.NotContains(t, buffer.String(), "Failed to open file")

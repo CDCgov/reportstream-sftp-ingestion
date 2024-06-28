@@ -140,30 +140,7 @@ func (receiver *SftpHandler) CopyFiles() {
 	//loop through files
 	for index, fileInfo := range fileInfos {
 		go func() {
-			slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
-			if fileInfo.IsDir() {
-				slog.Info("Skipping directory", slog.String("file name", fileInfo.Name()))
-				return
-			}
-
-			file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
-
-			if err != nil {
-				slog.Error("Failed to open file", slog.Any("error", err))
-				return
-			}
-
-			fileBytes, err := receiver.IoWrapper.ReadBytesFromFile(file)
-			if err != nil {
-				slog.Error("Failed to read file", slog.Any("error", err))
-				return
-			}
-
-			// TODO - build a better path (unzip? import? how do we know?)
-			err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
-			if err != nil {
-				slog.Error("Failed to upload file", slog.Any("error", err))
-			}
+			receiver.copySingleFile(fileInfo, index, directory)
 		}()
 	}
 
@@ -175,6 +152,33 @@ func (receiver *SftpHandler) CopyFiles() {
 		- have a type or enum or something for allowed destination subfolders? E.g. import, unzip, failure, success, etc.
 	*/
 
+}
+
+func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, directory string) {
+	slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
+	if fileInfo.IsDir() {
+		slog.Info("Skipping directory", slog.String("file name", fileInfo.Name()))
+		return
+	}
+
+	file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
+
+	if err != nil {
+		slog.Error("Failed to open file", slog.Any("error", err))
+		return
+	}
+
+	fileBytes, err := receiver.IoWrapper.ReadBytesFromFile(file)
+	if err != nil {
+		slog.Error("Failed to read file", slog.Any("error", err))
+		return
+	}
+
+	// TODO - build a better path (unzip? import? how do we know?)
+	err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to upload file", slog.Any("error", err))
+	}
 }
 
 type IoWrapper interface {
