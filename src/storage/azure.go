@@ -26,7 +26,7 @@ func NewAzureBlobHandler() (AzureBlobHandler, error) {
 func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
 		return nil, err
 	}
 

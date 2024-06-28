@@ -31,7 +31,7 @@ func NewSender() (Sender, error) {
 
 	credentialGetter, err := utils.GetCredentialGetter()
 	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.String("error", err.Error()))
+		slog.Error("Unable to initialize credential getter", slog.Any("error", err))
 		return Sender{}, err
 	}
 
@@ -97,7 +97,7 @@ func (sender Sender) getToken() (string, error) {
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		slog.Info("error calling token endpoint", slog.Any("err", err))
+		slog.Error("error calling token endpoint", slog.Any("error", err))
 		return "", err
 	}
 

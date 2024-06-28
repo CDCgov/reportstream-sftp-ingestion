@@ -31,20 +31,20 @@ func NewQueueHandler() (QueueHandler, error) {
 
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client for primary queue", err)
+		slog.Error("Unable to create Azure Queue Client for primary queue", slog.Any("error", err))
 		return QueueHandler{}, err
 	}
 
 	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-dead-letter-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client for dead letter queue", err)
+		slog.Error("Unable to create Azure Queue Client for dead letter queue", slog.Any("error", err))
 		return QueueHandler{}, err
 	}
 
 	usecase, err := usecases.NewReadAndSendUsecase()
 
 	if err != nil {
-		slog.Error("Unable to create Usecase", err)
+		slog.Error("Unable to create Usecase", slog.Any("error", err))
 		return QueueHandler{}, err
 	}
 
@@ -148,7 +148,7 @@ func (receiver QueueHandler) overDeliveryThreshold(message azqueue.DequeuedMessa
 		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
 		err := receiver.deadLetter(message)
 		if err != nil {
-			slog.Error("Failed to move message to the DLQ", slog.Any("message", message))
+			slog.Error("Failed to move message to the DLQ", slog.Any("message", message), slog.Any("error", err))
 		}
 		return true
 	}
@@ -192,7 +192,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	messageResponse, err := receiver.queueClient.DequeueMessage(context.Background(), nil)
 	if err != nil {
-		slog.Error("Unable to dequeue messages", err)
+		slog.Error("Unable to dequeue messages", slog.Any("error", err))
 		return err
 	}
 
@@ -201,7 +201,7 @@ func (receiver QueueHandler) receiveQueue() error {
 		go func() {
 			err := receiver.handleMessage(message)
 			if err != nil {
-				slog.Error("Unable to handle message", err)
+				slog.Error("Unable to handle message", slog.Any("error", err))
 			}
 		}()
 	}
