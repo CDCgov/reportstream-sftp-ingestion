@@ -104,7 +104,7 @@ func Test_CopyFiles_happyPath(t *testing.T) {
 
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
 
 	sftpHandler.CopyFiles()
 
@@ -162,7 +162,7 @@ func Test_copySingleFile_happyPath(t *testing.T) {
 
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
@@ -242,7 +242,7 @@ func Test_copySingleFile_failedToReadFile(t *testing.T) {
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
 	fileInfo, _ := os.Stat(filePath)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, IoWrapper: mockIoWrapper}
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, ioClient: mockIoWrapper}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
 	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
@@ -275,7 +275,7 @@ func Test_copySingleFile_failToUploadFile(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New("error"))
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, IoWrapper: mockIoWrapper}
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)

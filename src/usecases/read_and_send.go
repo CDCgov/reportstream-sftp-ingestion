@@ -3,6 +3,8 @@ package usecases
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/senders"
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
+	"github.com/yeka/zip"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -92,4 +94,40 @@ func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName str
 	if err != nil {
 		slog.Error("Failed to move file after processing", slog.Any("error", err))
 	}
+}
+
+// TODO - this probably belongs in a different file
+func UnzipProtected(zipFilePath string) error {
+	slog.Info("Called unzip protected")
+	zipReader, err := zip.OpenReader(zipFilePath)
+
+	if err != nil {
+		slog.Error("Failed to open zip reader", slog.Any("error", err))
+		return err
+	}
+	defer zipReader.Close()
+
+	for _, f := range zipReader.File {
+		slog.Info("inside of zip Reader loop")
+		// TODO - should we warn or error if not encrypted? This would vary per customer
+		if f.IsEncrypted() {
+			f.SetPassword("test123")
+		}
+		slog.Info("setting password")
+		fileReader, err := f.Open()
+		if err != nil {
+			slog.Error("Failed to open file", slog.Any("error", err))
+		}
+		defer fileReader.Close()
+
+		slog.Info("file opened", slog.Any("file", f))
+		buf, err := io.ReadAll(fileReader)
+
+		slog.Info(string(buf))
+
+		if err != nil {
+			slog.Error("Failed to read file", slog.Any("error", err))
+		}
+	}
+	return nil
 }

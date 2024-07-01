@@ -9,13 +9,14 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 )
 
 type SftpHandler struct {
 	sshClient   *ssh.Client
 	sftpClient  SftpClient
 	blobHandler usecases.BlobHandler
-	IoWrapper   IoWrapper
+	ioClient    IoClient
 }
 
 type SftpClient interface {
@@ -80,10 +81,13 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	ioWrapper := IoWrapper{}
+
 	return &SftpHandler{
 		sshClient:   sshClient,
 		sftpClient:  sftpClient,
 		blobHandler: blobHandler,
+		ioClient:    &ioWrapper,
 	}, nil
 }
 
@@ -168,7 +172,8 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	fileBytes, err := receiver.IoWrapper.ReadBytesFromFile(file)
+	slog.Info("file opened", slog.String("name", fileInfo.Name()), slog.Any("file", file))
+	fileBytes, err := receiver.ioClient.ReadBytesFromFile(file)
 	if err != nil {
 		slog.Error("Failed to read file", slog.Any("error", err))
 		return
@@ -179,12 +184,34 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	if err != nil {
 		slog.Error("Failed to upload file", slog.Any("error", err))
 	}
+
+	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))
+	if strings.Contains(fileInfo.Name(), ".zip") {
+		// write file to local filesystem
+		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
+		if err != nil {
+			slog.Error("Failed to write file", slog.Any("error", err), slog.String("name", fileInfo.Name()))
+			return
+		}
+
+		_ = usecases.UnzipProtected(fileInfo.Name())
+
+		//delete file from local filesystem
+		err = os.Remove(fileInfo.Name())
+		if err != nil {
+			slog.Error("Failed to remove file", slog.Any("error", err), slog.String("name", fileInfo.Name()))
+		}
+
+	}
 }
 
-type IoWrapper interface {
+type IoClient interface {
 	ReadBytesFromFile(file *sftp.File) ([]byte, error)
 }
 
-func (receiver *SftpHandler) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
+type IoWrapper struct {
+}
+
+func (receiver *IoWrapper) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
 	return io.ReadAll(file)
 }
