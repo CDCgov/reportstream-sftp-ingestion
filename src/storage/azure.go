@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"io"
 	"log/slog"
 	"os"
@@ -25,7 +26,7 @@ func NewAzureBlobHandler() (AzureBlobHandler, error) {
 func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl))
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
 		return nil, err
 	}
 
@@ -40,6 +41,18 @@ func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	resp, err := io.ReadAll(retryReader)
 
 	return resp, err
+}
+
+func (receiver AzureBlobHandler) UploadFile(fileBytes []byte, blobPath string) error {
+	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), utils.ContainerName, blobPath, fileBytes, nil)
+	if err != nil {
+		slog.Error("Unable to upload file", slog.String("destinationUrl", blobPath), slog.Any("error", err))
+		return err
+	}
+
+	slog.Info("Successfully uploaded file", slog.String("destinationUrl", blobPath), slog.Any("uploadResponse", uploadResponse))
+
+	return nil
 }
 
 func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl string) error {
@@ -61,13 +74,10 @@ func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl strin
 		return err
 	}
 
-	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), destinationUrlParts.ContainerName, destinationUrlParts.BlobName, fileBytes, nil)
+	err = receiver.UploadFile(fileBytes, destinationUrlParts.BlobName)
 	if err != nil {
-		slog.Error("Unable to upload file", slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
 		return err
 	}
-
-	slog.Info("Successfully uploaded file", slog.String("destinationUrl", destinationUrl), slog.Any("uploadResponse", uploadResponse))
 
 	_, err = receiver.blobClient.DeleteBlob(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
 	if err != nil {

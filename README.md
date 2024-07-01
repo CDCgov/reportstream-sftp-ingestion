@@ -54,7 +54,7 @@ pre-commit install
 ```
 
 ### Running locally
-Run `docker-compose`, which will spin up both an Azurite container and the app. By default, this leaves the ReportStream
+Run `docker-compose`, which will spin up an Azurite container, an SFTP service, and the app. By default, this leaves the ReportStream
 URL prefix environment variable empty, and we'll use a mock response rather than calling ReportStream. Uncomment
 the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to call locally-running ReportStream instead.
 
@@ -103,6 +103,10 @@ match your newly-created file
    }
    ```
 4. The app should now read this message and attempt to process it
+
+For the external SFTP call, we've set up a file in docker-compose that's copied to the local SFTP server. The service
+then copies it to local Azurite. As of 6/28/24, nothing happens to this file after copy since it's not placed in
+an `import` folder.
 
 #### Manual cloud testing
 To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure portal.

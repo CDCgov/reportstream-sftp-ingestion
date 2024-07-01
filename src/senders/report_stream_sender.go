@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -30,18 +29,10 @@ func NewSender() (Sender, error) {
 		environment = "local"
 	}
 
-	var credentialGetter utils.CredentialGetter
-
-	if environment == "local" {
-		slog.Info("Using local credentials")
-		credentialGetter = secrets.CredentialGetter{}
-	} else {
-		slog.Info("Using Azure credentials")
-		var err error
-		credentialGetter, err = secrets.NewSecretGetter()
-		if err != nil {
-			return Sender{}, err
-		}
+	credentialGetter, err := utils.GetCredentialGetter()
+	if err != nil {
+		slog.Error("Unable to initialize credential getter", slog.Any("error", err))
+		return Sender{}, err
 	}
 
 	return Sender{
@@ -106,7 +97,7 @@ func (sender Sender) getToken() (string, error) {
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		slog.Info("error calling token endpoint", slog.Any("err", err))
+		slog.Error("error calling token endpoint", slog.Any("error", err))
 		return "", err
 	}
 
@@ -157,13 +148,13 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 	defer res.Body.Close()
 
 	responseBodyBytes, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return "", err
 	}
 
 	if res.StatusCode >= 300 {
 		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
+		// The response body from ReportStream may include additional error details. See examples in json_responses.go
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
 		return "", errors.New(res.Status)
 	}

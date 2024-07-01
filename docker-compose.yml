@@ -6,10 +6,15 @@ services:
       AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1; # pragma: allowlist secret
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise we'll use a mock response
-      REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
-      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local #pragma: allowlist secret
+      # REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
+      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
+      SFTP_USER: ti_user
+      SFTP_PASSWORD: ti_password #TODO - update #pragma: allowlist secret
+      SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #TODO - update #pragma: allowlist secret
+      SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
+      SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata
@@ -66,6 +71,7 @@ services:
       SFTP_USERS: ti_user:ti_password:::files
     volumes:
       - ./mock_credentials/sftp_server_user.pub:/home/ti_user/.ssh/keys/id_rsa.pub:ro
+      - ./mock_credentials/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key
       - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh
       - ./localdata/data/sftp:/home/ti_user/files
     ports:

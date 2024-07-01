@@ -45,16 +45,12 @@ func NewSecretGetter() (SecretGetter, error) {
 }
 
 func (credentialGetter SecretGetter) GetPrivateKey(privateKeyName string) (*rsa.PrivateKey, error) {
-
 	slog.Info("Reading private key from Azure", slog.String("name", privateKeyName))
 
-	secretResponse, err := credentialGetter.client.GetSecret(context.TODO(), privateKeyName, "", nil)
+	pem, err := credentialGetter.GetSecret(privateKeyName)
 	if err != nil {
-		slog.Error("failed to get the secret ", slog.Any("error", err))
 		return nil, err
 	}
-
-	pem := *secretResponse.Value
 
 	key, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(pem))
 	if err != nil {
@@ -64,4 +60,13 @@ func (credentialGetter SecretGetter) GetPrivateKey(privateKeyName string) (*rsa.
 	slog.Info("parsed pem to key")
 
 	return key, nil
+}
+
+func (credentialGetter SecretGetter) GetSecret(secretName string) (string, error) {
+	secretResponse, err := credentialGetter.client.GetSecret(context.TODO(), secretName, "", nil)
+	if err != nil {
+		slog.Error("failed to get the secret ", slog.Any("error", err))
+		return "", err
+	}
+	return *secretResponse.Secret.Value, err
 }

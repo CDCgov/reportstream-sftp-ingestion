@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
+	"github.com/CDCgov/reportstream-sftp-ingestion/sftp"
 	"io"
 	"log/slog"
 	"net/http"
@@ -20,6 +21,16 @@ func main() {
 	if err != nil {
 		slog.Warn("Failed to create queueHandler", slog.Any("error", err))
 	}
+
+	// TODO - move calls to SFTP into whatever timer/trigger we set up later
+	sftpHandler, err := sftp.NewSftpHandler()
+	if err != nil {
+		slog.Error("ope, failed to create sftp handler", slog.Any("error", err))
+		// Don't return, we want to let things keep going for now
+	}
+	defer sftpHandler.Close()
+
+	sftpHandler.CopyFiles()
 
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
 	queueHandler.ListenToQueue()

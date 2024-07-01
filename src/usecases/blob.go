@@ -5,4 +5,5 @@ package usecases
 type BlobHandler interface {
 	FetchFile(sourceUrl string) ([]byte, error)
 	MoveFile(sourceUrl string, destinationUrl string) error
+	UploadFile(fileBytes []byte, blobPath string) error
 }
