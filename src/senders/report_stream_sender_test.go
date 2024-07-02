@@ -33,7 +33,7 @@ func (suite *SenderTestSuite) TearDownTest() {
 	os.Unsetenv("FLEXION_CLIENT_NAME")
 }
 
-func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
+func (suite *SenderTestSuite) Test_NewSender_VariablesAreSet_ReturnsSender() {
 
 	sender, err := NewSender()
 
@@ -43,7 +43,7 @@ func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
 	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
 }
 
-func (suite *SenderTestSuite) Test_Sender_NewSender_ReturnLocalCredentials() {
+func (suite *SenderTestSuite) Test_NewSender_EnvIsEmpty_ReturnsSenderWithLocalCredentials() {
 	os.Setenv("ENV", "")
 	sender, err := NewSender()
 
@@ -53,7 +53,7 @@ func (suite *SenderTestSuite) Test_Sender_NewSender_ReturnLocalCredentials() {
 	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
 }
 
-func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
+func (suite *SenderTestSuite) Test_GenerateJWT_ReturnsJWT() {
 
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
@@ -71,7 +71,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
 	assert.NotEmpty(suite.T(), jwt)
 }
 
-func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsError_WhenGetPrivateKeyReturnsError() {
+func (suite *SenderTestSuite) Test_GenerateJWT_UnableToGetPrivateKey_ReturnsError() {
 
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
@@ -85,7 +85,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsError_WhenGetPrivat
 	assert.Error(suite.T(), err)
 }
 
-func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsAccessToken() {
+func (suite *SenderTestSuite) Test_getToken_ReturnsAccessToken() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -120,7 +120,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsAccessToken() {
 	assert.NotNil(suite.T(), token)
 }
 
-func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToGenerateJWT() {
+func (suite *SenderTestSuite) Test_getToken_UnableToGenerateJWT_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -134,7 +134,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToGenera
 	assert.Equal(suite.T(), "", token)
 }
 
-func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToCallTokenEndpoint() {
+func (suite *SenderTestSuite) Test_getToken_UnableToCallTokenEndpoint_ReturnsError() {
 	os.Setenv("REPORT_STREAM_URL_PREFIX", "this is not a good URL")
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
@@ -153,7 +153,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToCallTo
 	assert.Equal(suite.T(), "", token)
 }
 
-func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenResponseStatusInvalid() {
+func (suite *SenderTestSuite) Test_getToken_ReportStreamResponseStatusIsInvalid_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -188,7 +188,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenResponseStatus
 	assert.Equal(suite.T(), "", token)
 }
 
-func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsErrorWhenUnableToMarshallBody() {
+func (suite *SenderTestSuite) Test_getToken_UnableToMarshallResponseBody_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -219,7 +219,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsErrorWhenUnableToMarsh
 	assert.Equal(suite.T(), "", token)
 }
 
-func (suite *SenderTestSuite) Test_Sender_SendMessage_sendMessage() {
+func (suite *SenderTestSuite) Test_SendMessage_MessageSentToReportStream_ReturnsReportId() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -286,7 +286,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_sendMessage() {
 
 }
 
-func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToGetToken() {
+func (suite *SenderTestSuite) Test_SendMessage_UnableToGetToken_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -307,7 +307,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToGet
 	assert.Equal(suite.T(), "", reportId)
 }
 
-func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToCallTokenEndpoint() {
+func (suite *SenderTestSuite) Test_SendMessage_UnableToCallTokenEndpoint_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -349,7 +349,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToCal
 	assert.Contains(suite.T(), err.Error(), "EOF")
 }
 
-func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenStatusCodeIsAbove300() {
+func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove300_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
@@ -418,7 +418,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenStatusCodeI
 	assert.Equal(suite.T(), "", reportId)
 }
 
-func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToParseResponseBody() {
+func (suite *SenderTestSuite) Test_SendMessage_UnableToParseResponseBody_ReturnsError() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 

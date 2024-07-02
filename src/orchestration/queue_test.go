@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func Test_getUrlFromMessage_returnsUrlWhenDataIsValid(t *testing.T) {
+func Test_getUrlFromMessage_DataIsValid_ReturnsUrl(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
@@ -24,7 +24,7 @@ func Test_getUrlFromMessage_returnsUrlWhenDataIsValid(t *testing.T) {
 	assert.Equal(t, expectedUrl, actualUrl)
 }
 
-func Test_getUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T) {
+func Test_getUrlFromMessage_MessageCannotBeDecoded_ReturnsError(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 
 	actualUrl, err := getUrlFromMessage(messageText)
@@ -35,7 +35,7 @@ func Test_getUrlFromMessage_returnsErrorWhenMessageCannotBeDecoded(t *testing.T)
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
+func Test_getUrlFromMessage_DataIsNotAMap_ReturnsError(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":\"the data\",\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
@@ -47,7 +47,7 @@ func Test_getUrlFromMessage_returnsErrorWhenDataIsNotAMap(t *testing.T) {
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
+func Test_getUrlFromMessage_UrlIsMissing_ReturnsError(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
@@ -59,7 +59,7 @@ func Test_getUrlFromMessage_returnsErrorWhenUrlIsMissing(t *testing.T) {
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_getUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T) {
+func Test_getUrlFromMessage_MessageCannotUnmarshal_ReturnsError(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06\"}"
 	messageBody := base64.StdEncoding.EncodeToString([]byte(messageText))
 
@@ -70,7 +70,7 @@ func Test_getUrlFromMessage_returnsErrorWhenMessageCannotUnmarshal(t *testing.T)
 	assert.Contains(t, err.Error(), expectedError)
 }
 
-func Test_deleteMessage_returnNilWhenMessageCanBeDeleted(t *testing.T) {
+func Test_deleteMessage_MessageCanBeDeleted_DeletesMessage(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 	queueHandler := QueueHandler{queueClient: &mockQueueClient}
@@ -82,7 +82,7 @@ func Test_deleteMessage_returnNilWhenMessageCanBeDeleted(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_deleteMessage_returnErrorWhenMessageCannotBeDeleted(t *testing.T) {
+func Test_deleteMessage_MessageCannotBeDeleted_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, errors.New("unable to delete message"))
 	queueHandler := QueueHandler{queueClient: &mockQueueClient}
@@ -94,7 +94,7 @@ func Test_deleteMessage_returnErrorWhenMessageCannotBeDeleted(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
+func Test_handleMessage_MessageHandledSuccessfully_ReturnNil(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
@@ -112,7 +112,7 @@ func Test_handleMessage_returnNilWhenMessageHandledSuccessfully(t *testing.T) {
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_handleMessage_returnErrorWhenFailedToGetFileUrl(t *testing.T) {
+func Test_handleMessage_FailedToGetFileUrl_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
@@ -130,7 +130,7 @@ func Test_handleMessage_returnErrorWhenFailedToGetFileUrl(t *testing.T) {
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
+func Test_handleMessage_FailureWithDeleteMessage_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, errors.New("unable to delete message"))
 
@@ -147,7 +147,7 @@ func Test_handleMessage_returnErrorWhenFailureWithDeleteMessage(t *testing.T) {
 	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 }
 
-func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
+func Test_handleMessage_FailureWithReadAndSend_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
@@ -165,7 +165,7 @@ func Test_handleMessage_returnErrorWhenFailureWithReadAndSend(t *testing.T) {
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_handleMessage_returnErrorWhenOverDequeueThreshold(t *testing.T) {
+func Test_handleMessage_OverDequeueThreshold_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 	mockDeadLetterQueueClient := MockQueueClient{}
@@ -185,7 +185,7 @@ func Test_handleMessage_returnErrorWhenOverDequeueThreshold(t *testing.T) {
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_ReceiveQueue_HappyPath(t *testing.T) {
+func Test_ReceiveQueue_OnSuccess_ReturnsNil(t *testing.T) {
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
 	message := createGoodMessage()
@@ -205,7 +205,7 @@ func Test_ReceiveQueue_HappyPath(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
+func Test_ReceiveQueue_UnableToDequeueMessage_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DequeueMessage", mock.Anything, mock.Anything).Return(azqueue.DequeueMessagesResponse{}, errors.New("dequeue message failed"))
 
@@ -218,7 +218,7 @@ func Test_ReceiveQueue_UnableToDequeueMessage(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_ReceiveQueue_logsErrorWhenUnableToHandleMessage(t *testing.T) {
+func Test_ReceiveQueue_UnableToHandleMessage_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -250,7 +250,7 @@ func Test_ReceiveQueue_logsErrorWhenUnableToHandleMessage(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Unable to handle message")
 }
 
-func Test_ReceiveQueue_handlesMultipleMessages(t *testing.T) {
+func Test_ReceiveQueue_QueueContainsMultipleMessages_HandlesAllMessages(t *testing.T) {
 
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
@@ -278,7 +278,7 @@ func Test_ReceiveQueue_handlesMultipleMessages(t *testing.T) {
 	mockReadAndSendUsecase.AssertNumberOfCalls(t, "ReadAndSend", len(messages))
 }
 
-func Test_overDeliveryThreshold_deliveryCountParsedAndUnderDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_DeliveryCountParsedAndUnderDequeueThreshold_ReturnsFalse(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -303,7 +303,7 @@ func Test_overDeliveryThreshold_deliveryCountParsedAndUnderDequeueThreshold(t *t
 
 }
 
-func Test_overDeliveryThreshold_deliveryCountParsedAndOverDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_ReturnsTrue(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -331,7 +331,7 @@ func Test_overDeliveryThreshold_deliveryCountParsedAndOverDequeueThreshold(t *te
 	assert.Equal(t, true, overThreshold)
 }
 
-func Test_overDeliveryThreshold_deliveryCountCannotParseAndUnderDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsUnderDefaultThreshold_ReturnsFalse(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -355,7 +355,7 @@ func Test_overDeliveryThreshold_deliveryCountCannotParseAndUnderDequeueThreshold
 	assert.Equal(t, false, overThreshold)
 }
 
-func Test_overDeliveryThreshold_deliveryCountCannotParseAndOverDequeueThreshold(t *testing.T) {
+func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDefaultThreshold(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -383,7 +383,7 @@ func Test_overDeliveryThreshold_deliveryCountCannotParseAndOverDequeueThreshold(
 	assert.Equal(t, true, overThreshold)
 }
 
-func Test_overDeliveryThreshold_overThresholdAndUnableToDeadLetter(t *testing.T) {
+func Test_overDeliveryThreshold_OverThresholdAndUnableToDeadLetter_ReturnsTrue(t *testing.T) {
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
@@ -407,7 +407,7 @@ func Test_overDeliveryThreshold_overThresholdAndUnableToDeadLetter(t *testing.T)
 	assert.Equal(t, true, overThreshold)
 }
 
-func Test_deadLetter_addedMessageToDLQAndSuccessfullyDeletedMessageFromOriginalQueue(t *testing.T) {
+func Test_deadLetter_MessageAddedToDLQAndSuccessfullyDeletedMessageFromOriginalQueue_ReturnsNil(t *testing.T) {
 	mockDeadLetterQueueClient := MockQueueClient{}
 	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
 
@@ -424,7 +424,7 @@ func Test_deadLetter_addedMessageToDLQAndSuccessfullyDeletedMessageFromOriginalQ
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_deadLetter_cannotAddMessageToDLQ(t *testing.T) {
+func Test_deadLetter_MessageCannotBeAddedToDLQ_ReturnsError(t *testing.T) {
 	mockDeadLetterQueueClient := MockQueueClient{}
 	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, errors.New("couldn't enqueue message"))
 
@@ -441,7 +441,7 @@ func Test_deadLetter_cannotAddMessageToDLQ(t *testing.T) {
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_deadLetter_failedToDeleteMessageFromOriginalQueue(t *testing.T) {
+func Test_deadLetter_MessageCannotBeDeletedFromOriginalQueue_ReturnsError(t *testing.T) {
 	mockDeadLetterQueueClient := MockQueueClient{}
 	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
 

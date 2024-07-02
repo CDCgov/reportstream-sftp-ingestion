@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func Test_Unzip_UnzipsPasswordedFile(t *testing.T) {
+func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	defaultLogger := slog.Default()
@@ -47,7 +47,7 @@ func Test_Unzip_UnzipsPasswordedFile(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_Unzip_UnzipsUnprotectedFile(t *testing.T) {
+func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	defaultLogger := slog.Default()

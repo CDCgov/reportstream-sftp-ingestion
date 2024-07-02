@@ -67,6 +67,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 			slog.Info("setting password")
 			f.SetPassword(zipPassword)
 		}
+
 		fileReader, err := f.Open()
 		if err != nil {
 			slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))

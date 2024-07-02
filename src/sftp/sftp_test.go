@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-func Test_getSshClientHostKeyCallback_returnFixedHostKeyCallback(t *testing.T) {
+func Test_getSshClientHostKeyCallback_ReturnsFixedHostKeyCallback(t *testing.T) {
 	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
 	actualParsedKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 
@@ -23,7 +23,7 @@ func Test_getSshClientHostKeyCallback_returnFixedHostKeyCallback(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_getSshClientHostKeyCallback_returnErrorWhenUnableToParseServerKey(t *testing.T) {
+func Test_getSshClientHostKeyCallback_UnableToParseServerKey_ReturnsError(t *testing.T) {
 	serverKey := "AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
 	actualParsedKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 
@@ -31,7 +31,7 @@ func Test_getSshClientHostKeyCallback_returnErrorWhenUnableToParseServerKey(t *t
 	assert.Error(t, err)
 }
 
-func Test_getPublicKeysForSshClient_returnPem(t *testing.T) {
+func Test_getPublicKeysForSshClient_ReturnsPem(t *testing.T) {
 	os.Setenv("SFTP_KEY_NAME", "sftp_server_user_id_rsa.pem")
 	defer os.Unsetenv("SFTP_KEY_NAME")
 
@@ -47,7 +47,7 @@ func Test_getPublicKeysForSshClient_returnPem(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func Test_getPublicKeysForSshClient_returnErrorWhenUnableToRetrieveSFTPKey(t *testing.T) {
+func Test_getPublicKeysForSshClient_UnableToRetrieveSFTPKey_ReturnsError(t *testing.T) {
 	os.Setenv("SFTP_KEY_NAME", "sftp_server_user_id_rsa.pem")
 	defer os.Unsetenv("SFTP_KEY_NAME")
 
@@ -61,7 +61,7 @@ func Test_getPublicKeysForSshClient_returnErrorWhenUnableToRetrieveSFTPKey(t *te
 	assert.Error(t, err)
 }
 
-func Test_getPublicKeysForSshClient_returnErrorWhenUnableToParsePrivateKey(t *testing.T) {
+func Test_getPublicKeysForSshClient_UnableToParsePrivateKey_ReturnsError(t *testing.T) {
 	os.Setenv("SFTP_KEY_NAME", "sftp_server_user_id_rsa.pem")
 	defer os.Unsetenv("SFTP_KEY_NAME")
 
@@ -77,7 +77,7 @@ func Test_getPublicKeysForSshClient_returnErrorWhenUnableToParsePrivateKey(t *te
 	assert.Error(t, err)
 }
 
-func Test_CopyFiles_happyPath(t *testing.T) {
+func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -113,7 +113,7 @@ func Test_CopyFiles_happyPath(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to read directory ")
 }
 
-func Test_CopyFiles_failToReadDirectory(t *testing.T) {
+func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -140,7 +140,7 @@ func Test_CopyFiles_failToReadDirectory(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to read directory ")
 }
 
-func Test_copySingleFile_happyPath(t *testing.T) {
+func Test_copySingleFile_CopiesFile(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -176,7 +176,7 @@ func Test_copySingleFile_happyPath(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
-func Test_copySingleFile_failedToReadDirectory(t *testing.T) {
+func Test_copySingleFile_FailsToReadDirectory_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -200,7 +200,7 @@ func Test_copySingleFile_failedToReadDirectory(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
-func Test_copySingleFile_failedToOpenFile(t *testing.T) {
+func Test_copySingleFile_FailsToOpenFile_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -225,7 +225,7 @@ func Test_copySingleFile_failedToOpenFile(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
-func Test_copySingleFile_failedToReadFile(t *testing.T) {
+func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -255,7 +255,7 @@ func Test_copySingleFile_failedToReadFile(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to upload file")
 }
 
-func Test_copySingleFile_failToUploadFile(t *testing.T) {
+func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
