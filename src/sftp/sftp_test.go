@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"github.com/CDCgov/reportstream-sftp-ingestion/mocks"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/pkg/sftp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -51,7 +52,7 @@ func Test_getPublicKeysForSshClient_returnErrorWhenUnableToRetrieveSFTPKey(t *te
 	defer os.Unsetenv("SFTP_KEY_NAME")
 
 	mockCredentialGetter := new(MockCredentialGetter)
-	mockCredentialGetter.On("GetSecret", mock.Anything).Return("", errors.New("error"))
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("", errors.New(utils.ErrorKey))
 
 	pem, err := getPublicKeysForSshClient(mockCredentialGetter)
 
@@ -128,7 +129,7 @@ func Test_CopyFiles_failToReadDirectory(t *testing.T) {
 
 	files = append(files, fileInfo)
 
-	mockSftpClient.On("ReadDir", mock.Anything).Return(files, errors.New("error"))
+	mockSftpClient.On("ReadDir", mock.Anything).Return(files, errors.New(utils.ErrorKey))
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
 
@@ -207,7 +208,7 @@ func Test_copySingleFile_failedToOpenFile(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpClient)
-	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, errors.New("error"))
+	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, errors.New(utils.ErrorKey))
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
@@ -236,7 +237,7 @@ func Test_copySingleFile_failedToReadFile(t *testing.T) {
 
 	mockIoWrapper := new(MockIoWrapper)
 	var emptyBytes []byte
-	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(emptyBytes, errors.New("error"))
+	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(emptyBytes, errors.New(utils.ErrorKey))
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
@@ -273,7 +274,7 @@ func Test_copySingleFile_failToUploadFile(t *testing.T) {
 	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New("error"))
+	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New(utils.ErrorKey))
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)

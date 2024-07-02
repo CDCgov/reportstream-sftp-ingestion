@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"log/slog"
 	"os"
@@ -28,7 +29,7 @@ func NewSecretGetter() (SecretGetter, error) {
 	})
 
 	if err != nil {
-		slog.Error("failed to obtain a credential: ", slog.Any("error", err))
+		slog.Error("failed to obtain a credential: ", slog.Any(utils.ErrorKey, err))
 		return SecretGetter{}, err
 	}
 
@@ -37,7 +38,7 @@ func NewSecretGetter() (SecretGetter, error) {
 	// Establish a connection to the Key Vault client
 	newClient, err := azsecrets.NewClient(vaultURI, cred, nil)
 	if err != nil {
-		slog.Error("failed to create a client: ", slog.Any("error", err))
+		slog.Error("failed to create a client: ", slog.Any(utils.ErrorKey, err))
 		return SecretGetter{}, err
 	}
 
@@ -65,7 +66,7 @@ func (credentialGetter SecretGetter) GetPrivateKey(privateKeyName string) (*rsa.
 func (credentialGetter SecretGetter) GetSecret(secretName string) (string, error) {
 	secretResponse, err := credentialGetter.client.GetSecret(context.TODO(), secretName, "", nil)
 	if err != nil {
-		slog.Error("failed to get the secret ", slog.Any("error", err))
+		slog.Error("failed to get the secret ", slog.Any(utils.ErrorKey, err))
 		return "", err
 	}
 	return *secretResponse.Secret.Value, err

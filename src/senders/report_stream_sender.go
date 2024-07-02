@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -20,18 +21,13 @@ type Sender struct {
 	baseUrl          string
 	privateKeyName   string
 	clientName       string
-	credentialGetter utils.CredentialGetter
+	credentialGetter secrets.CredentialGetter
 }
 
 func NewSender() (Sender, error) {
-	environment := os.Getenv("ENV")
-	if environment == "" {
-		environment = "local"
-	}
-
-	credentialGetter, err := utils.GetCredentialGetter()
+	credentialGetter, err := secrets.GetCredentialGetter()
 	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.Any("error", err))
+		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
 		return Sender{}, err
 	}
 
@@ -97,7 +93,7 @@ func (sender Sender) getToken() (string, error) {
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		slog.Error("error calling token endpoint", slog.Any("error", err))
+		slog.Error("error calling token endpoint", slog.Any(utils.ErrorKey, err))
 		return "", err
 	}
 

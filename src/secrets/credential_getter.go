@@ -1,8 +1,7 @@
-package utils
+package secrets
 
 import (
 	"crypto/rsa"
-	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"log/slog"
 	"os"
 )
@@ -24,11 +23,11 @@ func GetCredentialGetter() (CredentialGetter, error) {
 
 	if environment == "local" {
 		slog.Info("Using local credentials")
-		credentialGetter = secrets.CredentialGetter{}
+		credentialGetter = LocalCredentialGetter{}
 	} else {
 		slog.Info("Using Azure credentials")
 		var err error
-		credentialGetter, err = secrets.NewSecretGetter()
+		credentialGetter, err = NewSecretGetter()
 		if err != nil {
 			return nil, err
 		}

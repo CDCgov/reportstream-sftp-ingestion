@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
@@ -308,7 +309,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToGet
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, errors.New("error"))
+	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, errors.New(utils.ErrorKey))
 
 	message, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "order_message.hl7"))
 

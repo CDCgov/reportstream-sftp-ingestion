@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 )
 
-type CredentialGetter struct {
+type LocalCredentialGetter struct {
 }
 
-func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.PrivateKey, error) {
+func (credentialGetter LocalCredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.PrivateKey, error) {
 	slog.Info("Reading private key from local hard drive", slog.String("name", privateKeyName))
 
 	pem, err := credentialGetter.GetSecret(privateKeyName)
@@ -27,7 +27,7 @@ func (credentialGetter CredentialGetter) GetPrivateKey(privateKeyName string) (*
 	return key, nil
 }
 
-func (credentialGetter CredentialGetter) GetSecret(secretName string) (string, error) {
+func (credentialGetter LocalCredentialGetter) GetSecret(secretName string) (string, error) {
 	slog.Info("Reading secret from local hard drive", slog.String("name", secretName))
 
 	secret, err := os.ReadFile(filepath.Join("mock_credentials", secretName))

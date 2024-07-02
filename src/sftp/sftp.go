@@ -1,9 +1,11 @@
 package sftp
 
 import (
+	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
+	"github.com/CDCgov/reportstream-sftp-ingestion/zip"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
@@ -28,9 +30,9 @@ type SftpClient interface {
 func NewSftpHandler() (*SftpHandler, error) {
 	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
 
-	credentialGetter, err := utils.GetCredentialGetter()
+	credentialGetter, err := secrets.GetCredentialGetter()
 	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.Any("error", err))
+		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -44,7 +46,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 	serverKey, err := credentialGetter.GetSecret(serverKeyName)
 
 	if err != nil {
-		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any("error", err))
+		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -65,19 +67,19 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
 	if err != nil {
-		slog.Error("Failed to make SSH client", slog.Any("error", err))
+		slog.Error("Failed to make SSH client", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
 	sftpClient, err := sftp.NewClient(sshClient)
 	if err != nil {
-		slog.Error("Failed to make SFTP client ", slog.Any("error", err))
+		slog.Error("Failed to make SFTP client ", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
 	blobHandler, err := storage.NewAzureBlobHandler()
 	if err != nil {
-		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
+		slog.Error("Failed to init Azure blob client", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -94,25 +96,25 @@ func NewSftpHandler() (*SftpHandler, error) {
 func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) {
 	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
 	if err != nil {
-		slog.Error("Failed to parse authorized key", slog.Any("error", err))
+		slog.Error("Failed to parse authorized key", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
 	return ssh.FixedHostKey(pk), nil
 }
 
-func getPublicKeysForSshClient(credentialGetter utils.CredentialGetter) (ssh.Signer, error) {
+func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
 	secretName := os.Getenv("SFTP_KEY_NAME")
 
 	key, err := credentialGetter.GetSecret(secretName)
 	if err != nil {
-		slog.Error("Unable to retrieve SFTP Key", slog.String("KeyName", secretName), slog.Any("error", err))
+		slog.Error("Unable to retrieve SFTP Key", slog.String("KeyName", secretName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
 	pem, err := ssh.ParsePrivateKey([]byte(key))
 	if err != nil {
-		slog.Error("Unable to parse private key", slog.Any("error", err))
+		slog.Error("Unable to parse private key", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 	return pem, err
@@ -121,11 +123,11 @@ func getPublicKeysForSshClient(credentialGetter utils.CredentialGetter) (ssh.Sig
 func (receiver *SftpHandler) Close() {
 	err := receiver.sftpClient.Close()
 	if err != nil {
-		slog.Error("Failed to close SFTP client", slog.Any("error", err))
+		slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
 	}
 	err = receiver.sshClient.Close()
 	if err != nil {
-		slog.Error("Failed to close SSH client", slog.Any("error", err))
+		slog.Error("Failed to close SSH client", slog.Any(utils.ErrorKey, err))
 	}
 	slog.Info("SFTP handler closed")
 }
@@ -137,7 +139,7 @@ func (receiver *SftpHandler) CopyFiles() {
 	//readDir using sftp client
 	fileInfos, err := receiver.sftpClient.ReadDir(directory)
 	if err != nil {
-		slog.Error("Failed to read directory ", slog.Any("error", err))
+		slog.Error("Failed to read directory ", slog.Any(utils.ErrorKey, err))
 		return
 	}
 
@@ -168,21 +170,21 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
 
 	if err != nil {
-		slog.Error("Failed to open file", slog.Any("error", err))
+		slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))
 		return
 	}
 
 	slog.Info("file opened", slog.String("name", fileInfo.Name()), slog.Any("file", file))
 	fileBytes, err := receiver.ioClient.ReadBytesFromFile(file)
 	if err != nil {
-		slog.Error("Failed to read file", slog.Any("error", err))
+		slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err))
 		return
 	}
 
 	// TODO - build a better path (unzip? import? how do we know?)
 	err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
 	if err != nil {
-		slog.Error("Failed to upload file", slog.Any("error", err))
+		slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
 	}
 
 	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))
@@ -190,16 +192,23 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		// write file to local filesystem
 		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
 		if err != nil {
-			slog.Error("Failed to write file", slog.Any("error", err), slog.String("name", fileInfo.Name()))
+			slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 			return
 		}
 
-		_ = usecases.UnzipProtected(fileInfo.Name())
+		zipHandler, err := zip.NewZipHandler()
+
+		if err != nil {
+			slog.Error("Failed to init zip handler", slog.Any(utils.ErrorKey, err))
+			return
+		}
+
+		_ = zipHandler.Unzip(fileInfo.Name())
 
 		//delete file from local filesystem
 		err = os.Remove(fileInfo.Name())
 		if err != nil {
-			slog.Error("Failed to remove file", slog.Any("error", err), slog.String("name", fileInfo.Name()))
+			slog.Error("Failed to remove file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 		}
 
 	}

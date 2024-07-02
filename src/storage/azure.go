@@ -26,7 +26,7 @@ func NewAzureBlobHandler() (AzureBlobHandler, error) {
 func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -46,7 +46,7 @@ func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 func (receiver AzureBlobHandler) UploadFile(fileBytes []byte, blobPath string) error {
 	uploadResponse, err := receiver.blobClient.UploadBuffer(context.Background(), utils.ContainerName, blobPath, fileBytes, nil)
 	if err != nil {
-		slog.Error("Unable to upload file", slog.String("destinationUrl", blobPath), slog.Any("error", err))
+		slog.Error("Unable to upload file", slog.String("destinationUrl", blobPath), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
@@ -58,19 +58,19 @@ func (receiver AzureBlobHandler) UploadFile(fileBytes []byte, blobPath string) e
 func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl string) error {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
 	destinationUrlParts, err := azblob.ParseURL(destinationUrl)
 	if err != nil {
-		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl), slog.Any("error", err))
+		slog.Error("Unable to parse destination URL", slog.String("destinationUrl", destinationUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
 	fileBytes, err := receiver.FetchFile(sourceUrl)
 	if err != nil {
-		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl), slog.Any("error", err))
+		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
@@ -81,7 +81,7 @@ func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl strin
 
 	_, err = receiver.blobClient.DeleteBlob(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
 	if err != nil {
-		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl), slog.Any("error", err))
+		slog.Error("Error deleting source file after copy", slog.String("source URL", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 

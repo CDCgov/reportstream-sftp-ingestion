@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
 	"github.com/CDCgov/reportstream-sftp-ingestion/sftp"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"io"
 	"log/slog"
 	"net/http"
@@ -19,13 +20,13 @@ func main() {
 
 	queueHandler, err := orchestration.NewQueueHandler()
 	if err != nil {
-		slog.Warn("Failed to create queueHandler", slog.Any("error", err))
+		slog.Warn("Failed to create queueHandler", slog.Any(utils.ErrorKey, err))
 	}
 
 	// TODO - move calls to SFTP into whatever timer/trigger we set up later
 	sftpHandler, err := sftp.NewSftpHandler()
 	if err != nil {
-		slog.Error("ope, failed to create sftp handler", slog.Any("error", err))
+		slog.Error("ope, failed to create sftp handler", slog.Any(utils.ErrorKey, err))
 		// Don't return, we want to let things keep going for now
 	}
 	defer sftpHandler.Close()
@@ -58,12 +59,12 @@ func setupHealthCheck() {
 
 		_, err := io.WriteString(response, "Operational")
 		if err != nil {
-			slog.Error("Failed to respond to health check", slog.Any("error", err))
+			slog.Error("Failed to respond to health check", slog.Any(utils.ErrorKey, err))
 		}
 	})
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
-		slog.Error("Failed to start health check", slog.Any("error", err))
+		slog.Error("Failed to start health check", slog.Any(utils.ErrorKey, err))
 	}
 }
