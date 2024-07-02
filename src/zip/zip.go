@@ -52,7 +52,6 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 		return err
 	}
 
-	slog.Info("Called unzip protected")
 	zipReader, err := zipHandler.zipClient.OpenReader(zipFilePath)
 
 	if err != nil {
@@ -61,6 +60,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	}
 	defer zipReader.Close()
 
+	// TODO - what if one file succeeds and another fails?
 	for _, f := range zipReader.File {
 		// TODO - should we warn or error if not encrypted? This would vary per customer
 		if f.IsEncrypted() {
