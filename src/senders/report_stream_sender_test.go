@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
+	"github.com/CDCgov/reportstream-sftp-ingestion/mocks"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"net/http"
 	"net/http/httptest"
@@ -31,19 +31,6 @@ func (suite *SenderTestSuite) TearDownTest() {
 	os.Unsetenv("REPORT_STREAM_URL_PREFIX")
 	os.Unsetenv("FLEXION_PRIVATE_KEY_NAME")
 	os.Unsetenv("FLEXION_CLIENT_NAME")
-}
-
-type MockCredentialGetter struct {
-	mock.Mock
-}
-
-func (m *MockCredentialGetter) GetPrivateKey(privateKeyName string) (*rsa.PrivateKey, error) {
-	args := m.Called(privateKeyName)
-	return args.Get(0).(*rsa.PrivateKey), args.Error(1)
-}
-func (m *MockCredentialGetter) GetSecret(secretName string) (string, error) {
-	args := m.Called(secretName)
-	return args.Get(0).(string), args.Error(1)
 }
 
 func (suite *SenderTestSuite) Test_Sender_NewSender_InitsWithValues() {
@@ -71,7 +58,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsJWT() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -89,7 +76,7 @@ func (suite *SenderTestSuite) Test_Sender_GenerateJWT_ReturnsError_WhenGetPrivat
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
@@ -102,7 +89,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsAccessToken() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -137,7 +124,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToGenera
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
@@ -152,7 +139,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenUnableToCallTo
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -170,7 +157,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnErrorWhenResponseStatus
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -205,7 +192,7 @@ func (suite *SenderTestSuite) Test_Sender_getToken_ReturnsErrorWhenUnableToMarsh
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -236,7 +223,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_sendMessage() {
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -303,7 +290,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToGet
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -324,7 +311,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToCal
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -366,7 +353,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenStatusCodeI
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -435,7 +422,7 @@ func (suite *SenderTestSuite) Test_Sender_SendMessage_returnErrorWhenUnableToPar
 	sender, err := NewSender()
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter := new(MockCredentialGetter)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
