@@ -164,9 +164,9 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 		blobHandler:      mockBlobHandler,
 	}
 
-	err = zipHandler.Unzip("cheezburger")
+	err = zipHandler.Unzip("cheezburger.zip")
 
-	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, "failure/cheezburger")
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, "failure/cheezburger.zip.txt")
 	assert.Contains(t, buffer.String(), "setting password")
 	assert.Contains(t, buffer.String(), "file opened")
 	assert.Contains(t, buffer.String(), "Failed to read file")

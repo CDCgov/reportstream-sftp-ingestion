@@ -43,8 +43,6 @@ func NewZipHandler() (ZipHandler, error) {
 	}, nil
 }
 
-// TODO - refactor for tests?
-// TODO - tests
 // TODO - move remaining items to future cards?
 // TODO - check storage size/costs on the container
 // TODO - update CA password after deploy per env
@@ -72,7 +70,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	defer zipReader.Close()
 
 	var errorList []FileError
-	// TODO - what if one file succeeds and another fails?
+
 	for _, f := range zipReader.File {
 		// TODO - should we warn or error if not encrypted? This would vary per customer
 		if f.IsEncrypted() {
@@ -97,7 +95,6 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 			continue
 		}
 
-		// After processing, move zip file somewhere? Is this different if partially vs fully vs 0 successful?
 		err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 		if err != nil {
@@ -115,6 +112,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	return nil
 }
 
+// uploadErrorList takes a list of file-specific errors and uploads them to a single file named after the containing zip
 func (zipHandler ZipHandler) uploadErrorList(zipFilePath string, errorList []FileError, err error) error {
 	if len(errorList) > 0 {
 		fileContents := ""
@@ -122,7 +120,7 @@ func (zipHandler ZipHandler) uploadErrorList(zipFilePath string, errorList []Fil
 			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
 		}
 
-		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.FailureFolder, zipFilePath))
+		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.FailureFolder, zipFilePath+".txt"))
 		if err != nil {
 			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err))
 			return err

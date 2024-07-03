@@ -55,8 +55,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 	if err != nil {
 		return nil, err
 	}
-	slog.Info("Creating SSH client")
-	//TODO: Figure out if the ssh client config and the creation of the sftp client should go inside it's own function
+
 	config := &ssh.ClientConfig{
 		User: os.Getenv("SFTP_USER"),
 		Auth: []ssh.AuthMethod{
@@ -134,10 +133,7 @@ func (receiver *SftpHandler) Close() {
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	// TODO - use "files" for readDir for now, but maybe replace with an env var for whatever directory
-	// 	we should start in - this should also be used in sftpClient.open below
 	directory := "files"
-	//readDir using sftp client
 	fileInfos, err := receiver.sftpClient.ReadDir(directory)
 	if err != nil {
 		slog.Error("Failed to read directory ", slog.Any(utils.ErrorKey, err))
@@ -153,7 +149,10 @@ func (receiver *SftpHandler) CopyFiles() {
 
 	/*
 		Eventually:
-		- have per-customer config, which contains things like how to connect to external servers (if any) and when, plus blob storage folder name
+		- have per-customer config, which contains things like how to connect to external servers (if any) and when,
+			plus blob storage folder name
+		- replace `files` hard-coded above with a per-customer value for e.g. `sftp_starting_folder` or similar (where
+			we go on their external SFTP server to retrieve files)
 		- pass customer info to SFTP client, so we know whose files these are/what creds to use
 		- since we have customer info, can use that to build destination path for upload
 		- have a type or enum or something for allowed destination subfolders? E.g. import, unzip, failure, success, etc.
@@ -161,6 +160,8 @@ func (receiver *SftpHandler) CopyFiles() {
 
 }
 
+// copySingleFile moves a single file from an external SFTP server to our blob storage. Zip files go to an `unzip`
+// folder and then we call the zipHandler.Unzip. Other files go to `import` to begin processing
 func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, directory string) {
 	slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
 	if fileInfo.IsDir() {
@@ -222,7 +223,6 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
 		// 	Do we want to move the zip somewhere if done?
-
 	}
 }
 
