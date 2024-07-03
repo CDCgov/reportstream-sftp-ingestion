@@ -213,7 +213,7 @@ type MockZipClient struct {
 	mock.Mock
 }
 
-func (mockZipClient MockZipClient) OpenReader(name string) (*zip.ReadCloser, error) {
+func (mockZipClient *MockZipClient) OpenReader(name string) (*zip.ReadCloser, error) {
 	args := mockZipClient.Called(name)
 	return args.Get(0).(*zip.ReadCloser), args.Error(1)
 }
