@@ -11,6 +11,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -181,8 +182,13 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	// TODO - build a better path (unzip? import? how do we know?)
-	err = receiver.blobHandler.UploadFile(fileBytes, fileInfo.Name())
+	var blobPath string
+	if strings.Contains(fileInfo.Name(), ".zip") {
+		blobPath = filepath.Join(utils.UnzipFolder, fileInfo.Name())
+	} else {
+		blobPath = filepath.Join(utils.MessageStartingFolderPath, fileInfo.Name())
+	}
+	err = receiver.blobHandler.UploadFile(fileBytes, blobPath)
 	if err != nil {
 		slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
 	}
@@ -203,13 +209,19 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 			return
 		}
 
-		_ = zipHandler.Unzip(fileInfo.Name())
+		err = zipHandler.Unzip(fileInfo.Name())
+		if err != nil {
+			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
+		}
 
 		//delete file from local filesystem
 		err = os.Remove(fileInfo.Name())
 		if err != nil {
 			slog.Error("Failed to remove file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 		}
+
+		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
+		// 	Do we want to move the zip somewhere if done?
 
 	}
 }

@@ -9,12 +9,18 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 )
 
 type ZipHandler struct {
 	credentialGetter secrets.CredentialGetter
 	blobHandler      usecases.BlobHandler
 	zipClient        ZipClient
+}
+
+type FileError struct {
+	Filename     string
+	ErrorMessage string
 }
 
 func NewZipHandler() (ZipHandler, error) {
@@ -43,6 +49,11 @@ func NewZipHandler() (ZipHandler, error) {
 // TODO - check storage size/costs on the container
 // TODO - update CA password after deploy per env
 // TODO - check on visibility timeout for messages
+
+// Unzip opens a zip file (applying a password if necessary) and uploads each file within it to the `import` folder
+// to begin processing. It collects any errors with individual subfiles and uploads that information as well. An error
+// is only returned from the function when we cannot handle the main zip file for some reason or have failed to upload
+// the error list about the contents
 func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	secretName := os.Getenv("CA_DPH_ZIP_PASSWORD_NAME")
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(secretName)
@@ -60,6 +71,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	}
 	defer zipReader.Close()
 
+	var errorList []FileError
 	// TODO - what if one file succeeds and another fails?
 	for _, f := range zipReader.File {
 		// TODO - should we warn or error if not encrypted? This would vary per customer
@@ -71,7 +83,8 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 		fileReader, err := f.Open()
 		if err != nil {
 			slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))
-			return err
+			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
+			continue
 		}
 		defer fileReader.Close()
 
@@ -80,13 +93,38 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 		buf, err := io.ReadAll(fileReader)
 		if err != nil {
 			slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err))
-			return err
+			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
+			continue
 		}
 
-		err = zipHandler.blobHandler.UploadFile(buf, utils.MessageStartingFolderPath+"/"+f.FileInfo().Name())
+		// After processing, move zip file somewhere? Is this different if partially vs fully vs 0 successful?
+		err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 		if err != nil {
 			slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
+			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
+			continue
+		}
+	}
+	// Upload error info if any
+	err = zipHandler.uploadErrorList(zipFilePath, errorList, err)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (zipHandler ZipHandler) uploadErrorList(zipFilePath string, errorList []FileError, err error) error {
+	if len(errorList) > 0 {
+		fileContents := ""
+		for _, fileError := range errorList {
+			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
+		}
+
+		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.FailureFolder, zipFilePath))
+		if err != nil {
+			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err))
 			return err
 		}
 	}
