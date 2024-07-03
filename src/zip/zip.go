@@ -84,12 +84,12 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 			continue
 		}
-		defer fileReader.Close()
 
 		slog.Info("file opened", slog.Any("file", f))
 
 		buf, err := io.ReadAll(fileReader)
 		if err != nil {
+			fileReader.Close()
 			slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err))
 			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 			continue
@@ -98,10 +98,12 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 		err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 		if err != nil {
+			fileReader.Close()
 			slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
 			errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 			continue
 		}
+		fileReader.Close()
 	}
 	// Upload error info if any
 	err = zipHandler.uploadErrorList(zipFilePath, errorList, err)
