@@ -11,10 +11,11 @@ services:
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
       SFTP_USER: ti_user
-      SFTP_PASSWORD: ti_password #TODO - update #pragma: allowlist secret
-      SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #TODO - update #pragma: allowlist secret
+      SFTP_PASSWORD: ti_password #pragma: allowlist secret
+      SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #pragma: allowlist secret
       SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
       SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
+      CA_DPH_ZIP_PASSWORD_NAME: mock_ca_dph_zip_password.txt #pragma: allowlist secret
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata

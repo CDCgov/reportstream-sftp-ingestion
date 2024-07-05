@@ -3,6 +3,7 @@ package usecases
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/senders"
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
 	"os"
 	"strings"
@@ -20,7 +21,7 @@ type ReadAndSendUsecase struct {
 func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 	blobHandler, err := storage.NewAzureBlobHandler()
 	if err != nil {
-		slog.Error("Failed to init Azure blob client", slog.Any("error", err))
+		slog.Error("Failed to init Azure blob client", slog.Any(utils.ErrorKey, err))
 		return ReadAndSendUsecase{}, err
 	}
 
@@ -34,7 +35,7 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 		slog.Info("Found REPORT_STREAM_URL_PREFIX, will send to ReportStream")
 		messageSender, err = senders.NewSender()
 		if err != nil {
-			slog.Warn("Failed to construct the ReportStream senders", slog.Any("error", err))
+			slog.Warn("Failed to construct the ReportStream senders", slog.Any(utils.ErrorKey, err))
 			return ReadAndSendUsecase{}, err
 		}
 	}
@@ -52,19 +53,19 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	content, err := receiver.blobHandler.FetchFile(sourceUrl)
 	if err != nil {
-		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any("error", err))
+		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
 	reportId, err := receiver.messageSender.SendMessage(content)
 	if err != nil {
-		slog.Error("Failed to send the file to ReportStream", slog.Any("error", err), slog.String("sourceUrl", sourceUrl))
+		slog.Error("Failed to send the file to ReportStream", slog.Any(utils.ErrorKey, err), slog.String("sourceUrl", sourceUrl))
 
 		// As of June 2024, only the 400 response triggers a move to the `failure` folder. Returning `nil` will let
 		// queue.go delete the queue message so that it will stop retrying
 		// We're treating all other errors as unexpected (and possibly transient) for now
-		if strings.Contains(err.Error(), "400") {
-			receiver.moveFile(sourceUrl, "failure")
+		if strings.Contains(err.Error(), utils.ReportStreamNonTransientFailure) {
+			receiver.moveFile(sourceUrl, utils.FailureFolder)
 			return nil
 		}
 
@@ -74,13 +75,13 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 
 	slog.Info("File sent to ReportStream", slog.String("reportId", reportId))
 
-	receiver.moveFile(sourceUrl, "success")
+	receiver.moveFile(sourceUrl, utils.SuccessFolder)
 
 	return nil
 }
 
 func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName string) {
-	destinationUrl := strings.Replace(sourceUrl, "import", newFolderName, 1)
+	destinationUrl := strings.Replace(sourceUrl, utils.MessageStartingFolderPath, newFolderName, 1)
 
 	if destinationUrl == sourceUrl {
 		slog.Error("Unexpected source URL, did not move", slog.String("sourceUrl", sourceUrl))
@@ -90,6 +91,6 @@ func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName str
 	// After successful message handling, move source file
 	err := receiver.blobHandler.MoveFile(sourceUrl, destinationUrl)
 	if err != nil {
-		slog.Error("Failed to move file after processing", slog.Any("error", err))
+		slog.Error("Failed to move file after processing", slog.Any(utils.ErrorKey, err))
 	}
 }

@@ -28,7 +28,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   advanced_filter {
     string_contains {
       key    = "subject"
-      values = ["import"]
+      values = ["/import/"]
     }
   }
 

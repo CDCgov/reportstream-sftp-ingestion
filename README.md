@@ -105,8 +105,13 @@ match your newly-created file
 4. The app should now read this message and attempt to process it
 
 For the external SFTP call, we've set up a file in docker-compose that's copied to the local SFTP server. The service
-then copies it to local Azurite. As of 6/28/24, nothing happens to this file after copy since it's not placed in
-an `import` folder.
+then copies it to local Azurite. You can add additional files by placing them in `localdata/data/sftp` before running
+`docker-compose`.
+
+As of 7/3/24, when we copy a file from the local SFTP server, we try to unzip it
+(using the password in `mock_credentials/mock_ca_dph_zip_password.txt` if it's protected). We then place the unzipped
+files into the import folder, and if there are any errors, we upload an error file for the zip. If the original file is
+not a zip, we just copy it into the import folder.
 
 #### Manual cloud testing
 To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure portal.

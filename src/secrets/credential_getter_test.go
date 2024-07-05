@@ -1,4 +1,4 @@
-package utils
+package secrets
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func Test_GetCredentialGetter_returnLocalCredentialGetterWhenEnvNotSet(t *testing.T) {
+func Test_GetCredentialGetter_EnvIsNotSet_ReturnsLocalCredentialGetter(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -25,7 +25,7 @@ func Test_GetCredentialGetter_returnLocalCredentialGetterWhenEnvNotSet(t *testin
 	assert.NoError(t, err)
 }
 
-func Test_GetCredentialGetter_returnLocalCredentialGetterWhenEnvSet(t *testing.T) {
+func Test_GetCredentialGetter_EnvIsLocal_ReturnsLocalCredentialGetter(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -42,7 +42,7 @@ func Test_GetCredentialGetter_returnLocalCredentialGetterWhenEnvSet(t *testing.T
 	assert.NoError(t, err)
 }
 
-func Test_GetCredentialGetter_returnAzureCredentialGetter(t *testing.T) {
+func Test_GetCredentialGetter_EnvIsNotLocal_ReturnsAzureCredentialGetter(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 

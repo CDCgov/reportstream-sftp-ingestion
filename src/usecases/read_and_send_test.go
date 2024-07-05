@@ -14,7 +14,7 @@ const sourceUrl = "http://localhost/sftp/customer/import/order_message.hl7"
 const successUrl = "http://localhost/sftp/customer/success/order_message.hl7"
 const failureUrl = "http://localhost/sftp/customer/failure/order_message.hl7"
 
-func Test_ReadAndSend_failsToReadBlob(t *testing.T) {
+func Test_ReadAndSend_FailsToReadBlob_ReturnsError(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", sourceUrl).Return([]byte{}, errors.New("it blew up"))
 
@@ -25,7 +25,7 @@ func Test_ReadAndSend_failsToReadBlob(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_ReadAndSend_on400FromReportStreamMoveToFailureFolder(t *testing.T) {
+func Test_ReadAndSend_400FromReportStream_MovesFileToFailureFolder(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", sourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", sourceUrl, failureUrl).Return(nil)
@@ -41,7 +41,7 @@ func Test_ReadAndSend_on400FromReportStreamMoveToFailureFolder(t *testing.T) {
 	mockBlobHandler.AssertCalled(t, "MoveFile", sourceUrl, failureUrl)
 }
 
-func Test_ReadAndSend_onUnexpectedErrorFromReportStreamMoveToFailureFolder(t *testing.T) {
+func Test_ReadAndSend_UnexpectedErrorFromReportStream_ReturnsErrorAndDoesNotMoveFile(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", sourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", sourceUrl, failureUrl).Return(nil)
@@ -73,7 +73,7 @@ func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 	mockBlobHandler.AssertCalled(t, "MoveFile", sourceUrl, successUrl)
 }
 
-func Test_moveFile_replaceUrlAndMoveFile(t *testing.T) {
+func Test_moveFile_UrlMatchesExpectedPattern_UpdatesUrlAndMovesFile(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -90,17 +90,17 @@ func Test_moveFile_replaceUrlAndMoveFile(t *testing.T) {
 	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, mock.Anything)
 }
 
-func Test_moveFile_replaceDoesNotChangeUrl(t *testing.T) {
+func Test_moveFile_SourceUrlDoesNotContainStartingFolder_FileIsNotMoved(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 
 	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler}
-	usecase.moveFile("https://example.com/this/that/another", "failed")
+	usecase.moveFile("https://example.com/this/that/another", "newFolder")
 
 	mockBlobHandler.AssertNotCalled(t, "MoveFile", mock.Anything, mock.Anything)
 }
 
-func Test_moveFile_blobHandlerFailsToMoveFile(t *testing.T) {
+func Test_moveFile_BlobHandlerFailsToMoveFile_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
@@ -111,7 +111,7 @@ func Test_moveFile_blobHandlerFailsToMoveFile(t *testing.T) {
 	mockBlobHandler.On("MoveFile", sourceUrl, mock.Anything).Return(errors.New("failed to move the file"))
 
 	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler}
-	usecase.moveFile(sourceUrl, "failed")
+	usecase.moveFile(sourceUrl, "newFolder")
 
 	assert.Contains(t, buffer.String(), "Failed to move file after processing")
 }

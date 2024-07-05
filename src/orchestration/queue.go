@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
 	"os"
 	"strconv"
@@ -31,20 +32,20 @@ func NewQueueHandler() (QueueHandler, error) {
 
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client for primary queue", slog.Any("error", err))
+		slog.Error("Unable to create Azure Queue Client for primary queue", slog.Any(utils.ErrorKey, err))
 		return QueueHandler{}, err
 	}
 
 	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "blob-message-dead-letter-queue", nil)
 	if err != nil {
-		slog.Error("Unable to create Azure Queue Client for dead letter queue", slog.Any("error", err))
+		slog.Error("Unable to create Azure Queue Client for dead letter queue", slog.Any(utils.ErrorKey, err))
 		return QueueHandler{}, err
 	}
 
 	usecase, err := usecases.NewReadAndSendUsecase()
 
 	if err != nil {
-		slog.Error("Unable to create Usecase", slog.Any("error", err))
+		slog.Error("Unable to create Usecase", slog.Any(utils.ErrorKey, err))
 		return QueueHandler{}, err
 	}
 
@@ -54,7 +55,7 @@ func NewQueueHandler() (QueueHandler, error) {
 func getUrlFromMessage(messageText string) (string, error) {
 	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
 	if err != nil {
-		slog.Error("Failed to decode message text", slog.Any("error", err))
+		slog.Error("Failed to decode message text", slog.Any(utils.ErrorKey, err))
 		return "", err
 	}
 
@@ -62,7 +63,7 @@ func getUrlFromMessage(messageText string) (string, error) {
 	var event azeventgrid.Event
 	err = event.UnmarshalJSON(eventBytes)
 	if err != nil {
-		slog.Error("Failed to unmarshal event", slog.Any("error", err))
+		slog.Error("Failed to unmarshal event", slog.Any(utils.ErrorKey, err))
 		return "", err
 	}
 
@@ -91,7 +92,7 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 
 	deleteResponse, err := receiver.queueClient.DeleteMessage(context.Background(), messageId, popReceipt, nil)
 	if err != nil {
-		slog.Error("Unable to delete message", slog.Any("error", err))
+		slog.Error("Unable to delete message", slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
@@ -112,20 +113,20 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	sourceUrl, err := getUrlFromMessage(*message.MessageText)
 
 	if err != nil {
-		slog.Error("Failed to get the file URL", slog.Any("error", err))
+		slog.Error("Failed to get the file URL", slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
 	err = receiver.usecase.ReadAndSend(sourceUrl)
 
 	if err != nil {
-		slog.Warn("Failed to read/send file", slog.Any("error", err))
+		slog.Warn("Failed to read/send file", slog.Any(utils.ErrorKey, err))
 	} else {
 		// Only delete message if file successfully sent to ReportStream
 		// (or if there's a known non-transient error and we've moved the file to `failure`)
 		err = receiver.deleteMessage(message)
 		if err != nil {
-			slog.Warn("Failed to delete message", slog.Any("error", err))
+			slog.Warn("Failed to delete message", slog.Any(utils.ErrorKey, err))
 			return err
 		}
 	}
@@ -141,14 +142,14 @@ func (receiver QueueHandler) overDeliveryThreshold(message azqueue.DequeuedMessa
 
 	if err != nil {
 		maxDeliveryCount = 5
-		slog.Warn("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5", slog.Any("error", err))
+		slog.Warn("Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5", slog.Any(utils.ErrorKey, err))
 	}
 
 	if *message.DequeueCount > maxDeliveryCount {
 		slog.Error("Message reached maximum number of delivery attempts", slog.Any("message", message))
 		err := receiver.deadLetter(message)
 		if err != nil {
-			slog.Error("Failed to move message to the DLQ", slog.Any("message", message), slog.Any("error", err))
+			slog.Error("Failed to move message to the DLQ", slog.Any("message", message), slog.Any(utils.ErrorKey, err))
 		}
 		return true
 	}
@@ -161,13 +162,13 @@ func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
 	opts := &azqueue.EnqueueMessageOptions{TimeToLive: to.Ptr(int32(-1))}
 	_, err := receiver.deadLetterQueueClient.EnqueueMessage(context.Background(), *message.MessageText, opts)
 	if err != nil {
-		slog.Error("Failed to add the message to the DLQ", slog.Any("error", err))
+		slog.Error("Failed to add the message to the DLQ", slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
 	err = receiver.deleteMessage(message)
 	if err != nil {
-		slog.Error("Failed to delete the message to the original queue after adding it to the DLQ", slog.Any("error", err))
+		slog.Error("Failed to delete the message to the original queue after adding it to the DLQ", slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
@@ -180,7 +181,7 @@ func (receiver QueueHandler) ListenToQueue() {
 	for {
 		err := receiver.receiveQueue()
 		if err != nil {
-			slog.Error("Failed to receive message", slog.Any("error", err))
+			slog.Error("Failed to receive message", slog.Any(utils.ErrorKey, err))
 		}
 		time.Sleep(10 * time.Second)
 	}
@@ -192,7 +193,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	messageResponse, err := receiver.queueClient.DequeueMessage(context.Background(), nil)
 	if err != nil {
-		slog.Error("Unable to dequeue messages", slog.Any("error", err))
+		slog.Error("Unable to dequeue messages", slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
@@ -201,7 +202,7 @@ func (receiver QueueHandler) receiveQueue() error {
 		go func() {
 			err := receiver.handleMessage(message)
 			if err != nil {
-				slog.Error("Unable to handle message", slog.Any("error", err))
+				slog.Error("Unable to handle message", slog.Any(utils.ErrorKey, err))
 			}
 		}()
 	}
