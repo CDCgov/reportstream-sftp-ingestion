@@ -72,6 +72,8 @@ resource "azurerm_linux_web_app" "sftp" {
     FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
     CA_DPH_ZIP_PASSWORD_NAME        = azurerm_key_vault_secret.ca_dph_zip_password.name
+
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = true
   }
 
   identity {
@@ -137,4 +139,12 @@ resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
       }
     }
   }
+}
+
+resource "null_resource" "webjob" {
+  provisioner "local-exec" {
+    when = create
+    command = "az webapp deployment source config-zip -g ${data.azurerm_resource_group.group.name} -n ${data.azurerm_resource_group.group.name} --src Publish.zip"
+  }
+  depends_on = [ azurerm_linux_web_app.sftp ]
 }
