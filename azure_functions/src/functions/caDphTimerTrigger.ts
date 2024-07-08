@@ -26,7 +26,8 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - add info about installing typescript
 // TODO - is .funcignore at the right level?
 // TODO - set up the right CRON expression
-// TODO - figure out how we make sure there's only one of these running
+// TODO - figure out how we make sure there's only one Azure Function running
+// TODO - figure out if we can add multiple timers (like one per external customer?) to the same function
 app.timer('caDphTimerTrigger', {
     schedule: '0 */1 * * * *',
     handler: caDphTimerTrigger
