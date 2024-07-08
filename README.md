@@ -74,7 +74,7 @@ In the cloud, EventGrid monitors the blob storage container and sends file creat
 In the local Azurite tool, there are no events to connect the blob storage container to the queue.
 To mimic the deployed behavior so our app can read queue messages and access the file specified in the message:
 1. Upload a file to your local Azurite sftp container
-2. In Azure Storage Explorer, find the `blob-message-queue` that the service currently reads from
+2. In Azure Storage Explorer, find the `message-import-queue` that the service currently reads from
 3. Add a file create event message to that queue. You can start with this base message and edit the `subject` to
 match your newly-created file
    ```json

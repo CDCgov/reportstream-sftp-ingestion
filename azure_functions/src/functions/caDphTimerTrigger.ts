@@ -18,7 +18,9 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 
     // TODO - get queue name from env vars
     const queueClient = queueServiceClient.getQueueClient("queuename")
-
+    console.log(myTimer);
+    console.log(context);
+    context.extraInputs.get("customer")
     // TODO - check on options for send message
     queueClient.sendMessage("cheezburger")
     context.log('Timer function processed request.');
@@ -30,5 +32,10 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - figure out if we can add multiple timers (like one per external customer?) to the same function
 app.timer('caDphTimerTrigger', {
     schedule: '0 */1 * * * *',
-    handler: caDphTimerTrigger
+    handler: caDphTimerTrigger,
+    // I don't think extraInputs is the right field, just messing around looking for
+    // whether we can pass in a variable - then we could use one handler for every
+    // customer that has a timer
+    // Possibly the name (in the first param above) could work for this?
+    // extraInputs: [{name: "customer", type: ""}]
 });
