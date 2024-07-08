@@ -152,6 +152,6 @@ resource "null_resource" "webjob" {
 # Zip the Webjob function on the fly
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "../webjob.sh"
-  output_path = "../webjob.zip"
+  source_dir  = "../../webjob.sh"
+  output_path = "../../webjob.zip"
 }
