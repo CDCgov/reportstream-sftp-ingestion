@@ -141,6 +141,7 @@ resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
   }
 }
 
+# TODO - figure out how to make this triggerd and add a schedule
 resource "null_resource" "webjob" {
   provisioner "local-exec" {
     when = create
@@ -152,6 +153,6 @@ resource "null_resource" "webjob" {
 # Zip the Webjob function on the fly
 data "archive_file" "source" {
   type        = "zip"
-  source_dir  = "../../webjob.sh"
+  source_file = "../../webjob.sh"
   output_path = "../../webjob.zip"
 }
