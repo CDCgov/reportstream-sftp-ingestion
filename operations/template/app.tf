@@ -72,8 +72,6 @@ resource "azurerm_linux_web_app" "sftp" {
     FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
     CA_DPH_ZIP_PASSWORD_NAME        = azurerm_key_vault_secret.ca_dph_zip_password.name
-
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE = true
   }
 
   identity {
@@ -139,20 +137,4 @@ resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
       }
     }
   }
-}
-
-# TODO - figure out how to make this triggerd and add a schedule
-resource "null_resource" "webjob" {
-  provisioner "local-exec" {
-    when = create
-    command = "az webapp deploy -g ${data.azurerm_resource_group.group.name} -n '' --src-path ${data.archive_file.source.output_path} --type zip"
-  }
-  depends_on = [ azurerm_linux_web_app.sftp ]
-}
-
-# Zip the Webjob function on the fly
-data "archive_file" "source" {
-  type        = "zip"
-  source_file = "../../webjob.sh"
-  output_path = "../../webjob.zip"
 }
