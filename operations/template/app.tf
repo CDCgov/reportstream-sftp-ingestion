@@ -145,7 +145,7 @@ resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
 resource "null_resource" "webjob" {
   provisioner "local-exec" {
     when = create
-    command = "az webapp deploy -g ${data.azurerm_resource_group.group.name} --src-path ${data.archive_file.source.output_path} --type zip"
+    command = "az webapp deploy -g ${data.azurerm_resource_group.group.name} -n '' --src-path ${data.archive_file.source.output_path} --type zip"
   }
   depends_on = [ azurerm_linux_web_app.sftp ]
 }
