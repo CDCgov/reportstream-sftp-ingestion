@@ -27,8 +27,8 @@ resource "azurerm_function_app_function" "polling_trigger_function_app_function"
 
   file {
     name    = "caDphTimerTrigger.ts"
-    content = file("../../azure_functions/src/functions/caDphTimerTrigger.ts")
+    content = file("../../../azure_functions/src/functions/caDphTimerTrigger.ts")
   }
 
-  config_json = {}
+  config_json = "{}"
 }
