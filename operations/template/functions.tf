@@ -10,6 +10,9 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   site_config {
     app_scale_limit = 1
 
+    # TODO - verify this is good advice
+    # always_on = true
+
     app_service_logs {
       retention_period_days = 60
     }
@@ -18,7 +21,11 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
       node_version = "20"
     }
   }
+
+
 }
+
+# TODO - ChatGPT suggests we should use a github action instead of the function app function
 
 resource "azurerm_function_app_function" "polling_trigger_function_app_function" {
   name            = "polling-function-app-function-${var.environment}"
