@@ -31,6 +31,7 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - set up the right CRON expression
 // TODO - figure out how we make sure there's only one Azure Function running - we should alarm if there's more than one
 // TODO - figure out if we can add multiple timers (like one per external customer?) to the same function
+// TODO - find out the timer's timezone for scheduling
 app.timer('caDphTimerTrigger', {
     schedule: '0 */1 * * * *',
     handler: caDphTimerTrigger,

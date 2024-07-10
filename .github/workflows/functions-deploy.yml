@@ -20,9 +20,7 @@
 name: Deploy Node.js project to Azure Function App
 
 on:
-  push:
-    branches:
-      - internal
+  workflow_dispatch:
 
 permissions:
   contents: read
