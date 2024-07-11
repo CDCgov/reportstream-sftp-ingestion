@@ -41,6 +41,8 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      AZURE_FUNCTIONAPP_PUBLISH_PROFILE:
+        required: true
 
 permissions:
   contents: read
