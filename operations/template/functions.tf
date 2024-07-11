@@ -24,18 +24,3 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
 
 
 }
-
-# TODO - ChatGPT suggests we should use a github action instead of the function app function
-
-resource "azurerm_function_app_function" "polling_trigger_function_app_function" {
-  name            = "polling-function-app-function-${var.environment}"
-  function_app_id = azurerm_linux_function_app.polling_trigger_function_app.id
-  language        = "TypeScript"
-
-  file {
-    name    = "index.ts"
-    content = file("../../../azure_functions/src/index.ts")
-  }
-
-  config_json = "{}"
-}
