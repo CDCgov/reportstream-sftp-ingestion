@@ -13,7 +13,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
     application_insights_key = azurerm_application_insights.function_app_insights.instrumentation_key
 
     # TODO - verify this is good advice
-    # always_on = true
+    always_on = true
 
     app_service_logs {
       retention_period_days = 60
