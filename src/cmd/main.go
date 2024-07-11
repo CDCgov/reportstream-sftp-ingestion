@@ -29,9 +29,14 @@ func main() {
 		slog.Error("ope, failed to create sftp handler", slog.Any(utils.ErrorKey, err))
 		// Don't return, we want to let things keep going for now
 	}
+
 	defer sftpHandler.Close()
 
-	sftpHandler.CopyFiles()
+	// TODO - Refactor when we have an answer for the SFTP subfolders and timer trigger is properly set up
+	// TODO - Consider moving unzipping from SFTP handler to a more appropriate place
+	if err == nil {
+		sftpHandler.CopyFiles()
+	}
 
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
 	queueHandler.ListenToQueue()
