@@ -6,6 +6,8 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   service_plan_id            = azurerm_service_plan.plan.id
   storage_account_name       = azurerm_storage_account.storage.name
   storage_account_access_key = azurerm_storage_account.storage.primary_access_key
+  application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
+  application_insights_key = azurerm_application_insights.function_app_insights.instrumentation_key
 
   site_config {
     app_scale_limit = 1
@@ -21,6 +23,12 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
       node_version = "20"
     }
   }
+}
 
-
+resource "azurerm_application_insights" "function_app_insights" {
+  name                = "functionapp-insights-${var.environment}"
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+  workspace_id        = azurerm_log_analytics_workspace.logs_workspace.id
+  application_type    = "Node.JS"
 }
