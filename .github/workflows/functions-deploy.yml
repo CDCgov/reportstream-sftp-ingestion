@@ -87,10 +87,15 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: 'Get Publish Profile'
+        run: |
+          echo "::set-output name=PUBLISH_PROFILE::$(az webapp deployment list-publishing-profiles -g 'csels-rsti-${{ inputs.ENVIRONMENT }}-moderate-rg' -n 'polling-function-${{ var.environment }}' --xml)"
+        id: getPublishProfile
+
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
