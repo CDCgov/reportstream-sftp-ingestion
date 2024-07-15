@@ -16,6 +16,7 @@ services:
       SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
       SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
       CA_DPH_ZIP_PASSWORD_NAME: mock_ca_dph_zip_password.txt #pragma: allowlist secret
+      POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata

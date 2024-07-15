@@ -12,19 +12,25 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
         - Create a queue reader for the new queue including dead lettering
     */
 
+    console.log(connectionString)
     const queueClient = queueServiceClient.getQueueClient(pollingTriggerQueueName)
+    console.log("Timer:")
     console.log(myTimer);
+    console.log("Context:")
     console.log(context);
     // context.extraInputs.get("customer")
     // TODO - check on options for send message (like timeouts etc)
     // TODO - send a real message
-    // await queueClient.sendMessage("cheezburger")
+    // const sendMessageResponse = await queueClient.sendMessage("cheezburger")
+    // console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
+
     context.log('Timer function processed request.');
 }
 // TODO - set up the right CRON expression
 // TODO - figure out how we make sure there's only one Azure Function running - we should alarm if there's more than one
 // TODO - figure out if we can add multiple timers (like one per external customer?) to the same function
-// TODO - find out the timer's timezone for scheduling
+// TODO - find out the timer's timezone for scheduling - there's a `schedule: { adjustForDST: true }` setting in the timer
+// https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=python-v2%2Cisolated-process%2Cnodejs-v4&pivots=programming-language-typescript#ncrontab-time-zones
 app.timer('caDphTimerTrigger', {
     schedule: '0 */1 * * * *',
     handler: caDphTimerTrigger,
