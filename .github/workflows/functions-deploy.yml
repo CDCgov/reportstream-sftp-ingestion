@@ -50,7 +50,7 @@ permissions:
 env:
   # AZURE_FUNCTIONAPP_NAME has to match the azurerm_linux_function_app's name in functions.tf
   AZURE_FUNCTIONAPP_NAME: 'polling-function-${{ inputs.ENVIRONMENT }}'
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './azure_functions'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: '././azure_functions'
   NODE_VERSION: '20.x'
 
 jobs:
@@ -74,7 +74,7 @@ jobs:
       - name: 'Resolve Project Dependencies Using Npm'
         shell: bash
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          pushd '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
           npm install
           npm run build --if-present
           npm run test --if-present
@@ -83,7 +83,7 @@ jobs:
 
       - name: 'List Directory Contents'
         run: |
-          ls -R ./${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          ls -R ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
       - name: 'Login via Azure CLI'
         uses: azure/login@v2
