@@ -16,6 +16,7 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
         - Create a DLQ for it
         - Create a queue reader including dead lettering
         - Profit?
+        - Add a helpful comment about missing env vars making deploy not-work
     */
 
     const queueClient = queueServiceClient.getQueueClient(pollingTriggerQueueName)
