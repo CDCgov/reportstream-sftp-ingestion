@@ -105,8 +105,8 @@ jobs:
 # TODO - add a health check to see if this worked
       - name: 'Check function app function'
         run: |
-          FUNCTION_STATUS=$(az functionapp function show -g "csels-rsti-${{ inputs.ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.ENVIRONMENT }}" --function-name "caDphTimerTrigger")
-          echo "FUNCTION_STATUS=$FUNCTION_STATUS" >> $GITHUB_OUTPUT
+          FUNCTION_STATUS=$(az functionapp function show -g "csels-rsti-${{ inputs.ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.ENVIRONMENT }}" --function-name "caDphTimerTrigger" --query "{functionName:name}"  --output tsv)
+          echo $FUNCTION_STATUS
           if [ -z "$FUNCTION_STATUS"  ]; then
           echo "Function not created"
           exit 1
