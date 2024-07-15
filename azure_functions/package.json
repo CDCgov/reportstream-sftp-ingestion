@@ -16,6 +16,7 @@
     "azure-functions-core-tools": "^4.0.5907"
   },
   "devDependencies": {
+    "azure-functions-core-tools": "^4.x",
     "@types/node": "^20.x",
     "rimraf": "^5.0.0",
     "typescript": "^4.0.0"
