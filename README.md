@@ -174,6 +174,7 @@ occur when a release is published.
 
 ## Related documents
 
+* [Azure Functions and Typescript](/azure_functions/src/README.md)
 * [Open Practices](/docs/open_practices.md)
 * [Rules of Behavior](/docs/rules_of_behavior.md)
 * [Thanks and Acknowledgements](/docs/thanks.md)

@@ -8,15 +8,8 @@ const queueServiceClient = QueueServiceClient.fromConnectionString(connectionStr
 
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
     /* TODO -
-        - Figure out TF for the Azure function
-        - Make sure Azure Function has access to env vars
         - Figure out local testing
-        - Figure out how to enqueue a message from here
-        - Create a new queue for timer triggers - probably one total, and the message is the customer?
-        - Create a DLQ for it
-        - Create a queue reader including dead lettering
-        - Profit?
-        - Add a helpful comment about missing env vars making deploy not-work
+        - Create a queue reader for the new queue including dead lettering
     */
 
     const queueClient = queueServiceClient.getQueueClient(pollingTriggerQueueName)
@@ -28,9 +21,6 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     // await queueClient.sendMessage("cheezburger")
     context.log('Timer function processed request.');
 }
-// TODO - add info about installing typescript to README
-// TODO - figure out instructions for running this
-// TODO - is .funcignore at the right level?
 // TODO - set up the right CRON expression
 // TODO - figure out how we make sure there's only one Azure Function running - we should alarm if there's more than one
 // TODO - figure out if we can add multiple timers (like one per external customer?) to the same function
