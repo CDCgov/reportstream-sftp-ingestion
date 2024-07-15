@@ -1,8 +1,8 @@
 import { app, InvocationContext, Timer } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 
-const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
+//const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+//const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
 
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
     /* TODO -
