@@ -7,5 +7,5 @@
       "schedule": "0 */5 * * * *"
     }
   ],
-  "scriptFile": "caDphTimerTrigger.js"
+  "scriptFile": "caDphTimerTrigger.ts"
 }
