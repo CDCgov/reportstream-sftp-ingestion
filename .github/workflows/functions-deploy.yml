@@ -50,7 +50,7 @@ permissions:
 env:
   # AZURE_FUNCTIONAPP_NAME has to match the azurerm_linux_function_app's name in functions.tf
   AZURE_FUNCTIONAPP_NAME: 'polling-function-${{ inputs.ENVIRONMENT }}'
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: './azure_functions'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './azure_functions/dist'
   NODE_VERSION: '20.x'
 
 jobs:
