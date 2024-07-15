@@ -1,4 +1,4 @@
-import { app, InvocationContext, Timer } from "@azure/functions";
+import { app, InvocationContext, Timer, input } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
@@ -23,11 +23,12 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     console.log(myTimer);
     console.log(context);
     // context.extraInputs.get("customer")
-    // TODO - check on options for send message
-    await queueClient.sendMessage("cheezburger")
+    // TODO - check on options for send message (like timeouts etc)
+    // TODO - send a real message
+    // await queueClient.sendMessage("cheezburger")
     context.log('Timer function processed request.');
 }
-// TODO - add info about installing typescript
+// TODO - add info about installing typescript to README
 // TODO - figure out instructions for running this
 // TODO - is .funcignore at the right level?
 // TODO - set up the right CRON expression
@@ -41,5 +42,6 @@ app.timer('caDphTimerTrigger', {
     // whether we can pass in a variable - then we could use one handler for every
     // customer that has a timer
     // Possibly the name (in the first param above) could work for this?
-    // extraInputs: [{name: "customer", type: ""}]
+    // const customer = input.generic({"type": "customer", "name": "CADPH"})
+    // extraInputs: [customer]
 });
