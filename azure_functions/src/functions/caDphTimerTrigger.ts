@@ -17,12 +17,12 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     */
 
     // TODO - get queue name from env vars
-    const queueClient = queueServiceClient.getQueueClient("queuename")
+    // const queueClient = queueServiceClient.getQueueClient("queuename")
     console.log(myTimer);
     console.log(context);
-    context.extraInputs.get("customer")
+    // context.extraInputs.get("customer")
     // TODO - check on options for send message
-    queueClient.sendMessage("cheezburger")
+    // queueClient.sendMessage("cheezburger")
     context.log('Timer function processed request.');
 }
 // TODO - add info about installing typescript
