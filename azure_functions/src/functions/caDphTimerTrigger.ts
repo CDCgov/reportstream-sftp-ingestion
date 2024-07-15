@@ -1,8 +1,10 @@
 import { app, InvocationContext, Timer } from "@azure/functions";
 import { QueueServiceClient } from "@azure/storage-queue";
 
-//const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
-//const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
+const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+// TODO - add env vars to docker compose?
+const pollingTriggerQueueName = process.env.POLLING_TRIGGER_QUEUE_NAME;
+const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
 
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
     /* TODO -
@@ -16,13 +18,12 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
         - Profit?
     */
 
-    // TODO - get queue name from env vars
-    // const queueClient = queueServiceClient.getQueueClient("queuename")
+    const queueClient = queueServiceClient.getQueueClient(pollingTriggerQueueName)
     console.log(myTimer);
     console.log(context);
     // context.extraInputs.get("customer")
     // TODO - check on options for send message
-    // queueClient.sendMessage("cheezburger")
+    await queueClient.sendMessage("cheezburger")
     context.log('Timer function processed request.');
 }
 // TODO - add info about installing typescript
