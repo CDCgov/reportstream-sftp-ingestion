@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "@azure/storage-queue": "^12.22.0"
+    "@azure/storage-queue": "^12.22.0",
+    "azure-functions-core-tools": "^4.0.5907"
   },
   "devDependencies": {
     "@types/node": "^20.x",
