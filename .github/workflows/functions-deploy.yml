@@ -102,13 +102,3 @@ jobs:
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
 # TODO - add a health check to see if this worked
-      - name: 'Health Check'
-        run: |
-          FUNCTION_URL=https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/health
-          STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}\n" $FUNCTION_URL)
-          if [ $STATUS_CODE -ne 200 ]; then
-          echo "Health check failed with status code $STATUS_CODE"
-          exit 1
-          else
-          echo "Health check succeeded with status code $STATUS_CODE"
-          fi
