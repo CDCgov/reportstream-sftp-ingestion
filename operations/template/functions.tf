@@ -17,9 +17,9 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
 
   site_config {
     #The below value should be kept at 1 so we don't duplicate actions and lock out the external sftp client
-    app_scale_limit = 1
+    app_scale_limit                        = 1
     application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
-    application_insights_key = azurerm_application_insights.function_app_insights.instrumentation_key
+    application_insights_key               = azurerm_application_insights.function_app_insights.instrumentation_key
 
     # TODO - verify this is good advice
     always_on = true
