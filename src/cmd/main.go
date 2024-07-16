@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		slog.Warn("Failed to create importMessageHandler", slog.Any(utils.ErrorKey, err))
 	}
-	importQueueHandler, err := orchestration.NewQueueHandler(importMessageHandler)
+	importQueueHandler, err := orchestration.NewQueueHandler(importMessageHandler, "message-import")
 	if err != nil {
 		slog.Warn("Failed to create importQueueHandler", slog.Any(utils.ErrorKey, err))
 	}

@@ -28,19 +28,16 @@ type MessageContentHandler interface {
 	HandleMessageContents(message azqueue.DequeuedMessage) error
 }
 
-// TODO - pass in queue names? Have different queue handlers for the polling queue and the import queues?
-// 		labeled each function based on whether it's specific to the import flow or not
-
-func NewQueueHandler(messageContentHandler MessageContentHandler) (QueueHandler, error) {
+func NewQueueHandler(messageContentHandler MessageContentHandler, queueBaseName string) (QueueHandler, error) {
 	azureQueueConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
-	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "message-import-queue", nil)
+	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, queueBaseName+"-queue", nil)
 	if err != nil {
 		slog.Error("Unable to create Azure Queue Client for primary queue", slog.Any(utils.ErrorKey, err))
 		return QueueHandler{}, err
 	}
 
-	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "message-import-dead-letter-queue", nil)
+	dlqClient, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, queueBaseName+"-dead-letter-queue", nil)
 	if err != nil {
 		slog.Error("Unable to create Azure Queue Client for dead letter queue", slog.Any(utils.ErrorKey, err))
 		return QueueHandler{}, err
@@ -49,7 +46,6 @@ func NewQueueHandler(messageContentHandler MessageContentHandler) (QueueHandler,
 	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, messageContentHandler: messageContentHandler}, nil
 }
 
-// TODO - NOT import-specific
 func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) error {
 	messageId := *message.MessageID
 	popReceipt := *message.PopReceipt
@@ -65,7 +61,6 @@ func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) erro
 	return nil
 }
 
-// TODO - partly import-specific. Will need updates or a new version that kicks off the SFTP code
 func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) error {
 
 	slog.Info("Handling message", slog.String("id", *message.MessageID))
@@ -90,7 +85,6 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 	return nil
 }
 
-// TODO - NOT import-specific
 // overDeliveryThreshold checks whether the max delivery attempts for the message have been reached.
 // If the threshold has been reached, the message should go to dead letter storage.
 // Return true if we're over the threshold and should stop processing, else return false
@@ -113,7 +107,6 @@ func (receiver QueueHandler) overDeliveryThreshold(message azqueue.DequeuedMessa
 	return false
 }
 
-// TODO - NOT import-specific
 func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
 
 	// a TimeToLive of -1 means the message will not expire
@@ -135,7 +128,6 @@ func (receiver QueueHandler) deadLetter(message azqueue.DequeuedMessage) error {
 	return nil
 }
 
-// TODO - NOT import-specific
 func (receiver QueueHandler) ListenToQueue() {
 	for {
 		err := receiver.receiveQueue()
@@ -146,7 +138,6 @@ func (receiver QueueHandler) ListenToQueue() {
 	}
 }
 
-// TODO - NOT import-specific
 func (receiver QueueHandler) receiveQueue() error {
 
 	slog.Info("Trying to dequeue")
