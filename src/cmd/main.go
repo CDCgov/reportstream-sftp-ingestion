@@ -38,6 +38,7 @@ func main() {
 		sftpHandler.CopyFiles()
 	}
 
+	// TODO - add another queue listener for the other queue? Or maybe one listener for all queues but different message handling?
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
 	queueHandler.ListenToQueue()
 }

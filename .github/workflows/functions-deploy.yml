@@ -1,0 +1,90 @@
+# TODO - currently this is only called from the `internal` deploy job. It should be part of all envs
+name: Deploy Node.js project to Azure Function App
+
+on:
+  workflow_call:
+    inputs:
+      ENVIRONMENT:
+        required: true
+        type: string
+      REGISTRY:
+        required: true
+        type: string
+      REPO:
+        required: true
+        type: string
+      APP:
+        required: true
+        type: string
+    secrets:
+      AZURE_CLIENT_ID:
+        required: true
+      AZURE_TENANT_ID:
+        required: true
+      AZURE_SUBSCRIPTION_ID:
+        required: true
+      AZURE_FUNCTIONAPP_PUBLISH_PROFILE:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  # AZURE_FUNCTIONAPP_NAME has to match the azurerm_linux_function_app's name in functions.tf
+  AZURE_FUNCTIONAPP_NAME: 'polling-function-${{ inputs.ENVIRONMENT }}'
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: 'azure_functions'
+  NODE_VERSION: '20.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      ${{ inputs.ENVIRONMENT }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Node ${{ env.NODE_VERSION }} Environment'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: bash
+        run: |
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+          popd
+
+      - name: 'Login via Azure CLI'
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: 'Get Publish Profile'
+        run: |
+          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.ENVIRONMENT }}" --xml)
+          echo "::add-mask::$PUBLISH_PROFILE"
+          echo "PUBLISH_PROFILE=$PUBLISH_PROFILE" >> $GITHUB_OUTPUT
+        id: getPublishProfile
+
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: azure-function-deploy
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
+
+# TODO: Add a step to report failure on Azure Function App Func creation
+# Currently, if there's a bug in the function code or it tries to use an environment variable that doesn't exist
+# or has an invalid value, the Github Action Step will complete successfully but the function code will NOT be
+# deployed, and any previous version of the function will be removed

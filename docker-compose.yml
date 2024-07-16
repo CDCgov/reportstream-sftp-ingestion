@@ -16,6 +16,7 @@ services:
       SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
       SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
       CA_DPH_ZIP_PASSWORD_NAME: mock_ca_dph_zip_password.txt #pragma: allowlist secret
+      POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/reportstream:/localdata
@@ -57,8 +58,10 @@ services:
       - |
         az storage container create -n sftp
         az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name order_message.hl7 --file mock_data/order_message.hl7
-        az storage queue create -n blob-message-queue
-        az storage queue create -n blob-message-dead-letter-queue
+        az storage queue create -n message-import-queue
+        az storage queue create -n message-import-dead-letter-queue
+        az storage queue create -n polling-trigger-queue
+        az storage queue create -n polling-trigger-dead-letter-queue
     environment:
       AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1; # pragma: allowlist secret
     networks:
