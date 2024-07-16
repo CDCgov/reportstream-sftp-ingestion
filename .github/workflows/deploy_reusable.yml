@@ -103,7 +103,6 @@ jobs:
 
   function-deploy:
     name: Function Deploy
-    needs: terraform-deploy
     uses: ./.github/workflows/functions-deploy.yml
     with:
       ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
