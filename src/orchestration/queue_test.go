@@ -101,7 +101,8 @@ func Test_handleMessage_MessageHandledSuccessfully_ReturnNil(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createGoodMessage()
 
@@ -112,14 +113,15 @@ func Test_handleMessage_MessageHandledSuccessfully_ReturnNil(t *testing.T) {
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-func Test_handleMessage_FailedToGetFileUrl_ReturnsError(t *testing.T) {
+1qfunc Test_handleMessage_FailedToGetFileUrl_ReturnsError(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createBadMessage()
 
@@ -137,7 +139,8 @@ func Test_handleMessage_FailureWithDeleteMessage_ReturnsError(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createGoodMessage()
 
@@ -154,7 +157,8 @@ func Test_handleMessage_FailureWithReadAndSend_ReturnsError(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(errors.New("failed to read and send"))
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createGoodMessage()
 
@@ -173,7 +177,8 @@ func Test_handleMessage_OverDequeueThreshold_ReturnsError(t *testing.T) {
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createMessageOverDequeueThreshold()
 
@@ -198,7 +203,8 @@ func Test_ReceiveQueue_OnSuccess_ReturnsNil(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 	err := queueHandler.receiveQueue()
 
 	mockQueueClient.AssertCalled(t, "DequeueMessage", mock.Anything, mock.Anything)
@@ -212,7 +218,8 @@ func Test_ReceiveQueue_UnableToDequeueMessage_ReturnsError(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 	err := queueHandler.receiveQueue()
 
 	assert.Error(t, err)
@@ -237,7 +244,8 @@ func Test_ReceiveQueue_UnableToHandleMessage_LogsError(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 	err := queueHandler.receiveQueue()
 
 	mockQueueClient.AssertCalled(t, "DequeueMessage", mock.Anything, mock.Anything)
@@ -266,7 +274,8 @@ func Test_ReceiveQueue_QueueContainsMultipleMessages_HandlesAllMessages(t *testi
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	mockReadAndSendUsecase.On("ReadAndSend", mock.AnythingOfType("string")).Return(nil)
 
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 	err := queueHandler.receiveQueue()
 
 	assert.NoError(t, err)
@@ -290,7 +299,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndUnderDequeueThreshold_Retu
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createGoodMessage()
 
@@ -319,7 +329,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_Retur
 	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)
@@ -343,7 +354,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsUnderDe
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createGoodMessage()
 
@@ -371,7 +383,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDef
 	mockDeadLetterQueueClient.On("EnqueueMessage", mock.Anything, mock.Anything, mock.Anything).Return(azqueue.EnqueueMessagesResponse{}, nil)
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, usecase: &mockReadAndSendUsecase}
+	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)

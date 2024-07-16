@@ -2,12 +2,9 @@ package orchestration
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
-	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
 	"os"
@@ -18,7 +15,7 @@ import (
 type QueueHandler struct {
 	queueClient           QueueClient
 	deadLetterQueueClient QueueClient
-	usecase               usecases.ReadAndSend
+	messageContentHandler MessageContentHandler
 }
 
 type QueueClient interface {
@@ -27,10 +24,14 @@ type QueueClient interface {
 	EnqueueMessage(ctx context.Context, content string, o *azqueue.EnqueueMessageOptions) (azqueue.EnqueueMessagesResponse, error)
 }
 
+type MessageContentHandler interface {
+	HandleMessageContents(message azqueue.DequeuedMessage) error
+}
+
 // TODO - pass in queue names? Have different queue handlers for the polling queue and the import queues?
 // 		labeled each function based on whether it's specific to the import flow or not
 
-func NewQueueHandler() (QueueHandler, error) {
+func NewQueueHandler(messageContentHandler MessageContentHandler) (QueueHandler, error) {
 	azureQueueConnectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 
 	client, err := azqueue.NewQueueClientFromConnectionString(azureQueueConnectionString, "message-import-queue", nil)
@@ -45,50 +46,7 @@ func NewQueueHandler() (QueueHandler, error) {
 		return QueueHandler{}, err
 	}
 
-	// TODO - this is only relevant for the import queue, not the polling one
-	usecase, err := usecases.NewReadAndSendUsecase()
-
-	if err != nil {
-		slog.Error("Unable to create Usecase", slog.Any(utils.ErrorKey, err))
-		return QueueHandler{}, err
-	}
-
-	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, usecase: &usecase}, nil
-}
-
-// TODO - import-specific
-func getUrlFromMessage(messageText string) (string, error) {
-	eventBytes, err := base64.StdEncoding.DecodeString(messageText)
-	if err != nil {
-		slog.Error("Failed to decode message text", slog.Any(utils.ErrorKey, err))
-		return "", err
-	}
-
-	// Map bytes json to Event object format (shape)
-	var event azeventgrid.Event
-	err = event.UnmarshalJSON(eventBytes)
-	if err != nil {
-		slog.Error("Failed to unmarshal event", slog.Any(utils.ErrorKey, err))
-		return "", err
-	}
-
-	// Data is an 'any' type. We need to tell Go that it's a map
-	eventData, ok := event.Data.(map[string]any)
-
-	if !ok {
-		slog.Error("Could not assert event data to a map", slog.Any("event", event))
-		return "", errors.New("could not assert event data to a map")
-	}
-
-	// Extract blob url from Event's data
-	eventUrl, ok := eventData["url"].(string)
-
-	if !ok {
-		slog.Error("Could not assert event data url to a string", slog.Any("event", event))
-		return "", errors.New("could not assert event data url to a string")
-	}
-
-	return eventUrl, nil
+	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, messageContentHandler: messageContentHandler}, nil
 }
 
 // TODO - NOT import-specific
@@ -117,20 +75,11 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		return errors.New("message delivery threshold exceeded")
 	}
 
-	sourceUrl, err := getUrlFromMessage(*message.MessageText)
+	err := receiver.messageContentHandler.HandleMessageContents(message)
 
 	if err != nil {
-		slog.Error("Failed to get the file URL", slog.Any(utils.ErrorKey, err))
-		return err
-	}
-
-	err = receiver.usecase.ReadAndSend(sourceUrl)
-
-	if err != nil {
-		slog.Warn("Failed to read/send file", slog.Any(utils.ErrorKey, err))
+		slog.Warn("Failed to handle message", slog.Any(utils.ErrorKey, err))
 	} else {
-		// Only delete message if file successfully sent to ReportStream
-		// (or if there's a known non-transient error and we've moved the file to `failure`)
 		err = receiver.deleteMessage(message)
 		if err != nil {
 			slog.Warn("Failed to delete message", slog.Any(utils.ErrorKey, err))
