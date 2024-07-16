@@ -7,23 +7,12 @@ on:
       ENVIRONMENT:
         required: true
         type: string
-      REGISTRY:
-        required: true
-        type: string
-      REPO:
-        required: true
-        type: string
-      APP:
-        required: true
-        type: string
     secrets:
       AZURE_CLIENT_ID:
         required: true
       AZURE_TENANT_ID:
         required: true
       AZURE_SUBSCRIPTION_ID:
-        required: true
-      AZURE_FUNCTIONAPP_PUBLISH_PROFILE:
         required: true
 
 permissions:

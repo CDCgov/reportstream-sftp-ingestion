@@ -100,3 +100,13 @@ jobs:
         app-name: ${{ inputs.APP }}
         slot-name: production
         images: '${{ inputs.REGISTRY }}/${{ inputs.REPO }}:${{ github.sha }}'
+
+  function-deploy:
+    name: Function Deploy
+    uses: ./.github/workflows/functions-deploy.yml
+    with:
+      ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
