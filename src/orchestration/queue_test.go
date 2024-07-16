@@ -113,7 +113,7 @@ func Test_handleMessage_MessageHandledSuccessfully_ReturnNil(t *testing.T) {
 	mockQueueClient.AssertCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
 
-1qfunc Test_handleMessage_FailedToGetFileUrl_ReturnsError(t *testing.T) {
+func Test_handleMessage_FailedToGetFileUrl_DoesNotCallReadAndSendOrDeleteMessage(t *testing.T) {
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
 
@@ -127,7 +127,7 @@ func Test_handleMessage_MessageHandledSuccessfully_ReturnNil(t *testing.T) {
 
 	err := queueHandler.handleMessage(message)
 
-	assert.Error(t, err)
+	assert.NoError(t, err)
 	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 	mockQueueClient.AssertNotCalled(t, "DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 }
@@ -178,7 +178,7 @@ func Test_handleMessage_OverDequeueThreshold_ReturnsError(t *testing.T) {
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 
 	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler, deadLetterQueueClient: &mockDeadLetterQueueClient}
 
 	message := createMessageOverDequeueThreshold()
 
@@ -330,7 +330,7 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_Retur
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)
@@ -384,7 +384,7 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDef
 
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
 	importMessageHandler := ImportMessageHandler{usecase: &mockReadAndSendUsecase}
-	queueHandler := QueueHandler{queueClient: &mockQueueClient, messageContentHandler: importMessageHandler}
+	queueHandler := QueueHandler{queueClient: &mockQueueClient, deadLetterQueueClient: &mockDeadLetterQueueClient, messageContentHandler: importMessageHandler}
 
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)
