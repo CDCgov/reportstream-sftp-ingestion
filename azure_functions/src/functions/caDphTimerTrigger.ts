@@ -9,7 +9,6 @@ const queueServiceClient = QueueServiceClient.fromConnectionString(connectionStr
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
     /* TODO -
         - Figure out local testing
-        - Create a queue reader for the new queue including dead lettering
     */
 
     console.log(connectionString)
