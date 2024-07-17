@@ -21,7 +21,8 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
     application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
     application_insights_key               = azurerm_application_insights.function_app_insights.instrumentation_key
 
-    # TODO - verify this is good advice  https://learn.microsoft.com/en-us/azure/azure-functions/dedicated-plan#always-on
+    # If `always_on` is not set to true, timers may only fire when an action (like a deploy
+    # or looking at the app in the Azure Portal) causes the timers to sync
     always_on = true
 
     app_service_logs {
