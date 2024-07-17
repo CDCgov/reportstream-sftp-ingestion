@@ -21,6 +21,11 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     // context.extraInputs.get("customer")
     // TODO - check on options for send message (like timeouts etc)
     // TODO - send a real message
+
+    // TODO - Adjust the visibility timeout to be a fairly high value.  We want to avoid enqueuing the message and then having the
+    // polling handler kick off to download it but the download takes longer than the timeout, this would in theory kick off an infinite loop
+    // that would lock out our account
+
     // const sendMessageResponse = await queueClient.sendMessage("cheezburger")
     // console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
 
