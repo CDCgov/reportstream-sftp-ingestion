@@ -20,7 +20,9 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	}
 	defer sftpHandler.Close()
 
+	slog.Info("about to call CopyFiles")
 	sftpHandler.CopyFiles()
+	slog.Info("called CopyFiles")
 	// TODO - have CopyFiles return an error so we can do something smart with it, so we don't
 	// 	keep pinging CA. May need to consider the kind of error, in case some situations result in
 	// 	a call to CA and some don't
