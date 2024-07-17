@@ -306,11 +306,10 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndUnderDequeueThreshold_Retu
 
 	overThreshold := queueHandler.overDeliveryThreshold(message)
 
-	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
-	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), cannotParseMessage)
+	assert.NotContains(t, buffer.String(), overDequeueMessage)
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Equal(t, false, overThreshold)
-
 }
 
 func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_ReturnsTrue(t *testing.T) {
@@ -335,8 +334,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_Retur
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)
 
-	assert.NotContains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
-	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.NotContains(t, buffer.String(), cannotParseMessage)
+	assert.Contains(t, buffer.String(), overDequeueMessage)
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
 	assert.Equal(t, true, overThreshold)
@@ -361,8 +360,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsUnderDe
 
 	overThreshold := queueHandler.overDeliveryThreshold(message)
 
-	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
-	assert.NotContains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.Contains(t, buffer.String(), cannotParseMessage)
+	assert.NotContains(t, buffer.String(), overDequeueMessage)
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Equal(t, false, overThreshold)
 }
@@ -389,8 +388,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDef
 	message := createMessageOverDequeueThreshold()
 	overThreshold := queueHandler.overDeliveryThreshold(message)
 
-	assert.Contains(t, buffer.String(), "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5")
-	assert.Contains(t, buffer.String(), "Message reached maximum number of delivery attempts")
+	assert.Contains(t, buffer.String(), cannotParseMessage)
+	assert.Contains(t, buffer.String(), overDequeueMessage)
 	assert.NotContains(t, buffer.String(), "Failed to move message to the DLQ")
 	assert.Contains(t, buffer.String(), "Successfully moved the message to the DLQ")
 	assert.Equal(t, true, overThreshold)
@@ -531,5 +530,5 @@ func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 }
 
 // Constants for tests
-const cannotParseMessage = "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS"
+const cannotParseMessage = "Failed to parse QUEUE_MAX_DELIVERY_ATTEMPTS, defaulting to 5"
 const overDequeueMessage = "Message reached maximum number of delivery attempts"
