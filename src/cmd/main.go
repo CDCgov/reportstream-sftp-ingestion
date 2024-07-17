@@ -18,9 +18,13 @@ func main() {
 
 	go setupHealthCheck()
 
-	queueHandler, err := orchestration.NewQueueHandler()
+	importMessageHandler, err := orchestration.NewImportMessageHandler()
 	if err != nil {
-		slog.Warn("Failed to create queueHandler", slog.Any(utils.ErrorKey, err))
+		slog.Warn("Failed to create importMessageHandler", slog.Any(utils.ErrorKey, err))
+	}
+	importQueueHandler, err := orchestration.NewQueueHandler(importMessageHandler, "message-import")
+	if err != nil {
+		slog.Warn("Failed to create importQueueHandler", slog.Any(utils.ErrorKey, err))
 	}
 
 	// TODO - move calls to SFTP into whatever timer/trigger we set up later
@@ -40,7 +44,7 @@ func main() {
 
 	// TODO - add another queue listener for the other queue? Or maybe one listener for all queues but different message handling?
 	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
-	queueHandler.ListenToQueue()
+	importQueueHandler.ListenToQueue()
 }
 
 func setupLogging() {
