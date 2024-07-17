@@ -31,7 +31,7 @@ func Test_HandleMessageContents_FailedToGetFileUrl_DoesNotCallReadAndSend(t *tes
 
 	err := importMessageHandler.HandleMessageContents(message)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	mockReadAndSendUsecase.AssertNotCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 }
 
@@ -45,6 +45,6 @@ func Test_HandleMessageContents_FailureWithReadAndSend_ReturnsError(t *testing.T
 
 	err := importMessageHandler.HandleMessageContents(message)
 
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	mockReadAndSendUsecase.AssertCalled(t, "ReadAndSend", mock.AnythingOfType("string"))
 }
