@@ -11,6 +11,7 @@ type PollingMessageHandler struct {
 }
 
 func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
+	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
 	// TODO - use the message contents to figure out stuff about config and files
 	sftpHandler, err := sftp.NewSftpHandler()
 	if err != nil {
