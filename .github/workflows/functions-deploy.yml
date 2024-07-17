@@ -1,4 +1,3 @@
-# TODO - currently this is only called from the `internal` deploy job. It should be part of all envs
 name: Deploy Node.js project to Azure Function App
 
 on:

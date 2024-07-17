@@ -21,7 +21,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
     application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
     application_insights_key               = azurerm_application_insights.function_app_insights.instrumentation_key
 
-    # TODO - verify this is good advice
+    # TODO - verify this is good advice  https://learn.microsoft.com/en-us/azure/azure-functions/dedicated-plan#always-on
     always_on = true
 
     app_service_logs {
