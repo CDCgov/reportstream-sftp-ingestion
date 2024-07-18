@@ -25,8 +25,10 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     // polling handler kick off to download it but the download takes longer than the timeout, this would in theory kick off an infinite loop
     // that would lock out our account
 
-    // const sendMessageResponse = await queueClient.sendMessage("cheezburger")
-    // console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
+    // We set the visibility timeout for the message on reading, in queue.go
+    // messageTimeToLive of -1 means the message does not expire
+    const sendMessageResponse = await queueClient.sendMessage("cheezburger", {messageTimeToLive: -1})
+    console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
 
     context.log('Timer function processed request.');
 }

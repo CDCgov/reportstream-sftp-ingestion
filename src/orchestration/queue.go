@@ -143,7 +143,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	slog.Info("Trying to dequeue")
 	var options *azqueue.DequeueMessageOptions
-	var timeoutValue int32 = 900
+	var timeoutValue int32 = 900 // 15 minutes in seconds
 
 	options.VisibilityTimeout = &timeoutValue
 
@@ -155,6 +155,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	for _, dequeuedMessage := range messageResponse.Messages {
 		message := *dequeuedMessage
+		slog.Info("Dequeued message", slog.Any("next visible", message.TimeNextVisible), slog.Any("expiration", message.ExpirationTime), slog.Any("message", message.MessageText))
 		go func() {
 			err := receiver.handleMessage(message)
 			if err != nil {
