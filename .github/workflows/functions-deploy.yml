@@ -71,8 +71,3 @@ jobs:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
-
-# TODO: Add a step to report failure on Azure Function App Func creation
-# Currently, if there's a bug in the function code or it tries to use an environment variable that doesn't exist
-# or has an invalid value, the Github Action Step will complete successfully but the function code will NOT be
-# deployed, and any previous version of the function will be removed

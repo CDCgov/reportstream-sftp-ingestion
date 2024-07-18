@@ -7,9 +7,6 @@ const pollingTriggerQueueName = process.env.POLLING_TRIGGER_QUEUE_NAME;
 const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
 
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
-    /* TODO -
-        - Figure out local testing
-    */
 
     console.log(connectionString)
     const queueClient = queueServiceClient.getQueueClient(pollingTriggerQueueName)
@@ -18,7 +15,6 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     console.log("Context:")
     console.log(context);
     // context.extraInputs.get("customer")
-    // TODO - check on options for send message (like timeouts etc)
     // TODO - send a real message
 
     // TODO - Adjust the visibility timeout to be a fairly high value.  We want to avoid enqueuing the message and then having the

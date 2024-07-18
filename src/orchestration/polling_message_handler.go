@@ -13,6 +13,7 @@ type PollingMessageHandler struct {
 func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
 	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
 	// TODO - use the message contents to figure out stuff about config and files
+	// SFTP handler has hard-coded details about where to retrieve files from
 	sftpHandler, err := sftp.NewSftpHandler()
 	if err != nil {
 		slog.Error("ope, failed to create sftp handler", slog.Any(utils.ErrorKey, err))
