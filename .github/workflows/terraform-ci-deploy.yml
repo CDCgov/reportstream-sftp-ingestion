@@ -33,7 +33,7 @@ jobs:
     uses: ./.github/workflows/terraform-deploy_reusable.yml
     if: needs.paths-filter.outputs.operations == 'true'
     with:
-      ENVIRONMENT: pr${{ github.event.number }}
+      ENVIRONMENT: pr
       TERRAFORM_DIRECTORY: operations/environments/pr
       TERRAFORM_INIT_PARAMETERS: -backend-config="key=rs_sftp_pr_${{ github.event.number }}.tfstate"
       TERRAFORM_APPLY_PARAMETERS: -var="pr_number=${{ github.event.number }}"
@@ -58,7 +58,7 @@ jobs:
     uses: ./.github/workflows/deploy_reusable.yml
     if: needs.paths-filter.outputs.operations == 'true'
     with:
-      ENVIRONMENT: pr${{ github.event.number }}
+      ENVIRONMENT: pr
       REPO: report-stream-sftp-ingest
       APP: ${{ needs.terraform-deploy.outputs.APP }}
       REGISTRY: ${{ needs.terraform-deploy.outputs.REGISTRY }}
