@@ -153,7 +153,8 @@ func (receiver *SftpHandler) CopyFiles() {
 			receiver.copySingleFile(fileInfo, index, directory)
 		}()
 	}
-	// Wait for all the wg elements to complete
+	// Wait for all the wg elements to complete. Otherwise this function will return
+	// before all the files are processed, and the SFTP client will close prematurely
 	wg.Wait()
 
 	/*
