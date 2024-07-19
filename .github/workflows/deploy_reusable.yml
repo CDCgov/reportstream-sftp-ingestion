@@ -106,6 +106,9 @@ jobs:
     uses: ./.github/workflows/functions-deploy.yml
     with:
       ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
+      # For pull requests, the GH Action environment is `pr` but in Terraform, it's like `pr85`
+      # When we reference terraformed resources in this workflow, we need to use the TF env name
+      TF_ENVIRONMENT: '${{ inputs.ENVIRONMENT }}${{ github.event.number }}'
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}

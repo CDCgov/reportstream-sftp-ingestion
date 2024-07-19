@@ -6,6 +6,10 @@ on:
       ENVIRONMENT:
         required: true
         type: string
+      TF_ENVIRONMENT:
+        required: true
+        type: string
+
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -18,11 +22,8 @@ permissions:
   contents: read
 
 env:
-  # For pull requests, the GH Action environment is `pr` but in Terraform, it's like `pr85`
-  # When we reference terraformed resources in this workflow, we need to use the TF env name
-  TF_ENVIRONMENT: '${{ inputs.ENVIRONMENT }}${{ github.event.number }}'
   # The AZURE_FUNCTIONAPP_NAME has to match the azurerm_linux_function_app's name in functions.tf
-  AZURE_FUNCTIONAPP_NAME: 'polling-function-${{env.TF_ENVIRONMENT}}'
+  AZURE_FUNCTIONAPP_NAME: 'polling-function-${{inputs.TF_ENVIRONMENT}}'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'azure_functions'
   NODE_VERSION: '20.x'
 
@@ -62,7 +63,7 @@ jobs:
 
       - name: 'Get Publish Profile'
         run: |
-          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ env.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ env.TF_ENVIRONMENT }}" --xml)
+          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}" --xml)
           echo "::add-mask::$PUBLISH_PROFILE"
           echo "PUBLISH_PROFILE=$PUBLISH_PROFILE" >> $GITHUB_OUTPUT
         id: getPublishProfile
