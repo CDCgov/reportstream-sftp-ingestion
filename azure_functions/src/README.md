@@ -4,8 +4,15 @@
 [Node](https://nodejs.org/en/download/package-manager/current) version >= 20
 
 [Typescript](https://www.typescriptlang.org/download/) version >= 4.0.0
+Azure Functions Core Tools - run `npm install -g azure-functions-core-tools`
 
 ## Using and Running
+
+You can run the Azure Function either in Docker using `docker-compose` or from the commands
+in `package.json`. Both ways of running the function use the same port, so you can only run
+it one way or the other.
+
+### To run outside of docker:
 
 To install dependencies and run the application use the below command
 
