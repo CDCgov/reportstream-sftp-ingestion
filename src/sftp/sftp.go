@@ -135,6 +135,20 @@ func (receiver *SftpHandler) Close() {
 }
 
 func (receiver *SftpHandler) CopyFiles() {
+	/*
+		TODO: not sure which variables should be env vars or secrets
+			Which have to be separated by env? We at least have some prod and non-prod values
+				To separate by env, use variables or null resources or something in TF?
+			The ones that are currently env vars would have to become secret names (and then look up le secrets)
+			- SFTP_STARTING_DIRECTORY
+			- SFTP_USER
+			- SFTP_PASSWORD
+			- SFTP_KEY_NAME
+			- SFTP_SERVER_ADDRESS
+			- SFTP_SERVER_PUBLIC_KEY_NAME
+			- CA_DPH_ZIP_PASSWORD_NAME - this is unique to the combo of CADPH + UCSD
+				- if CADPH had passwords with other partners (which they don't), they'd be different passwords
+	*/
 	directory := "files"
 	fileInfos, err := receiver.sftpClient.ReadDir(directory)
 	if err != nil {
