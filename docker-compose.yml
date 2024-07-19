@@ -70,7 +70,7 @@ services:
       - sftp-Azurite
 
   azure-function:
-    image: mcr.microsoft.com/azure-functions/node:4-node18
+    image: mcr.microsoft.com/azure-functions/node:4-node20
     volumes:
       - ./azure_functions:/home/site/wwwroot
     ports:
@@ -80,15 +80,14 @@ services:
       - -c
       - |
         cd /home/site/wwwroot
-        ls -al
         npm install -g azure-functions-core-tools
         npm install
-        npm list
         npm run start
     environment:
       AzureWebJobsScriptRoot: /home/site/wwwroot
       AzureFunctionsJobHost__Logging__Console__IsEnabled: true
       AzureWebJobs.HttpExample.Disabled: "true"
+      AzureWebJobsStorage: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1;TableEndpoint=http://sftp-Azurite:10002/devstoreaccount1; # pragma: allowlist secret
       AZURE_STORAGE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1; # pragma: allowlist secret
     networks:
       - sftp
