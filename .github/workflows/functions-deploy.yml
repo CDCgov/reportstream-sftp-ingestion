@@ -22,7 +22,7 @@ env:
   # When we reference terraformed resources in this workflow, we need to use the TF env name
   TF_ENVIRONMENT: '${{ inputs.ENVIRONMENT }}${{ github.event.number }}'
   # The AZURE_FUNCTIONAPP_NAME has to match the azurerm_linux_function_app's name in functions.tf
-  AZURE_FUNCTIONAPP_NAME: 'polling-function-${{TF_ENVIRONMENT}}'
+  AZURE_FUNCTIONAPP_NAME: 'polling-function-${{env.TF_ENVIRONMENT}}'
   AZURE_FUNCTIONAPP_PACKAGE_PATH: 'azure_functions'
   NODE_VERSION: '20.x'
 
