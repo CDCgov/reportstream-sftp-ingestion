@@ -20,7 +20,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
   storage_queue_endpoint {
     queue_name                            = azurerm_storage_queue.message_import_queue.name
     storage_account_id                    = azurerm_storage_account.storage.id
-    queue_message_time_to_live_in_seconds = 604800 # 7 days in seconds
+    queue_message_time_to_live_in_seconds = -1 # -1 means the message doesn't expire
   }
 
   included_event_types = ["Microsoft.Storage.BlobCreated"]

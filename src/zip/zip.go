@@ -44,9 +44,9 @@ func NewZipHandler() (ZipHandler, error) {
 }
 
 // TODO - move remaining items to future cards?
-// TODO - check storage size/costs on the container
+// TODO - check storage size/costs on the container (unzipping into memory vs on the directory of the service)
 // TODO - update CA password after deploy per env
-// TODO - check on visibility timeout for messages
+// TODO - check on visibility timeout for messages (find out default and make sure we can d/l the zip within the timeframe)
 
 // Unzip opens a zip file (applying a password if necessary) and uploads each file within it to the `import` folder
 // to begin processing. It collects any errors with individual subfiles and uploads that information as well. An error

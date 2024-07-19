@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 type SftpHandler struct {
@@ -121,6 +122,7 @@ func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.S
 }
 
 func (receiver *SftpHandler) Close() {
+	slog.Info("About to close SFTP handler")
 	err := receiver.sftpClient.Close()
 	if err != nil {
 		slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
@@ -140,12 +142,20 @@ func (receiver *SftpHandler) CopyFiles() {
 		return
 	}
 
+	var wg sync.WaitGroup
 	//loop through files
 	for index, fileInfo := range fileInfos {
+		// Increment the wait group counter
+		wg.Add(1)
 		go func() {
+			// Decrement the counter when the go routine completes
+			defer wg.Done()
 			receiver.copySingleFile(fileInfo, index, directory)
 		}()
 	}
+	// Wait for all the wg elements to complete. Otherwise this function will return
+	// before all the files are processed, and the SFTP client will close prematurely
+	wg.Wait()
 
 	/*
 		Eventually:

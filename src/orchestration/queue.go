@@ -70,6 +70,7 @@ func (receiver QueueHandler) handleMessage(message azqueue.DequeuedMessage) erro
 		return errors.New("message delivery threshold exceeded")
 	}
 
+	//Below function call is where the logical path splits depending on if the receiver is an import or polling queue
 	err := receiver.messageContentHandler.HandleMessageContents(message)
 
 	if err != nil {
@@ -142,7 +143,14 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	slog.Info("Trying to dequeue")
 
-	messageResponse, err := receiver.queueClient.DequeueMessage(context.Background(), nil)
+	// 15 minutes in seconds
+	var timeoutValue int32 = 900
+	var options = azqueue.DequeueMessageOptions{
+		VisibilityTimeout: &timeoutValue,
+	}
+
+	messageResponse, err := receiver.queueClient.DequeueMessage(context.Background(), &options)
+
 	if err != nil {
 		slog.Error("Unable to dequeue messages", slog.Any(utils.ErrorKey, err))
 		return err
@@ -150,6 +158,7 @@ func (receiver QueueHandler) receiveQueue() error {
 
 	for _, dequeuedMessage := range messageResponse.Messages {
 		message := *dequeuedMessage
+		slog.Info("Dequeued message", slog.Any("next visible", message.TimeNextVisible), slog.Any("expiration", message.ExpirationTime), slog.Any("message", message.MessageText))
 		go func() {
 			err := receiver.handleMessage(message)
 			if err != nil {

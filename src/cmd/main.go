@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
-	"github.com/CDCgov/reportstream-sftp-ingestion/sftp"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"io"
 	"log/slog"
@@ -18,6 +17,18 @@ func main() {
 
 	go setupHealthCheck()
 
+	// Set up the polling message handler and queue listener
+	pollingMessageHandler := orchestration.PollingMessageHandler{}
+
+	pollingQueueHandler, err := orchestration.NewQueueHandler(pollingMessageHandler, "polling-trigger")
+	if err != nil {
+		slog.Warn("Failed to create pollingQueueHandler", slog.Any(utils.ErrorKey, err))
+	}
+	go func() {
+		pollingQueueHandler.ListenToQueue()
+	}()
+
+	// Set up the import message handler and queue listener
 	importMessageHandler, err := orchestration.NewImportMessageHandler()
 	if err != nil {
 		slog.Warn("Failed to create importMessageHandler", slog.Any(utils.ErrorKey, err))
@@ -26,24 +37,7 @@ func main() {
 	if err != nil {
 		slog.Warn("Failed to create importQueueHandler", slog.Any(utils.ErrorKey, err))
 	}
-
-	// TODO - move calls to SFTP into whatever timer/trigger we set up later
-	sftpHandler, err := sftp.NewSftpHandler()
-	if err != nil {
-		slog.Error("ope, failed to create sftp handler", slog.Any(utils.ErrorKey, err))
-		// Don't return, we want to let things keep going for now
-	}
-
-	defer sftpHandler.Close()
-
-	// TODO - Refactor when we have an answer for the SFTP subfolders and timer trigger is properly set up
-	// TODO - Consider moving unzipping from SFTP handler to a more appropriate place
-	if err == nil {
-		sftpHandler.CopyFiles()
-	}
-
-	// TODO - add another queue listener for the other queue? Or maybe one listener for all queues but different message handling?
-	// ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
+	// This ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
 	importQueueHandler.ListenToQueue()
 }
 

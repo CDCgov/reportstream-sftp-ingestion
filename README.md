@@ -54,7 +54,8 @@ pre-commit install
 ```
 
 ### Running locally
-Run `docker-compose`, which will spin up an Azurite container, an SFTP service, and the app. By default, this leaves the ReportStream
+Run `docker-compose`, which will spin up an Azurite container, an SFTP service, the
+Azure Function that triggers polling, and the app. By default, this leaves the ReportStream
 URL prefix environment variable empty, and we'll use a mock response rather than calling ReportStream. Uncomment
 the `REPORT_STREAM_URL_PREFIX` in [docker-compose.yml](docker-compose.yml) to call locally-running ReportStream instead.
 
