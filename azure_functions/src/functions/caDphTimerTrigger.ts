@@ -23,8 +23,8 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 
     // We set the visibility timeout for the message on reading, in queue.go
     // messageTimeToLive of -1 means the message does not expire
-    // const sendMessageResponse = await queueClient.sendMessage("cheezburger", {messageTimeToLive: -1})
-    // console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
+    const sendMessageResponse = await queueClient.sendMessage("cheezburger", {messageTimeToLive: -1})
+    console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
 
     context.log('Timer function processed request.');
 }
@@ -35,8 +35,9 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - Azure SDK Timeout setup research for when calling azure doesn't work.
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=python-v2%2Cisolated-process%2Cnodejs-v4&pivots=programming-language-typescript#ncrontab-time-zones
 app.timer('caDphTimerTrigger', {
-    schedule: '0 */1 * * * *',
+    schedule: '0 30 9 * Jan Mon', // 9:30 am every monday in january
     handler: caDphTimerTrigger,
+    runOnStartup: true,
     // I don't think extraInputs is the right field, just messing around looking for
     // whether we can pass in a variable - then we could use one handler for every
     // customer that has a timer

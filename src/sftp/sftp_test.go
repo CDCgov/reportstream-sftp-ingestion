@@ -105,7 +105,10 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("dogcow", nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, credentialGetter: mockCredentialGetter}
 
 	sftpHandler.CopyFiles()
 
@@ -130,8 +133,10 @@ func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
 	files = append(files, fileInfo)
 
 	mockSftpClient.On("ReadDir", mock.Anything).Return(files, errors.New(utils.ErrorKey))
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("dogcow", nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, credentialGetter: mockCredentialGetter}
 
 	sftpHandler.CopyFiles()
 

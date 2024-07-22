@@ -17,10 +17,11 @@ import (
 )
 
 type SftpHandler struct {
-	sshClient   *ssh.Client
-	sftpClient  SftpClient
-	blobHandler usecases.BlobHandler
-	ioClient    IoClient
+	sshClient        *ssh.Client
+	sftpClient       SftpClient
+	blobHandler      usecases.BlobHandler
+	ioClient         IoClient
+	credentialGetter secrets.CredentialGetter
 }
 
 type SftpClient interface {
@@ -38,10 +39,11 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
-	pem, err := getPublicKeysForSshClient(credentialGetter)
-	if err != nil {
-		return nil, err
-	}
+	// Commenting out the key info until it's set for CA. This will make it NOT work locally though
+	//pem, err := getPublicKeysForSshClient(credentialGetter)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
 
@@ -52,21 +54,46 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
-	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
+	//hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
+	//if err != nil {
+	//	return nil, err
+	//}
+
+	sftpUserName := os.Getenv("SFTP_USER_NAME")
+	sftpUser, err := credentialGetter.GetSecret(sftpUserName)
+
 	if err != nil {
+		slog.Error("Unable to get SFTP_USER_NAME", slog.String("KeyName", sftpUserName), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
+	sftpPasswordName := os.Getenv("SFTP_PASSWORD_NAME")
+	sftpPassword, err := credentialGetter.GetSecret(sftpPasswordName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_PASSWORD_NAME", slog.String("KeyName", sftpPasswordName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
 	config := &ssh.ClientConfig{
-		User: os.Getenv("SFTP_USER"),
+		User: sftpUser,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(pem),
-			ssh.Password(os.Getenv("SFTP_PASSWORD")),
+			//ssh.PublicKeys(pem),
+			ssh.Password(sftpPassword),
 		},
-		HostKeyCallback: hostKeyCallback,
+		//HostKeyCallback: hostKeyCallback,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
+	sftpServerAddressName := os.Getenv("SFTP_SERVER_ADDRESS_NAME")
+	sftpServerAddress, err := credentialGetter.GetSecret(sftpServerAddressName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_SERVER_ADDRESS_NAME", slog.String("KeyName", sftpServerAddress), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
+	sshClient, err := ssh.Dial("tcp", sftpServerAddress, config)
 	if err != nil {
 		slog.Error("Failed to make SSH client", slog.Any(utils.ErrorKey, err))
 		return nil, err
@@ -87,10 +114,11 @@ func NewSftpHandler() (*SftpHandler, error) {
 	ioWrapper := IoWrapper{}
 
 	return &SftpHandler{
-		sshClient:   sshClient,
-		sftpClient:  sftpClient,
-		blobHandler: blobHandler,
-		ioClient:    &ioWrapper,
+		sshClient:        sshClient,
+		sftpClient:       sftpClient,
+		blobHandler:      blobHandler,
+		ioClient:         &ioWrapper,
+		credentialGetter: credentialGetter,
 	}, nil
 }
 
@@ -140,19 +168,40 @@ func (receiver *SftpHandler) CopyFiles() {
 			Which have to be separated by env? We at least have some prod and non-prod values
 				To separate by env, use variables or null resources or something in TF?
 			The ones that are currently env vars would have to become secret names (and then look up le secrets)
-			- SFTP_STARTING_DIRECTORY
-			- SFTP_USER
-			- SFTP_PASSWORD
-			- SFTP_KEY_NAME
-			- SFTP_SERVER_ADDRESS
-			- SFTP_SERVER_PUBLIC_KEY_NAME
-			- CA_DPH_ZIP_PASSWORD_NAME - this is unique to the combo of CADPH + UCSD
+			- SFTP_STARTING_DIRECTORY X
+			- SFTP_USER X
+			- SFTP_PASSWORD -> SFTP_PASSWORD_NAME X
+			- SFTP_KEY_NAME X - we need to send them the key pair (Jorge to do this?)
+				- We should have a different user/password for prod and non-prod, but they only sent us one with
+					access to both places. Key should go with user?
+				- Also I am vague on the difference between the SFTP_KEY and the SFTP_SERVER_PUBLIC_KEY - not sure
+					which to set where
+			- SFTP_SERVER_ADDRESS X
+			- SFTP_SERVER_PUBLIC_KEY_NAME x
+			- CA_DPH_ZIP_PASSWORD_NAME - this is unique to the combo of CADPH + UCSD - already in TF X
 				- if CADPH had passwords with other partners (which they don't), they'd be different passwords
+
+		- Terraform the above (changing names where appropriate)
+		- look up values from credentialgetter
+		- update docker-compose with new var names
+		- create files with the docker-compose secrets so local dev still works
+		- test locally
+		- update secrets in all envs after deploys
+		- to test in internal, maybe turn polling back on temporarily? Will need to turn it back off again quick so we don't get locked out
+
 	*/
-	directory := "files"
-	fileInfos, err := receiver.sftpClient.ReadDir(directory)
+	sftpStartingDirectoryName := os.Getenv("SFTP_STARTING_DIRECTORY")
+	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectoryName)
+
 	if err != nil {
-		slog.Error("Failed to read directory ", slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP_STARTING_DIRECTORY", slog.String("KeyName", sftpStartingDirectory), slog.Any(utils.ErrorKey, err))
+		return
+	}
+
+	fileInfos, err := receiver.sftpClient.ReadDir(sftpStartingDirectory)
+	slog.Info("starting directory", slog.String("start dir", sftpStartingDirectory))
+	if err != nil {
+		slog.Error("Failed to read directory", slog.Any(utils.ErrorKey, err))
 		return
 	}
 
@@ -164,7 +213,7 @@ func (receiver *SftpHandler) CopyFiles() {
 		go func() {
 			// Decrement the counter when the go routine completes
 			defer wg.Done()
-			receiver.copySingleFile(fileInfo, index, directory)
+			receiver.copySingleFile(fileInfo, index, sftpStartingDirectory)
 		}()
 	}
 	// Wait for all the wg elements to complete. Otherwise this function will return

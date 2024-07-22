@@ -10,12 +10,12 @@ services:
       FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
-      SFTP_USER: ti_user
-      SFTP_PASSWORD: ti_password #pragma: allowlist secret
+      SFTP_USER_NAME: sftp_user.txt
+      SFTP_PASSWORD_NAME: sftp_password.txt #pragma: allowlist secret
       SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #pragma: allowlist secret
-      SFTP_SERVER_ADDRESS: host.docker.internal:2223 # no http since this is sftp
+      SFTP_SERVER_ADDRESS_NAME: sftp_server_address.txt # no http since this is sftp
       SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
-      SFTP_STARTING_DIRECTORY: files/DPH-Staging/HealthPartner-Staging/UCSD/OUTPUT
+      SFTP_STARTING_DIRECTORY: sftp_starting_directory.txt
       CA_DPH_ZIP_PASSWORD_NAME: mock_ca_dph_zip_password.txt #pragma: allowlist secret
       POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
@@ -93,7 +93,10 @@ services:
     networks:
       - sftp
     depends_on:
-      - azure-cli
+      azure-cli:
+        condition: service_completed_successfully
+      sftp-server:
+        condition: service_started
 
   sftp-server:
     image: atmoz/sftp

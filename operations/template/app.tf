@@ -72,6 +72,12 @@ resource "azurerm_linux_web_app" "sftp" {
     FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
     CA_DPH_ZIP_PASSWORD_NAME        = azurerm_key_vault_secret.ca_dph_zip_password.name
+    SFTP_STARTING_DIRECTORY_NAME    = azurerm_key_vault_secret.sftp_starting_directory.name
+    SFTP_USER_NAME                  = azurerm_key_vault_secret.sftp_user.name
+    SFTP_PASSWORD_NAME              = azurerm_key_vault_secret.sftp_password.name
+    SFTP_KEY_NAME                   = azurerm_key_vault_secret.sftp_key.name
+    SFTP_SERVER_ADDRESS_NAME        = azurerm_key_vault_secret.sftp_server_address.name
+    SFTP_SERVER_PUBLIC_KEY_NAME     = azurerm_key_vault_secret.sftp_server_public_key.name
   }
 
   identity {
