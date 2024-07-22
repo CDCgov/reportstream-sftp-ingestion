@@ -45,14 +45,14 @@ func NewSftpHandler() (*SftpHandler, error) {
 	//	return nil, err
 	//}
 
-	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
-
-	serverKey, err := credentialGetter.GetSecret(serverKeyName)
-
-	if err != nil {
-		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
-		return nil, err
-	}
+	//serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
+	//
+	//serverKey, err := credentialGetter.GetSecret(serverKeyName)
+	//
+	//if err != nil {
+	//	slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
+	//	return nil, err
+	//}
 
 	//hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 	//if err != nil {
