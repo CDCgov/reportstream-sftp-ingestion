@@ -18,8 +18,6 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   site_config {
     #The below value should be kept at 1 so we don't duplicate actions and lock out the external sftp client
     app_scale_limit                        = 1
-    application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
-    application_insights_key               = azurerm_application_insights.function_app_insights.instrumentation_key
 
     # If `always_on` is not set to true, timers may only fire when an action (like a deploy
     # or looking at the app in the Azure Portal) causes the timers to sync
@@ -33,12 +31,4 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
       node_version = "20"
     }
   }
-}
-
-resource "azurerm_application_insights" "function_app_insights" {
-  name                = "functionapp-insights-${var.environment}"
-  location            = data.azurerm_resource_group.group.location
-  resource_group_name = data.azurerm_resource_group.group.name
-  workspace_id        = azurerm_log_analytics_workspace.logs_workspace.id
-  application_type    = "Node.JS"
 }
