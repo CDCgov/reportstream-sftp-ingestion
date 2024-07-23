@@ -190,11 +190,11 @@ func (receiver *SftpHandler) CopyFiles() {
 		- to test in internal, maybe turn polling back on temporarily? Will need to turn it back off again quick so we don't get locked out
 
 	*/
-	sftpStartingDirectoryName := os.Getenv("SFTP_STARTING_DIRECTORY")
+	sftpStartingDirectoryName := os.Getenv("SFTP_STARTING_DIRECTORY_NAME")
 	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectoryName)
 
 	if err != nil {
-		slog.Error("Unable to get SFTP_STARTING_DIRECTORY", slog.String("KeyName", sftpStartingDirectory), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP_STARTING_DIRECTORY_NAME", slog.String("KeyName", sftpStartingDirectory), slog.Any(utils.ErrorKey, err))
 		return
 	}
 
