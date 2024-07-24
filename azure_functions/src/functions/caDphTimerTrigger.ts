@@ -4,6 +4,7 @@ import { QueueServiceClient } from "@azure/storage-queue";
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const pollingTriggerQueueName = process.env.POLLING_TRIGGER_QUEUE_NAME;
 const queueServiceClient = QueueServiceClient.fromConnectionString(connectionString);
+const caDphPollingCron = process.env.CA_DPH_POLLING_CRON;
 
 export async function caDphTimerTrigger(myTimer: Timer, context: InvocationContext): Promise<void> {
 
@@ -29,7 +30,7 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - Azure SDK Timeout setup research for when calling azure doesn't work.
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=python-v2%2Cisolated-process%2Cnodejs-v4&pivots=programming-language-typescript#ncrontab-time-zones
 app.timer('caDphTimerTrigger', {
-    schedule: '0 30 9 * Jan Mon', // 9:30 am every monday in january
+    schedule: caDphPollingCron, // 9:30 am every monday in january
     handler: caDphTimerTrigger,
     // I don't think extraInputs is the right field, just messing around looking for
     // whether we can pass in a variable - then we could use one handler for every
