@@ -45,19 +45,19 @@ func NewSftpHandler() (*SftpHandler, error) {
 	//	return nil, err
 	//}
 
-	//serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
-	//
-	//serverKey, err := credentialGetter.GetSecret(serverKeyName)
-	//
-	//if err != nil {
-	//	slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
-	//	return nil, err
-	//}
+	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
 
-	//hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
-	//if err != nil {
-	//	return nil, err
-	//}
+	serverKey, err := credentialGetter.GetSecret(serverKeyName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_SERVER_PUBLIC_KEY_NAME", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
+	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
+	if err != nil {
+		return nil, err
+	}
 
 	sftpUserName := os.Getenv("SFTP_USER_NAME")
 	sftpUser, err := credentialGetter.GetSecret(sftpUserName)
@@ -81,8 +81,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 			//ssh.PublicKeys(pem),
 			ssh.Password(sftpPassword),
 		},
-		//HostKeyCallback: hostKeyCallback,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: hostKeyCallback,
 	}
 
 	sftpServerAddressName := os.Getenv("SFTP_SERVER_ADDRESS_NAME")
