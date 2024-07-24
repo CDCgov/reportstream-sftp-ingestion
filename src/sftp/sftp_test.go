@@ -142,7 +142,7 @@ func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
 
 	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
 
-	assert.Contains(t, buffer.String(), "Failed to read directory ")
+	assert.Contains(t, buffer.String(), "Failed to read directory")
 }
 
 func Test_copySingleFile_CopiesFile(t *testing.T) {
