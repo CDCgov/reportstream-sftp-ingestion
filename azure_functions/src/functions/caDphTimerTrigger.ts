@@ -31,7 +31,6 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 app.timer('caDphTimerTrigger', {
     schedule: '0 30 9 * Jan Mon', // 9:30 am every monday in january
     handler: caDphTimerTrigger,
-    runOnStartup: true,
     // I don't think extraInputs is the right field, just messing around looking for
     // whether we can pass in a variable - then we could use one handler for every
     // customer that has a timer
