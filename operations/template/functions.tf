@@ -18,7 +18,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
 
   site_config {
     #The below value should be kept at 1 so we don't duplicate actions and lock out the external sftp client
-    app_scale_limit                        = 1
+    app_scale_limit = 1
 
     # If `always_on` is not set to true, timers may only fire when an action (like a deploy
     # or looking at the app in the Azure Portal) causes the timers to sync
