@@ -10,7 +10,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   app_settings = {
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_connection_string
     POLLING_TRIGGER_QUEUE_NAME      = azurerm_storage_queue.polling_trigger_queue.name
-    AZURE_FUNCTION_CRON             = var.cron
+    CA_DPH_POLLING_CRON             = var.cron
 
     # Makes the Github Action run significantly faster by not copying the node_modules
     WEBSITE_RUN_FROM_PACKAGE = 1
