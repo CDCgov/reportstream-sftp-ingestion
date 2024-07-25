@@ -5,7 +5,8 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "AzureWebJobs.HttpExample.Disabled": "true",
     "AZURE_STORAGE_CONNECTION_STRING": "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:12000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:12001/devstoreaccount1;",
-    "POLLING_TRIGGER_QUEUE_NAME": "polling-trigger-queue"
+    "POLLING_TRIGGER_QUEUE_NAME": "polling-trigger-queue",
+    "CA_DPH_POLLING_CRON": "0 30 9 * Jan Mon"
   },
   "Host": {
     "LocalHttpPort": 7072,

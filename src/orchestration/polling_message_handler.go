@@ -27,5 +27,7 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	// TODO - have CopyFiles return an error so we can do something smart with it, so we don't
 	// 	keep pinging CA. May need to consider the kind of error, in case some situations result in
 	// 	a call to CA and some don't
+	//  We are pushing this issue to the back board until we have defined error scenarios where we want to retry upon failure vs. waiting
+	//  We may want to add a basic error handler to show any error scenarios that come up
 	return nil
 }

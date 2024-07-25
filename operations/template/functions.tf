@@ -10,6 +10,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   app_settings = {
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_connection_string
     POLLING_TRIGGER_QUEUE_NAME      = azurerm_storage_queue.polling_trigger_queue.name
+    CA_DPH_POLLING_CRON             = var.cron
 
     # Makes the Github Action run significantly faster by not copying the node_modules
     WEBSITE_RUN_FROM_PACKAGE = 1
@@ -17,9 +18,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
 
   site_config {
     #The below value should be kept at 1 so we don't duplicate actions and lock out the external sftp client
-    app_scale_limit                        = 1
-    application_insights_connection_string = azurerm_application_insights.function_app_insights.connection_string
-    application_insights_key               = azurerm_application_insights.function_app_insights.instrumentation_key
+    app_scale_limit = 1
 
     # If `always_on` is not set to true, timers may only fire when an action (like a deploy
     # or looking at the app in the Azure Portal) causes the timers to sync
@@ -33,12 +32,4 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
       node_version = "20"
     }
   }
-}
-
-resource "azurerm_application_insights" "function_app_insights" {
-  name                = "functionapp-insights-${var.environment}"
-  location            = data.azurerm_resource_group.group.location
-  resource_group_name = data.azurerm_resource_group.group.name
-  workspace_id        = azurerm_log_analytics_workspace.logs_workspace.id
-  application_type    = "Node.JS"
 }

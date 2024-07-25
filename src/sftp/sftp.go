@@ -17,10 +17,11 @@ import (
 )
 
 type SftpHandler struct {
-	sshClient   *ssh.Client
-	sftpClient  SftpClient
-	blobHandler usecases.BlobHandler
-	ioClient    IoClient
+	sshClient        *ssh.Client
+	sftpClient       SftpClient
+	blobHandler      usecases.BlobHandler
+	ioClient         IoClient
+	credentialGetter secrets.CredentialGetter
 }
 
 type SftpClient interface {
@@ -57,16 +58,40 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	sftpUserName := os.Getenv("SFTP_USER_NAME")
+	sftpUser, err := credentialGetter.GetSecret(sftpUserName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_USER_NAME", slog.String("KeyName", sftpUserName), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
+	sftpPasswordName := os.Getenv("SFTP_PASSWORD_NAME")
+	sftpPassword, err := credentialGetter.GetSecret(sftpPasswordName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_PASSWORD_NAME", slog.String("KeyName", sftpPasswordName), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
 	config := &ssh.ClientConfig{
-		User: os.Getenv("SFTP_USER"),
+		User: sftpUser,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(pem),
-			ssh.Password(os.Getenv("SFTP_PASSWORD")),
+			ssh.Password(sftpPassword),
 		},
 		HostKeyCallback: hostKeyCallback,
 	}
 
-	sshClient, err := ssh.Dial("tcp", os.Getenv("SFTP_SERVER_ADDRESS"), config)
+	sftpServerAddressName := os.Getenv("SFTP_SERVER_ADDRESS_NAME")
+	sftpServerAddress, err := credentialGetter.GetSecret(sftpServerAddressName)
+
+	if err != nil {
+		slog.Error("Unable to get SFTP_SERVER_ADDRESS_NAME", slog.String("KeyName", sftpServerAddress), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
+	sshClient, err := ssh.Dial("tcp", sftpServerAddress, config)
 	if err != nil {
 		slog.Error("Failed to make SSH client", slog.Any(utils.ErrorKey, err))
 		return nil, err
@@ -87,10 +112,11 @@ func NewSftpHandler() (*SftpHandler, error) {
 	ioWrapper := IoWrapper{}
 
 	return &SftpHandler{
-		sshClient:   sshClient,
-		sftpClient:  sftpClient,
-		blobHandler: blobHandler,
-		ioClient:    &ioWrapper,
+		sshClient:        sshClient,
+		sftpClient:       sftpClient,
+		blobHandler:      blobHandler,
+		ioClient:         &ioWrapper,
+		credentialGetter: credentialGetter,
 	}, nil
 }
 
@@ -135,10 +161,18 @@ func (receiver *SftpHandler) Close() {
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	directory := "files"
-	fileInfos, err := receiver.sftpClient.ReadDir(directory)
+	sftpStartingDirectoryName := os.Getenv("SFTP_STARTING_DIRECTORY_NAME")
+	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectoryName)
+
 	if err != nil {
-		slog.Error("Failed to read directory ", slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP_STARTING_DIRECTORY_NAME", slog.String("KeyName", sftpStartingDirectory), slog.Any(utils.ErrorKey, err))
+		return
+	}
+
+	fileInfos, err := receiver.sftpClient.ReadDir(sftpStartingDirectory)
+	slog.Info("starting directory", slog.String("start dir", sftpStartingDirectory))
+	if err != nil {
+		slog.Error("Failed to read directory", slog.Any(utils.ErrorKey, err))
 		return
 	}
 
@@ -150,7 +184,7 @@ func (receiver *SftpHandler) CopyFiles() {
 		go func() {
 			// Decrement the counter when the go routine completes
 			defer wg.Done()
-			receiver.copySingleFile(fileInfo, index, directory)
+			receiver.copySingleFile(fileInfo, index, sftpStartingDirectory)
 		}()
 	}
 	// Wait for all the wg elements to complete. Otherwise this function will return
