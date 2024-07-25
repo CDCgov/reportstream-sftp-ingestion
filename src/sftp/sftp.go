@@ -161,33 +161,6 @@ func (receiver *SftpHandler) Close() {
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	/*
-		TODO: not sure which variables should be env vars or secrets
-			Which have to be separated by env? We at least have some prod and non-prod values
-				To separate by env, use variables or null resources or something in TF?
-			The ones that are currently env vars would have to become secret names (and then look up le secrets)
-			- SFTP_STARTING_DIRECTORY X
-			- SFTP_USER X
-			- SFTP_PASSWORD -> SFTP_PASSWORD_NAME X
-			- SFTP_KEY_NAME X - we need to send them the key pair (Jorge to do this?)
-				- We should have a different user/password for prod and non-prod, but they only sent us one with
-					access to both places. Key should go with user?
-				- Also I am vague on the difference between the SFTP_KEY and the SFTP_SERVER_PUBLIC_KEY - not sure
-					which to set where
-			- SFTP_SERVER_ADDRESS X
-			- SFTP_SERVER_PUBLIC_KEY_NAME x
-			- CA_DPH_ZIP_PASSWORD_NAME - this is unique to the combo of CADPH + UCSD - already in TF X
-				- if CADPH had passwords with other partners (which they don't), they'd be different passwords
-
-		- Terraform the above (changing names where appropriate)
-		- look up values from credentialgetter
-		- update docker-compose with new var names
-		- create files with the docker-compose secrets so local dev still works
-		- test locally
-		- update secrets in all envs after deploys
-		- to test in internal, maybe turn polling back on temporarily? Will need to turn it back off again quick so we don't get locked out
-
-	*/
 	sftpStartingDirectoryName := os.Getenv("SFTP_STARTING_DIRECTORY_NAME")
 	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectoryName)
 
