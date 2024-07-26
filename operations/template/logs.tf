@@ -3,12 +3,26 @@ resource "azurerm_log_analytics_workspace" "logs_workspace" {
 
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_log_analytics_query_pack" "application_logs_pack" {
   name                = "RS SFTP Application Logs"
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_log_analytics_query_pack_query" "example" {
