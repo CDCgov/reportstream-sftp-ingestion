@@ -5,6 +5,13 @@ resource "azurerm_container_registry" "registry" {
   location            = data.azurerm_resource_group.group.location
   sku                 = "Standard"
   admin_enabled       = true
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 # Create the staging service plan
@@ -15,6 +22,13 @@ resource "azurerm_service_plan" "plan" {
   os_type                = "Linux"
   sku_name               = local.higher_environment_level ? "P1v3" : "P0v3"
   zone_balancing_enabled = local.higher_environment_level
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 # Create the staging App Service
@@ -23,6 +37,13 @@ resource "azurerm_linux_web_app" "sftp" {
   resource_group_name = data.azurerm_resource_group.group.name
   location            = azurerm_service_plan.plan.location
   service_plan_id     = azurerm_service_plan.plan.id
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 
   https_only = true
 
@@ -91,6 +112,12 @@ resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
   location            = data.azurerm_resource_group.group.location
   target_resource_id  = azurerm_service_plan.plan.id
 
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 
   profile {
     name = "defaultProfile"

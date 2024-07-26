@@ -9,6 +9,13 @@ resource "azurerm_storage_account" "storage" {
   is_hns_enabled                  = true
   sftp_enabled                    = true
   min_tls_version                 = "TLS1_2"
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_storage_container" "sftp_container" {
