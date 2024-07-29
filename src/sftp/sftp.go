@@ -159,13 +159,17 @@ func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.S
 
 func (receiver *SftpHandler) Close() {
 	slog.Info("About to close SFTP handler")
-	err := receiver.sftpClient.Close()
-	if err != nil {
-		slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
+	if receiver.sftpClient != nil {
+		err := receiver.sftpClient.Close()
+		if err != nil {
+			slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
+		}
 	}
-	err = receiver.sshClient.Close()
-	if err != nil {
-		slog.Error("Failed to close SSH client", slog.Any(utils.ErrorKey, err))
+	if receiver.sshClient != nil {
+		err := receiver.sshClient.Close()
+		if err != nil {
+			slog.Error("Failed to close SSH client", slog.Any(utils.ErrorKey, err))
+		}
 	}
 	slog.Info("SFTP handler closed")
 }
