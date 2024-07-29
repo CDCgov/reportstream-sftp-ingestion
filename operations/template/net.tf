@@ -39,6 +39,12 @@ resource "azurerm_network_security_group" "app_security_group" {
   name                = "sftp-app-security-group"
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_network_security_rule" "App_Splunk_UF_omhsinf" {

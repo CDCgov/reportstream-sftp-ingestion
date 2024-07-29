@@ -32,4 +32,11 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
       node_version = "20"
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }

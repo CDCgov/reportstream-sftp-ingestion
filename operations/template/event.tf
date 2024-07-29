@@ -9,6 +9,13 @@ resource "azurerm_eventgrid_system_topic" "topic" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "topic_sub" {
