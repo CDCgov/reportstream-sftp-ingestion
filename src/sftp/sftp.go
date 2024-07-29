@@ -264,6 +264,8 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		if err != nil {
 			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
 		}
+		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
+		// 	Do we want to move the zip somewhere if done?
 
 		//delete file from local filesystem
 		err = os.Remove(fileInfo.Name())
@@ -274,10 +276,10 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
 		if err != nil {
 			slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
+			return
 		}
 
-		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
-		// 	Do we want to move the zip somewhere if done?
+		slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
 	}
 }
 
