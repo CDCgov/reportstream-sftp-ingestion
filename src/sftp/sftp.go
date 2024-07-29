@@ -280,6 +280,9 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		}
 
 		slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
+	} else {
+		slog.Info("Skipping file because it is not a zip file", slog.String("file name", fileInfo.Name()))
+
 	}
 }
 

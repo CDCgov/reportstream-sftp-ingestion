@@ -248,6 +248,45 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to read file")
 }
 
+func Test_copySingleFile_FileIsNotZipped_LogFileIsSkipped(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpClient)
+	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
+	mockSftpClient.On("Remove", mock.Anything).Return(nil)
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
+	fileInfo, _ := os.Stat(filePath)
+	fileBytes, _ := os.ReadFile(filePath)
+
+	mockIoWrapper := new(MockIoWrapper)
+	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)
+
+	mockBlobHandler := &mocks.MockBlobHandler{}
+	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+
+	mockZipHandler := &MockZipHandler{}
+	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, zipHandler: mockZipHandler}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
+	mockIoWrapper.AssertCalled(t, "ReadBytesFromFile", mock.Anything)
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	assert.Contains(t, buffer.String(), "Considering file")
+	assert.NotContains(t, buffer.String(), "Skipping directory")
+	assert.NotContains(t, buffer.String(), "Failed to open file")
+	assert.NotContains(t, buffer.String(), "Failed to read file")
+	assert.NotContains(t, buffer.String(), "Failed to upload file")
+	assert.Contains(t, buffer.String(), "Skipping file because it is not a zip file")
+}
+
 func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
