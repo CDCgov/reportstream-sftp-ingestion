@@ -17,7 +17,7 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	sftpHandler, err := sftp.NewSftpHandler()
 	if err != nil {
 		slog.Error("failed to create sftp handler", slog.Any(utils.ErrorKey, err))
-		// Don't return - just because polling is broken for one partner doesn't mean we should take down imports too
+		return err
 	}
 	defer sftpHandler.Close()
 
