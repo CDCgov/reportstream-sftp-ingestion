@@ -22,7 +22,7 @@ type SftpHandler struct {
 	blobHandler      usecases.BlobHandler
 	ioClient         IoClient
 	credentialGetter secrets.CredentialGetter
-	zipHandler	     zip.ZipHandler
+	zipHandler       zip.ZipHandlerInterface
 }
 
 type SftpClient interface {
@@ -246,6 +246,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	err = receiver.blobHandler.UploadFile(fileBytes, blobPath)
 	if err != nil {
 		slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
+		return
 	}
 
 	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))

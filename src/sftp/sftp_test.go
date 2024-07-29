@@ -10,11 +10,11 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	yekazip "github.com/yeka/zip"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
-	test "github.com/yeka/zip"
 )
 
 func Test_getSshClientHostKeyCallback_ReturnsFixedHostKeyCallback(t *testing.T) {
@@ -97,6 +97,7 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 
 	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
+	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockIoWrapper := new(MockIoWrapper)
 
@@ -110,7 +111,10 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("dogcow", nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, credentialGetter: mockCredentialGetter}
+	mockZipHandler := &MockZipHandler{}
+	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, credentialGetter: mockCredentialGetter, zipHandler: mockZipHandler}
 
 	sftpHandler.CopyFiles()
 
@@ -156,6 +160,7 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 
 	mockSftpClient := new(MockSftpClient)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
+	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockIoWrapper := new(MockIoWrapper)
 
@@ -167,10 +172,12 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 	mockIoWrapper.On("ReadBytesFromFile", mock.Anything).Return(fileBytes, nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
-
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
+	mockZipHandler := &MockZipHandler{}
+	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, zipHandler: mockZipHandler}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
@@ -283,7 +290,10 @@ func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New(utils.ErrorKey))
 
-	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper}
+	mockZipHandler := &MockZipHandler{}
+	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, ioClient: mockIoWrapper, zipHandler: mockZipHandler}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
@@ -401,12 +411,12 @@ func (receiver *MockSftpClient) Open(path string) (*sftp.File, error) {
 
 func (receiver *MockSftpClient) Close() error {
 	args := receiver.Called()
-	return args.Error(1)
+	return args.Error(0)
 }
 
 func (receiver *MockSftpClient) Remove(path string) error {
 	args := receiver.Called(path)
-	return args.Error(1)
+	return args.Error(0)
 }
 
 type MockIoWrapper struct {
@@ -424,17 +434,17 @@ type MockZipHandler struct {
 
 func (receiver *MockZipHandler) Unzip(zipFilePath string) error {
 	args := receiver.Called(zipFilePath)
-	return args.Error(1)
+	return args.Error(0)
 }
 
-func (receiver *MockZipHandler) uploadErrorList(zipFilePath string, errorList []zip.FileError, err error) error {
-	args := receiver.Called(zipFilePath, errorList, err)
-	return args.Error(1)
-}
-
-func (receiver *MockZipHandler) extractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []zip.FileError) error {
+func (receiver *MockZipHandler) ExtractAndUploadSingleFile(f *yekazip.File, zipPassword string, errorList []zip.FileError) []zip.FileError {
 	args := receiver.Called(f, zipPassword, errorList)
-	return args.Error(1)
+	return args.Get(0).([]zip.FileError)
+}
+
+func (receiver *MockZipHandler) UploadErrorList(zipFilePath string, errorList []zip.FileError, err error) error {
+	args := receiver.Called(zipFilePath, errorList, err)
+	return args.Error(0)
 }
 
 //
@@ -447,6 +457,3 @@ func (receiver *MockZipHandler) extractAndUploadSingleFile(f *zip.File, zipPassw
 //	return args.Get(0).(*zip.ReadCloser), args.Error(1)
 //}
 //
-
-
-
