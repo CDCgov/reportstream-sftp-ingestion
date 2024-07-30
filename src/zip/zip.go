@@ -18,6 +18,12 @@ type ZipHandler struct {
 	zipClient        ZipClient
 }
 
+type ZipHandlerInterface interface {
+	Unzip(zipFilePath string) error
+	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError
+	UploadErrorList(zipFilePath string, errorList []FileError, err error) error
+}
+
 type FileError struct {
 	Filename     string
 	ErrorMessage string
@@ -74,10 +80,10 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	// loop over contents
 	for _, f := range zipReader.File {
-		errorList = zipHandler.extractAndUploadSingleFile(f, zipPassword, errorList)
+		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, errorList)
 	}
 	// Upload error info if any
-	err = zipHandler.uploadErrorList(zipFilePath, errorList, err)
+	err = zipHandler.UploadErrorList(zipFilePath, errorList, err)
 	if err != nil {
 		return err
 	}
@@ -85,7 +91,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	return nil
 }
 
-func (zipHandler ZipHandler) extractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError {
+func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError {
 	slog.Info("preparing to process file", slog.String("file name", f.Name))
 
 	// TODO - should we warn or error if not encrypted? This would vary per customer
@@ -121,7 +127,7 @@ func (zipHandler ZipHandler) extractAndUploadSingleFile(f *zip.File, zipPassword
 }
 
 // uploadErrorList takes a list of file-specific errors and uploads them to a single file named after the containing zip
-func (zipHandler ZipHandler) uploadErrorList(zipFilePath string, errorList []FileError, err error) error {
+func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []FileError, err error) error {
 	if len(errorList) > 0 {
 		fileContents := ""
 		for _, fileError := range errorList {

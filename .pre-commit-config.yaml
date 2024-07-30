@@ -11,6 +11,7 @@ repos:
       - id: detect-private-key
         exclude: (mock_credentials|_test\.go)
       - id: end-of-file-fixer
+        exclude: (\.txt)
       - id: no-commit-to-branch
       - id: trailing-whitespace
 

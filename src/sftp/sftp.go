@@ -22,12 +22,14 @@ type SftpHandler struct {
 	blobHandler      usecases.BlobHandler
 	ioClient         IoClient
 	credentialGetter secrets.CredentialGetter
+	zipHandler       zip.ZipHandlerInterface
 }
 
 type SftpClient interface {
 	ReadDir(path string) ([]os.FileInfo, error)
 	Open(path string) (*sftp.File, error)
 	Close() error
+	Remove(path string) error
 }
 
 func NewSftpHandler() (*SftpHandler, error) {
@@ -111,12 +113,20 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	ioWrapper := IoWrapper{}
 
+	zipHandler, err := zip.NewZipHandler()
+
+	if err != nil {
+		slog.Error("Failed to init zip handler", slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
 	return &SftpHandler{
 		sshClient:        sshClient,
 		sftpClient:       sftpClient,
 		blobHandler:      blobHandler,
 		ioClient:         &ioWrapper,
 		credentialGetter: credentialGetter,
+		zipHandler:       zipHandler,
 	}, nil
 }
 
@@ -149,13 +159,17 @@ func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.S
 
 func (receiver *SftpHandler) Close() {
 	slog.Info("About to close SFTP handler")
-	err := receiver.sftpClient.Close()
-	if err != nil {
-		slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
+	if receiver.sftpClient != nil {
+		err := receiver.sftpClient.Close()
+		if err != nil {
+			slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
+		}
 	}
-	err = receiver.sshClient.Close()
-	if err != nil {
-		slog.Error("Failed to close SSH client", slog.Any(utils.ErrorKey, err))
+	if receiver.sshClient != nil {
+		err := receiver.sshClient.Close()
+		if err != nil {
+			slog.Error("Failed to close SSH client", slog.Any(utils.ErrorKey, err))
+		}
 	}
 	slog.Info("SFTP handler closed")
 }
@@ -236,38 +250,44 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	err = receiver.blobHandler.UploadFile(fileBytes, blobPath)
 	if err != nil {
 		slog.Error("Failed to upload file", slog.Any(utils.ErrorKey, err))
+		return
 	}
 
 	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))
-	if strings.Contains(fileInfo.Name(), ".zip") {
-		// write file to local filesystem
-		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
-		if err != nil {
-			slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
-			return
-		}
 
-		zipHandler, err := zip.NewZipHandler()
-
-		if err != nil {
-			slog.Error("Failed to init zip handler", slog.Any(utils.ErrorKey, err))
-			return
-		}
-
-		err = zipHandler.Unzip(fileInfo.Name())
-		if err != nil {
-			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
-		}
-
-		//delete file from local filesystem
-		err = os.Remove(fileInfo.Name())
-		if err != nil {
-			slog.Error("Failed to remove file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
-		}
-
-		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
-		// 	Do we want to move the zip somewhere if done?
+	// TODO - if non-CA customers want us to retrieve non-zip files, will need to update this `if`
+	if !strings.Contains(fileInfo.Name(), ".zip") {
+		slog.Info("Skipping file because it is not a zip file", slog.String("file name", fileInfo.Name()))
+		return
 	}
+	// write file to local filesystem
+	err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
+	if err != nil {
+		slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+		return
+	}
+
+	err = receiver.zipHandler.Unzip(fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
+	}
+	// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
+	// 	Do we want to move the zip somewhere if done?
+
+	//delete file from local filesystem
+	err = os.Remove(fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+	}
+
+	err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
+		return
+	}
+
+	slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
+
 }
 
 type IoClient interface {
