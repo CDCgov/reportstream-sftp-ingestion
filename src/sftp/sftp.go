@@ -256,38 +256,38 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))
 
 	// TODO - if non-CA customers want us to retrieve non-zip files, will need to update this `if`
-	if strings.Contains(fileInfo.Name(), ".zip") {
-		// write file to local filesystem
-		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
-		if err != nil {
-			slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
-			return
-		}
-
-		err = receiver.zipHandler.Unzip(fileInfo.Name())
-		if err != nil {
-			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
-		}
-		// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
-		// 	Do we want to move the zip somewhere if done?
-
-		//delete file from local filesystem
-		err = os.Remove(fileInfo.Name())
-		if err != nil {
-			slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
-		}
-
-		err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
-		if err != nil {
-			slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
-			return
-		}
-
-		slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
-	} else {
+	if !strings.Contains(fileInfo.Name(), ".zip") {
 		slog.Info("Skipping file because it is not a zip file", slog.String("file name", fileInfo.Name()))
-
+		return
 	}
+	// write file to local filesystem
+	err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
+	if err != nil {
+		slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+		return
+	}
+
+	err = receiver.zipHandler.Unzip(fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
+	}
+	// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
+	// 	Do we want to move the zip somewhere if done?
+
+	//delete file from local filesystem
+	err = os.Remove(fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+	}
+
+	err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
+	if err != nil {
+		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
+		return
+	}
+
+	slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
+
 }
 
 type IoClient interface {

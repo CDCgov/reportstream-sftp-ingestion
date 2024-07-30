@@ -248,7 +248,7 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to read file")
 }
 
-func Test_copySingleFile_FileIsNotZipped_LogFileIsSkipped(t *testing.T) {
+func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
