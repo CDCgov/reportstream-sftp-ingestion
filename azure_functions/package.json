@@ -11,13 +11,13 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "^4.0.0",
-    "@azure/storage-queue": "^12.22.0"
+    "@azure/functions": "4.5.0",
+    "@azure/storage-queue": "12.23.0"
   },
   "devDependencies": {
-    "@types/node": "^20.x",
-    "rimraf": "^5.0.0",
-    "typescript": "^5.0.0"
+    "@types/node": "20.14.13",
+    "rimraf": "5.0.9",
+    "typescript": "5.5.4"
   },
   "main": "dist/src/{index.js,functions/*.js}"
 }
