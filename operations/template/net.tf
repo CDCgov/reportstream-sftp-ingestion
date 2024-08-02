@@ -35,16 +35,10 @@ resource "azurerm_subnet" "app" {
   }
 }
 
-resource "azurerm_network_security_group" "app_security_group" {
+data "azurerm_network_security_group" "app_security_group" {
   name                = "sftp-app-security-group"
   location            = data.azurerm_resource_group.group.location
   resource_group_name = data.azurerm_resource_group.group.name
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_network_security_rule" "App_Splunk_UF_omhsinf" {
@@ -58,7 +52,7 @@ resource "azurerm_network_security_rule" "App_Splunk_UF_omhsinf" {
   source_address_prefixes     = ["10.65.8.211/32", "10.65.8.212/32", "10.65.7.212/32", "10.65.7.211/32", "10.65.8.210/32", "10.65.7.210/32"]
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_network_security_rule" "App_Splunk_Indexer_Discovery_omhsinf" {
@@ -72,7 +66,7 @@ resource "azurerm_network_security_rule" "App_Splunk_Indexer_Discovery_omhsinf" 
   source_address_prefix       = "10.11.7.22/32"
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_network_security_rule" "App_Safe_Encase_Monitoring_omhsinf" {
@@ -86,7 +80,7 @@ resource "azurerm_network_security_rule" "App_Safe_Encase_Monitoring_omhsinf" {
   source_address_prefix       = "10.11.6.145/32"
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_network_security_rule" "App_ForeScout_Manager_omhsinf" {
@@ -100,7 +94,7 @@ resource "azurerm_network_security_rule" "App_ForeScout_Manager_omhsinf" {
   source_address_prefixes     = ["10.64.8.184", "10.64.8.180/32"]
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_network_security_rule" "App_BigFix_omhsinf" {
@@ -114,7 +108,7 @@ resource "azurerm_network_security_rule" "App_BigFix_omhsinf" {
   source_address_prefix       = "10.11.4.84/32"
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_network_security_rule" "App_Allow_All_Out_omhsinf" {
@@ -128,10 +122,10 @@ resource "azurerm_network_security_rule" "App_Allow_All_Out_omhsinf" {
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = data.azurerm_resource_group.group.name
-  network_security_group_name = azurerm_network_security_group.app_security_group.name
+  network_security_group_name = data.azurerm_network_security_group.app_security_group.name
 }
 
 resource "azurerm_subnet_network_security_group_association" "app_security_group" {
   subnet_id                 = azurerm_subnet.app.id
-  network_security_group_id = azurerm_network_security_group.app_security_group.id
+  network_security_group_id = data.azurerm_network_security_group.app_security_group.id
 }
