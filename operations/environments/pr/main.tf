@@ -34,7 +34,7 @@ module "template" {
   environment = "pr${var.pr_number}"
   deployer_id = "d59c2c86-de5e-41b7-a752-0869a73f5a60" //github app registration in Flexion Azure Entra
 
-  cron       = "0 30 9 * Feb Mon"
+  cron = "0 30 9 * Feb Mon"
 
   depends_on = [
     azurerm_resource_group.group,
