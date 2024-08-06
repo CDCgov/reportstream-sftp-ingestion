@@ -6,7 +6,6 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/CDCgov/reportstream-sftp-ingestion/zip"
-	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"io"
 	"log/slog"
@@ -18,18 +17,10 @@ import (
 
 type SftpHandler struct {
 	sshClient        *ssh.Client
-	sftpClient       SftpClient
+	sftpClient       SftpWrapper
 	blobHandler      usecases.BlobHandler
-	ioClient         IoClient
 	credentialGetter secrets.CredentialGetter
 	zipHandler       zip.ZipHandlerInterface
-}
-
-type SftpClient interface {
-	ReadDir(path string) ([]os.FileInfo, error)
-	Open(path string) (*sftp.File, error)
-	Close() error
-	Remove(path string) error
 }
 
 func NewSftpHandler() (*SftpHandler, error) {
@@ -99,7 +90,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
-	sftpClient, err := sftp.NewClient(sshClient)
+	sftpClient, err := NewPkgSftpImplementation(sshClient)
 	if err != nil {
 		slog.Error("Failed to make SFTP client ", slog.Any(utils.ErrorKey, err))
 		return nil, err
@@ -110,8 +101,6 @@ func NewSftpHandler() (*SftpHandler, error) {
 		slog.Error("Failed to init Azure blob client", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
-
-	ioWrapper := IoWrapper{}
 
 	zipHandler, err := zip.NewZipHandler()
 
@@ -124,7 +113,6 @@ func NewSftpHandler() (*SftpHandler, error) {
 		sshClient:        sshClient,
 		sftpClient:       sftpClient,
 		blobHandler:      blobHandler,
-		ioClient:         &ioWrapper,
 		credentialGetter: credentialGetter,
 		zipHandler:       zipHandler,
 	}, nil
@@ -235,7 +223,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	}
 
 	slog.Info("file opened", slog.String("name", fileInfo.Name()), slog.Any("file", file))
-	fileBytes, err := receiver.ioClient.ReadBytesFromFile(file)
+	fileBytes, err := io.ReadAll(file)
 	if err != nil {
 		slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err))
 		return
@@ -287,16 +275,4 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	}
 
 	slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
-
-}
-
-type IoClient interface {
-	ReadBytesFromFile(file *sftp.File) ([]byte, error)
-}
-
-type IoWrapper struct {
-}
-
-func (receiver *IoWrapper) ReadBytesFromFile(file *sftp.File) ([]byte, error) {
-	return io.ReadAll(file)
 }
