@@ -17,7 +17,7 @@ import (
 
 type SftpHandler struct {
 	sshClient        *ssh.Client
-	sftpClient       SftpWrapper
+	sftpWrapper      SftpWrapper
 	blobHandler      usecases.BlobHandler
 	credentialGetter secrets.CredentialGetter
 	zipHandler       zip.ZipHandlerInterface
@@ -111,7 +111,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	return &SftpHandler{
 		sshClient:        sshClient,
-		sftpClient:       sftpClient,
+		sftpWrapper:      sftpClient,
 		blobHandler:      blobHandler,
 		credentialGetter: credentialGetter,
 		zipHandler:       zipHandler,
@@ -147,8 +147,8 @@ func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.S
 
 func (receiver *SftpHandler) Close() {
 	slog.Info("About to close SFTP handler")
-	if receiver.sftpClient != nil {
-		err := receiver.sftpClient.Close()
+	if receiver.sftpWrapper != nil {
+		err := receiver.sftpWrapper.Close()
 		if err != nil {
 			slog.Error("Failed to close SFTP client", slog.Any(utils.ErrorKey, err))
 		}
@@ -171,7 +171,7 @@ func (receiver *SftpHandler) CopyFiles() {
 		return
 	}
 
-	fileInfos, err := receiver.sftpClient.ReadDir(sftpStartingDirectory)
+	fileInfos, err := receiver.sftpWrapper.ReadDir(sftpStartingDirectory)
 	slog.Info("starting directory", slog.String("start dir", sftpStartingDirectory))
 	if err != nil {
 		slog.Error("Failed to read directory", slog.Any(utils.ErrorKey, err))
@@ -215,7 +215,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
+	file, err := receiver.sftpWrapper.Open(directory + "/" + fileInfo.Name())
 
 	if err != nil {
 		slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))
@@ -268,7 +268,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 	}
 
-	err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
+	err = receiver.sftpWrapper.Remove(directory + "/" + fileInfo.Name())
 	if err != nil {
 		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
 		return
