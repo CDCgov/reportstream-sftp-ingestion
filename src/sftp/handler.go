@@ -32,10 +32,10 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
-	pem, err := getPublicKeysForSshClient(credentialGetter)
-	if err != nil {
-		return nil, err
-	}
+	//pem, err := getPublicKeysForSshClient(credentialGetter)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	serverKeyName := os.Getenv("SFTP_SERVER_PUBLIC_KEY_NAME")
 
@@ -70,7 +70,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 	config := &ssh.ClientConfig{
 		User: sftpUser,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(pem),
+			//ssh.PublicKeys(pem),
 			ssh.Password(sftpPassword),
 		},
 		HostKeyCallback: hostKeyCallback,
