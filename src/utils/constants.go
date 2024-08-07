@@ -24,3 +24,7 @@ const ReportStreamNonTransientFailure = "400"
 // Use this when logging an error.
 // E.g. `slog.Warn("Failed to construct the ReportStream senders", slog.Any(utils.ErrorKey, err))`
 const ErrorKey = "error"
+
+// Used in logging.
+// E.g. `slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fileInfo.Name()))`
+const FileNameKey = "file name"

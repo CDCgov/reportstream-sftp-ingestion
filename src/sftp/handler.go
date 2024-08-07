@@ -211,7 +211,7 @@ func (receiver *SftpHandler) CopyFiles() {
 func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, directory string) {
 	slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
 	if fileInfo.IsDir() {
-		slog.Info("Skipping directory", slog.String("file name", fileInfo.Name()))
+		slog.Info("Skipping directory", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
 	}
 
@@ -241,11 +241,11 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	slog.Info("About to consider whether this is a zip", slog.String("file name", fileInfo.Name()))
+	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
 	// TODO - if non-CA customers want us to retrieve non-zip files, will need to update this `if`
 	if !strings.Contains(fileInfo.Name(), ".zip") {
-		slog.Info("Skipping file because it is not a zip file", slog.String("file name", fileInfo.Name()))
+		slog.Info("Skipping file because it is not a zip file", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
 	}
 	// write file to local filesystem
@@ -274,5 +274,5 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	slog.Info("Successfully copied file and removed from SFTP server", slog.Any("file name", fileInfo.Name()))
+	slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fileInfo.Name()))
 }

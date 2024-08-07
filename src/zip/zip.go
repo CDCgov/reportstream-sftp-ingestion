@@ -92,17 +92,17 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 }
 
 func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError {
-	slog.Info("preparing to process file", slog.String("file name", f.Name))
+	slog.Info("preparing to process file", slog.String(utils.FileNameKey, f.Name))
 
 	// TODO - should we warn or error if not encrypted? This would vary per customer
 	if f.IsEncrypted() {
-		slog.Info("setting password for file", slog.String("file name", f.Name))
+		slog.Info("setting password for file", slog.String(utils.FileNameKey, f.Name))
 		f.SetPassword(zipPassword)
 	}
 
 	fileReader, err := f.Open()
 	if err != nil {
-		slog.Error("Failed to open file", slog.String("file name", f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to open file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
@@ -110,7 +110,7 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 
 	buf, err := io.ReadAll(fileReader)
 	if err != nil {
-		slog.Error("Failed to read file", slog.String("file name", f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to read file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
@@ -118,11 +118,11 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 	err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 	if err != nil {
-		slog.Error("Failed to upload file", slog.String("file name", f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to upload file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
-	slog.Info("uploaded file to blob for import", slog.String("file name", f.Name))
+	slog.Info("uploaded file to blob for import", slog.String(utils.FileNameKey, f.Name))
 	return errorList
 }
 
