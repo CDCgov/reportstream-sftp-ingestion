@@ -231,6 +231,13 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
+	err = file.Close()
+	if err != nil {
+		slog.Error("Failed to close file after reading", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
+		// Don't return early if we can't close, we want the other things to complete.
+		// It's possible that for certain SFTP servers that follow-on SFTP commands will fail if this close failed.
+	}
+
 	var blobPath string
 	if strings.Contains(fileInfo.Name(), ".zip") {
 		blobPath = filepath.Join(utils.UnzipFolder, fileInfo.Name())
@@ -250,6 +257,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		slog.Info("Skipping file because it is not a zip file", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
 	}
+
 	// write file to local filesystem
 	err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
 	if err != nil {

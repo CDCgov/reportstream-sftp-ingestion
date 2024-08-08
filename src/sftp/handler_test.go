@@ -421,9 +421,9 @@ func (receiver *MockSftpWrapper) ReadDir(path string) ([]os.FileInfo, error) {
 	return args.Get(0).([]os.FileInfo), args.Error(1)
 }
 
-func (receiver *MockSftpWrapper) Open(path string) (io.Reader, error) {
+func (receiver *MockSftpWrapper) Open(path string) (io.ReadCloser, error) {
 	args := receiver.Called(path)
-	return args.Get(0).(io.Reader), args.Error(1)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (receiver *MockSftpWrapper) Close() error {
@@ -445,7 +445,7 @@ func (receiver *MockZipHandler) Unzip(zipFilePath string) error {
 	return args.Error(0)
 }
 
-func (receiver *MockZipHandler) ExtractAndUploadSingleFile(f *yekazip.File, zipPassword string, errorList []zip.FileError) []zip.FileError {
+func (receiver *MockZipHandler) ExtractAndUploadSingleFile(f *yekazip.File, zipPassword string, zipFile string, errorList []zip.FileError) []zip.FileError {
 	args := receiver.Called(f, zipPassword, errorList)
 	return args.Get(0).([]zip.FileError)
 }
