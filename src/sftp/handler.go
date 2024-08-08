@@ -215,7 +215,9 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
-	file, err := receiver.sftpClient.Open(directory + "/" + fileInfo.Name())
+	fullFilePath := directory + "/" + fileInfo.Name()
+
+	file, err := receiver.sftpClient.Open(fullFilePath)
 
 	if err != nil {
 		slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))
@@ -268,11 +270,11 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 	}
 
-	err = receiver.sftpClient.Remove(directory + "/" + fileInfo.Name())
+	err = receiver.sftpClient.Remove(fullFilePath)
 	if err != nil {
-		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
 		return
 	}
 
-	slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fileInfo.Name()))
+	slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fullFilePath))
 }
