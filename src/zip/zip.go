@@ -20,7 +20,7 @@ type ZipHandler struct {
 
 type ZipHandlerInterface interface {
 	Unzip(zipFilePath string) error
-	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError
+	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError
 	UploadErrorList(zipFilePath string, errorList []FileError, err error) error
 }
 
