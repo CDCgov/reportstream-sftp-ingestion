@@ -61,5 +61,12 @@ func (p PkgSftpImplementation) Remove(path string) error {
 
 	slog.Info("real path", slog.String(utils.FileNameKey, realPath))
 
+	err = p.client.Remove(stat.Name())
+	if err != nil {
+		slog.Error("First tried to remove with just the name", slog.String(utils.FileNameKey, stat.Name()), slog.Any(utils.ErrorKey, err))
+	} else {
+		slog.Info("The simple remove worked!")
+	}
+
 	return p.client.Remove(path)
 }
