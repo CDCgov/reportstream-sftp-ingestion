@@ -38,33 +38,5 @@ func (p PkgSftpImplementation) Close() error {
 }
 
 func (p PkgSftpImplementation) Remove(path string) error {
-	//cwd, err := p.client.Getwd()
-	//if err != nil {
-	//	slog.Error("Failed to get current working directory", slog.Any(utils.ErrorKey, err))
-	//}
-	//
-	//slog.Info("current working directory", slog.Any("cwd", cwd))
-	//
-	//stat, err := p.client.Stat(path)
-	//if err != nil {
-	//	slog.Error("Failed to stat file", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, path))
-	//}
-	//
-	//slog.Info("file name", slog.String(utils.FileNameKey, stat.Name()))
-	//
-	//realPath, err := p.client.RealPath(path)
-	//if err != nil {
-	//	slog.Error("Failed to realpath the path", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, path))
-	//}
-	//
-	//slog.Info("real path", slog.String(utils.FileNameKey, realPath))
-	//
-	//err = p.client.Remove(stat.Name())
-	//if err != nil {
-	//	slog.Error("First tried to remove with just the name", slog.String(utils.FileNameKey, stat.Name()), slog.Any(utils.ErrorKey, err))
-	//} else {
-	//	slog.Info("The simple remove worked!")
-	//}
-
 	return p.client.Remove(path)
 }
