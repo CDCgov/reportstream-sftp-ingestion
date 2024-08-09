@@ -32,6 +32,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	// TODO uncomment code when partner is setup to receive key
 	//pem, err := getPublicKeysForSshClient(credentialGetter)
 	//if err != nil {
 	//	return nil, err
@@ -67,6 +68,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 		return nil, err
 	}
 
+	// TODO uncomment code when partner is setup to receive key
 	config := &ssh.ClientConfig{
 		User: sftpUser,
 		Auth: []ssh.AuthMethod{
