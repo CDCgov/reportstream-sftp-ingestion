@@ -7,7 +7,7 @@ import (
 
 type SftpWrapper interface {
 	ReadDir(path string) ([]os.FileInfo, error)
-	Open(path string) (io.Reader, error)
+	Open(path string) (io.ReadCloser, error)
 	Close() error
 	Remove(path string) error
 }

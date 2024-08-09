@@ -24,7 +24,7 @@ func (p PkgSftpImplementation) ReadDir(path string) ([]os.FileInfo, error) {
 	return p.client.ReadDir(path)
 }
 
-func (p PkgSftpImplementation) Open(path string) (io.Reader, error) {
+func (p PkgSftpImplementation) Open(path string) (io.ReadCloser, error) {
 	file, err := p.client.Open(path)
 	if err != nil {
 		return nil, err

@@ -95,7 +95,7 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 
 	mockSftpClient := new(MockSftpWrapper)
 	mockSftpClient.On("ReadDir", mock.Anything).Return(files, nil)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
@@ -154,7 +154,7 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
@@ -224,7 +224,7 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(ReaderThatErrors{Error: errors.New(utils.ErrorKey)}, nil)
+	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: errors.New(utils.ErrorKey)}, nil)
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -235,6 +235,27 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 
 	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
 	assert.Contains(t, buffer.String(), "Failed to read file")
+}
+
+func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpWrapper)
+	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: io.EOF, CloseError: errors.New(utils.ErrorKey)}, nil)
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
+	fileInfo, _ := os.Stat(filePath)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	assert.Contains(t, buffer.String(), "Failed to close file after reading")
 }
 
 func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
@@ -250,7 +271,7 @@ func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
@@ -285,7 +306,7 @@ func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New(utils.ErrorKey))
@@ -314,7 +335,7 @@ func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
@@ -346,7 +367,7 @@ func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *t
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(errors.New("failed to remove file from sftp server"))
 
 	mockZipHandler := &MockZipHandler{}
@@ -378,7 +399,7 @@ func Test_copySingleFile_DeletesFileFromSFTPServer(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
@@ -421,9 +442,9 @@ func (receiver *MockSftpWrapper) ReadDir(path string) ([]os.FileInfo, error) {
 	return args.Get(0).([]os.FileInfo), args.Error(1)
 }
 
-func (receiver *MockSftpWrapper) Open(path string) (io.Reader, error) {
+func (receiver *MockSftpWrapper) Open(path string) (io.ReadCloser, error) {
 	args := receiver.Called(path)
-	return args.Get(0).(io.Reader), args.Error(1)
+	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (receiver *MockSftpWrapper) Close() error {
@@ -445,7 +466,7 @@ func (receiver *MockZipHandler) Unzip(zipFilePath string) error {
 	return args.Error(0)
 }
 
-func (receiver *MockZipHandler) ExtractAndUploadSingleFile(f *yekazip.File, zipPassword string, errorList []zip.FileError) []zip.FileError {
+func (receiver *MockZipHandler) ExtractAndUploadSingleFile(f *yekazip.File, zipPassword string, zipFile string, errorList []zip.FileError) []zip.FileError {
 	args := receiver.Called(f, zipPassword, errorList)
 	return args.Get(0).([]zip.FileError)
 }
@@ -455,10 +476,15 @@ func (receiver *MockZipHandler) UploadErrorList(zipFilePath string, errorList []
 	return args.Error(0)
 }
 
-type ReaderThatErrors struct {
-	Error error
+type ReadCloserThatErrors struct {
+	ReadError  error
+	CloseError error
 }
 
-func (r ReaderThatErrors) Read(p []byte) (n int, err error) {
-	return 0, r.Error
+func (r ReadCloserThatErrors) Read(p []byte) (int, error) {
+	return 0, r.ReadError
+}
+
+func (r ReadCloserThatErrors) Close() error {
+	return r.CloseError
 }

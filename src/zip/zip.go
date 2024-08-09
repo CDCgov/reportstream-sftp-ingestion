@@ -20,7 +20,7 @@ type ZipHandler struct {
 
 type ZipHandlerInterface interface {
 	Unzip(zipFilePath string) error
-	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError
+	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError
 	UploadErrorList(zipFilePath string, errorList []FileError, err error) error
 }
 
@@ -80,7 +80,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	// loop over contents
 	for _, f := range zipReader.File {
-		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, errorList)
+		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, zipFilePath, errorList)
 	}
 	// Upload error info if any
 	err = zipHandler.UploadErrorList(zipFilePath, errorList, err)
@@ -91,18 +91,18 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	return nil
 }
 
-func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, errorList []FileError) []FileError {
-	slog.Info("preparing to process file", slog.String(utils.FileNameKey, f.Name))
+func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError {
+	slog.Info("Extracting file", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 
 	// TODO - should we warn or error if not encrypted? This would vary per customer
 	if f.IsEncrypted() {
-		slog.Info("setting password for file", slog.String(utils.FileNameKey, f.Name))
+		slog.Info("setting password for file", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 		f.SetPassword(zipPassword)
 	}
 
 	fileReader, err := f.Open()
 	if err != nil {
-		slog.Error("Failed to open file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to open message file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
@@ -110,7 +110,7 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 
 	buf, err := io.ReadAll(fileReader)
 	if err != nil {
-		slog.Error("Failed to read file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to read message file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
@@ -118,11 +118,11 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 	err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 	if err != nil {
-		slog.Error("Failed to upload file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to upload message file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
-	slog.Info("uploaded file to blob for import", slog.String(utils.FileNameKey, f.Name))
+	slog.Info("uploaded file to blob for import", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 	return errorList
 }
 
@@ -136,7 +136,7 @@ func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []Fil
 
 		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.FailureFolder, zipFilePath+".txt"))
 		if err != nil {
-			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err))
+			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 			return err
 		}
 	}
