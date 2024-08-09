@@ -224,7 +224,7 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{Error: errors.New(utils.ErrorKey)}, nil)
+	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: errors.New(utils.ErrorKey)}, nil)
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -245,7 +245,7 @@ func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{Error: io.EOF, CloseError: errors.New(utils.ErrorKey)}, nil)
+	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: io.EOF, CloseError: errors.New(utils.ErrorKey)}, nil)
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -477,12 +477,12 @@ func (receiver *MockZipHandler) UploadErrorList(zipFilePath string, errorList []
 }
 
 type ReadCloserThatErrors struct {
-	Error      error
+	ReadError  error
 	CloseError error
 }
 
 func (r ReadCloserThatErrors) Read(p []byte) (int, error) {
-	return 0, r.Error
+	return 0, r.ReadError
 }
 
 func (r ReadCloserThatErrors) Close() error {

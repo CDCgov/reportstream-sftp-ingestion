@@ -209,7 +209,7 @@ func (receiver *SftpHandler) CopyFiles() {
 // copySingleFile moves a single file from an external SFTP server to our blob storage. Zip files go to an `unzip`
 // folder and then we call the zipHandler.Unzip. Other files go to `import` to begin processing
 func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, directory string) {
-	slog.Info("Considering file", slog.String("name", fileInfo.Name()), slog.Int("number", index))
+	slog.Info("Considering file", slog.String(utils.FileNameKey, fileInfo.Name()), slog.Int("number", index))
 	if fileInfo.IsDir() {
 		slog.Info("Skipping directory", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
@@ -217,21 +217,22 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 	fullFilePath := directory + "/" + fileInfo.Name()
 
-	file, err := receiver.sftpClient.Open(fullFilePath)
+	fileReadCloser, err := receiver.sftpClient.Open(fullFilePath)
 
 	if err != nil {
-		slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to open file", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
 		return
 	}
 
-	slog.Info("file opened", slog.String("name", fileInfo.Name()), slog.Any("file", file))
-	fileBytes, err := io.ReadAll(file)
+	slog.Info("file opened", slog.String(utils.FileNameKey, fullFilePath))
+
+	fileBytes, err := io.ReadAll(fileReadCloser)
 	if err != nil {
-		slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err))
+		slog.Error("Failed to read file", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
 		return
 	}
 
-	err = file.Close()
+	err = fileReadCloser.Close()
 	if err != nil {
 		slog.Error("Failed to close file after reading", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
 		return
