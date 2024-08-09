@@ -43,8 +43,8 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 
 	err = zipHandler.Unzip("cheezburger")
 
-	assert.Contains(t, buffer.String(), "setting password")
-	assert.Contains(t, buffer.String(), "preparing to process file")
+	assert.Contains(t, buffer.String(), "setting password for file")
+	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.NoError(t, err)
 }
 
@@ -78,8 +78,8 @@ func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 
 	err = zipHandler.Unzip("cheezburger")
 
-	assert.NotContains(t, buffer.String(), "setting password")
-	assert.Contains(t, buffer.String(), "preparing to process file")
+	assert.NotContains(t, buffer.String(), "setting password for file")
+	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.NoError(t, err)
 }
 
@@ -102,8 +102,8 @@ func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 
 	err := zipHandler.Unzip("cheezburger")
 
-	assert.NotContains(t, buffer.String(), "setting password")
-	assert.NotContains(t, buffer.String(), "preparing to process file")
+	assert.NotContains(t, buffer.String(), "setting password for file")
+	assert.NotContains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Unable to get zip password")
 	assert.Error(t, err)
 }
@@ -167,9 +167,9 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 	err = zipHandler.Unzip("cheezburger.zip")
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, "failure/cheezburger.zip.txt")
-	assert.Contains(t, buffer.String(), "setting password")
-	assert.Contains(t, buffer.String(), "preparing to process file")
-	assert.Contains(t, buffer.String(), "Failed to read file")
+	assert.Contains(t, buffer.String(), "setting password for file")
+	assert.Contains(t, buffer.String(), "Extracting file")
+	assert.Contains(t, buffer.String(), "Failed to read message file")
 	assert.NoError(t, err)
 }
 
@@ -204,8 +204,8 @@ func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 	err = zipHandler.Unzip("cheezburger")
 
 	assert.Contains(t, buffer.String(), "setting password")
-	assert.Contains(t, buffer.String(), "preparing to process file")
-	assert.Contains(t, buffer.String(), "Failed to upload file")
+	assert.Contains(t, buffer.String(), "Extracting file")
+	assert.Contains(t, buffer.String(), "Failed to upload message file")
 	assert.Error(t, err)
 }
 
