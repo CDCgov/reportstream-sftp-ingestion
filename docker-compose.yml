@@ -10,13 +10,6 @@ services:
       FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
-      SFTP_USER_NAME: sftp_user.txt
-      SFTP_PASSWORD_NAME: sftp_password.txt #pragma: allowlist secret
-      SFTP_KEY_NAME: sftp_server_user_id_rsa.pem #pragma: allowlist secret
-      SFTP_SERVER_ADDRESS_NAME: sftp_server_address.txt # no http since this is sftp
-      SFTP_SERVER_PUBLIC_KEY_NAME: ssh_host_rsa_key.pub
-      SFTP_STARTING_DIRECTORY_NAME: sftp_starting_directory.txt
-      CA_DPH_ZIP_PASSWORD_NAME: mock_ca_dph_zip_password.txt #pragma: allowlist secret
       POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
       # map to Azurite data objects to the build directory
@@ -103,8 +96,8 @@ services:
     environment:
       SFTP_USERS: ti_user:ti_password:::files
     volumes:
-      - ./mock_credentials/sftp_server_user.pub:/home/ti_user/.ssh/keys/id_rsa.pub:ro
-      - ./mock_credentials/ssh_host_rsa_key:/etc/ssh/ssh_host_rsa_key
+      - ./mock_credentials/sftp-key-local:/home/ti_user/.ssh/keys/id_rsa.pub:ro
+      - ./mock_credentials/sftp-server-public-key-local:/etc/ssh/ssh_host_rsa_key
       - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh
       - ./localdata/data/sftp:/home/ti_user/files
     ports:

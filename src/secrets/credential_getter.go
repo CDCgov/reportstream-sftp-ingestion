@@ -2,8 +2,8 @@ package secrets
 
 import (
 	"crypto/rsa"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
-	"os"
 )
 
 // The CredentialGetter interface is about getting private keys
@@ -14,14 +14,9 @@ type CredentialGetter interface {
 }
 
 func GetCredentialGetter() (CredentialGetter, error) {
-	environment := os.Getenv("ENV")
-	if environment == "" {
-		environment = "local"
-	}
-
 	var credentialGetter CredentialGetter
 
-	if environment == "local" {
+	if utils.EnvironmentName() == "local" {
 		slog.Info("Using local credentials")
 		credentialGetter = LocalCredentialGetter{}
 	} else {
