@@ -237,6 +237,27 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to read file")
 }
 
+func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockSftpClient := new(MockSftpWrapper)
+	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{Error: io.EOF, CloseError: errors.New(utils.ErrorKey)}, nil)
+
+	fileDirectory := filepath.Join("..", "..", "mock_data")
+	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
+	fileInfo, _ := os.Stat(filePath)
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient}
+	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
+
+	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	assert.Contains(t, buffer.String(), "Failed to close file after reading")
+}
+
 func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
@@ -456,7 +477,8 @@ func (receiver *MockZipHandler) UploadErrorList(zipFilePath string, errorList []
 }
 
 type ReadCloserThatErrors struct {
-	Error error
+	Error      error
+	CloseError error
 }
 
 func (r ReadCloserThatErrors) Read(p []byte) (int, error) {
@@ -464,5 +486,5 @@ func (r ReadCloserThatErrors) Read(p []byte) (int, error) {
 }
 
 func (r ReadCloserThatErrors) Close() error {
-	return r.Error
+	return r.CloseError
 }

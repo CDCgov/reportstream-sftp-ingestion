@@ -234,8 +234,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	err = file.Close()
 	if err != nil {
 		slog.Error("Failed to close file after reading", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
-		// Don't return early if we can't close, we want the other things to complete.
-		// It's possible that for certain SFTP servers that follow-on SFTP commands will fail if this close failed.
+		return
 	}
 
 	var blobPath string
