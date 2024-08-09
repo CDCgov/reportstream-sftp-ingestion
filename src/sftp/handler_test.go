@@ -154,7 +154,7 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
@@ -250,7 +250,7 @@ func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
@@ -285,7 +285,7 @@ func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New(utils.ErrorKey))
@@ -314,7 +314,7 @@ func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
@@ -346,7 +346,7 @@ func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *t
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(errors.New("failed to remove file from sftp server"))
 
 	mockZipHandler := &MockZipHandler{}
@@ -378,7 +378,7 @@ func Test_copySingleFile_DeletesFileFromSFTPServer(t *testing.T) {
 	fileBytes, _ := os.ReadFile(filePath)
 
 	mockSftpClient := new(MockSftpWrapper)
-	mockSftpClient.On("Open", mock.Anything).Return(io.NopCloser(bytes.NewReader(fileBytes)), nil)
+	mockSftpClient.On("Open", mock.Anything).Return(bytes.NewReader(fileBytes), nil)
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
