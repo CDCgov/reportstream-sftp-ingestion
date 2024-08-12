@@ -3,6 +3,11 @@ data "azurerm_virtual_network" "app" {
   resource_group_name = data.azurerm_resource_group.group.name
 }
 
+resource "azurerm_virtual_network_dns_servers" "vnet_dns" {
+  virtual_network_id = data.azurerm_virtual_network.app.id
+  dns_servers        = []
+}
+
 data "azurerm_network_security_group" "app_security_group" {
   name                = "sftp-app-security-group"
   resource_group_name = data.azurerm_resource_group.group.name
