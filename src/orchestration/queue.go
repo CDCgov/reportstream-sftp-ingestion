@@ -46,6 +46,15 @@ func NewQueueHandler(messageContentHandler MessageContentHandler, queueBaseName 
 	return QueueHandler{queueClient: client, deadLetterQueueClient: dlqClient, messageContentHandler: messageContentHandler}, nil
 }
 
+func createQueueClient(connectionString, queueName string) (QueueClient, error) {
+	client, err := azqueue.NewQueueClientFromConnectionString(connectionString, queueName, nil)
+	if err != nil {
+		slog.Error("Unable to create Azure Queue Client", slog.String("queueName", queueName), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+	return client, nil
+}
+
 func (receiver QueueHandler) deleteMessage(message azqueue.DequeuedMessage) error {
 	messageId := *message.MessageID
 	popReceipt := *message.PopReceipt
