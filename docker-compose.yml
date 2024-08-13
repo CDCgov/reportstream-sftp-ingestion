@@ -96,8 +96,8 @@ services:
     environment:
       SFTP_USERS: ti_user:ti_password:::files
     volumes:
-      - ./mock_credentials/sftp-key-local:/home/ti_user/.ssh/keys/id_rsa.pub:ro
-      - ./mock_credentials/sftp-server-public-key-local:/etc/ssh/ssh_host_rsa_key
+      - ./mock_credentials/sftp-public-key-local:/home/ti_user/.ssh/keys/id_rsa.pub:ro
+      - ./mock_credentials/sftp-server-private-key-local:/etc/ssh/ssh_host_rsa_key
       - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh
       - ./localdata/data/sftp:/home/ti_user/files
     ports:
