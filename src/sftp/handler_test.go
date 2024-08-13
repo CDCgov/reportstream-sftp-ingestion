@@ -17,28 +17,106 @@ import (
 	"testing"
 )
 
-func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t *testing.T) {
-	os.Setenv("SFTP_SERVER_PUBLIC_KEY_NAME", "")
-	defer os.Unsetenv("SFTP_SERVER_PUBLIC_KEY_NAME")
+// TODO remove env setup
 
+func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t *testing.T) {
+    defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", errors.New("error"))
+
+	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
+
+	assert.Nil(t, sftpHandler)
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "Unable to get SFTP_SERVER_PUBLIC_KEY_NAME")
+}
+
+func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *testing.T) {
 	defaultLogger := slog.Default()
 	defer slog.SetDefault(defaultLogger)
 
 	buffer := &bytes.Buffer{}
 	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
-	sftpHandler, err := NewSftpHandler()
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", nil)
+
+	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
 
-	// TODO - To make this failure happen, we need to be able to mock the credential getter, so we'll
-	// 	need to pass it in to the handler or change the logic in `GetCredentialGetter` to allow mocks
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_SERVER_PUBLIC_KEY_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get SSH Client Host Key")
 }
 
+func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
 
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+
+	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
+
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return(serverKey, nil).Once()
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", errors.New("error"))
+
+	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
+
+	assert.Nil(t, sftpHandler)
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "Unable to get SFTP_USER_NAME")
+}
+
+func Test_NewSFTPHandler_UnableToGetSFTPPasswordName_ReturnsError(t *testing.T) {
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+
+	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
+
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return(serverKey, nil).Twice()
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", errors.New("error"))
+
+	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
+
+	assert.Nil(t, sftpHandler)
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "Unable to get SFTP_PASSWORD_NAME")
+}
+
+//func Test_NewSFTPHandler_UnableToGetSFTPServerAddressName_ReturnsError(t *testing.T) {
+//	defaultLogger := slog.Default()
+//	defer slog.SetDefault(defaultLogger)
+//
+//	buffer := &bytes.Buffer{}
+//	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+//
+//	mockCredentialGetter := new(mocks.MockCredentialGetter)
+//
+//	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
+//
+//	mockCredentialGetter.On("GetSecret", mock.Anything).Return(serverKey, nil).Times(3)
+//	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", errors.New("error"))
+//
+//	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
+//
+//	assert.Nil(t, sftpHandler)
+//	assert.Error(t, err)
+//	assert.Contains(t, buffer.String(), "Unable to get SFTP_SERVER_ADDRESS_NAME")
+//}
 
 func Test_getSshClientHostKeyCallback_ReturnsFixedHostKeyCallback(t *testing.T) {
 	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
@@ -136,6 +214,30 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 	mockSftpClient.AssertCalled(t, "ReadDir", mock.Anything)
 	assert.NotContains(t, buffer.String(), "Failed to read directory ")
 }
+
+func Test_Close_FailsToCloseSFTPClient(t *testing.T) {
+	mockBlobHandler := &mocks.MockBlobHandler{}
+	mockSftpClient := new(MockSftpWrapper)
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	mockZipHandler := &MockZipHandler{}
+
+	mockSftpClient.On("Close", mock.Anything).Return(errors.New(""))
+
+	defaultLogger := slog.Default()
+	defer slog.SetDefault(defaultLogger)
+
+	buffer := &bytes.Buffer{}
+	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+
+
+	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, credentialGetter: mockCredentialGetter, zipHandler: mockZipHandler}
+
+	sftpHandler.Close()
+
+	assert.Contains(t, buffer.String(), "Failed to close SFTP client")
+}
+
+
 
 func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.T) {
 	os.Setenv("SFTP_STARTING_DIRECTORY_NAME", "")
@@ -465,6 +567,16 @@ func Test_copySingleFile_DeletesFileFromSFTPServer(t *testing.T) {
 type MockSftpWrapper struct {
 	mock.Mock
 }
+
+type MockSshClient struct {
+	mock.Mock
+}
+
+func (receiver *MockSshClient) Close() error {
+	args := receiver.Called()
+	return args.Error(0)
+}
+
 
 func (receiver *MockSftpWrapper) ReadDir(path string) ([]os.FileInfo, error) {
 	args := receiver.Called(path)

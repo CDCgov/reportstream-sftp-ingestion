@@ -9,6 +9,7 @@ import (
 	"os"
 )
 
+// TODO - Are we adding test coverage?
 type AzureBlobHandler struct {
 	blobClient *azblob.Client
 }
