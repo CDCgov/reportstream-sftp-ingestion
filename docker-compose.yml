@@ -9,6 +9,8 @@ services:
       # REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
       FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
       FLEXION_CLIENT_NAME: flexion.simulated-hospital
+      CA_DPH_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
+      CA_DPH_CLIENT_NAME: ca-phl.etor-nbs-results
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
       SFTP_USER_NAME: sftp_user.txt
       SFTP_PASSWORD_NAME: sftp_password.txt #pragma: allowlist secret

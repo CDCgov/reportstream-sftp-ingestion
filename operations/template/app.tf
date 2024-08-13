@@ -88,10 +88,14 @@ resource "azurerm_linux_web_app" "sftp" {
     ENV                             = var.environment
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
     REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
-    FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
     AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
-    FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
+
+    # These values are client-specific. In future, we'll use some kind of config for them
+    FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
+    FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
+    CA_DPH_PRIVATE_KEY_NAME         = azurerm_key_vault_secret.cadph_private_key.name
+    CA_DPH_CLIENT_NAME              = "ca-phl.etor-nbs-results"
     CA_DPH_ZIP_PASSWORD_NAME        = azurerm_key_vault_secret.ca_dph_zip_password.name
     SFTP_STARTING_DIRECTORY_NAME    = azurerm_key_vault_secret.sftp_starting_directory.name
     SFTP_USER_NAME                  = azurerm_key_vault_secret.sftp_user.name

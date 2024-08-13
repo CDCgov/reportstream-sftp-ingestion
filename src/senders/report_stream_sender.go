@@ -33,8 +33,8 @@ func NewSender() (Sender, error) {
 
 	return Sender{
 		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		privateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
-		clientName:       os.Getenv("FLEXION_CLIENT_NAME"),
+		privateKeyName:   os.Getenv("CA_DPH_PRIVATE_KEY_NAME"),
+		clientName:       os.Getenv("CA_DPH_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil
 }
@@ -75,7 +75,7 @@ func (sender Sender) getToken() (string, error) {
 	}
 
 	data := url.Values{
-		"scope":                 {"flexion.*.report"},
+		"scope":                 {"ca-phl.*.report"},
 		"grant_type":            {"client_credentials"},
 		"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
 		"client_assertion":      {senderJwt},

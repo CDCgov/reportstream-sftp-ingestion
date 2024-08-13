@@ -30,7 +30,7 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
 // TODO - Azure SDK Timeout setup research for when calling azure doesn't work.
 // https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer?tabs=python-v2%2Cisolated-process%2Cnodejs-v4&pivots=programming-language-typescript#ncrontab-time-zones
 app.timer('caDphTimerTrigger', {
-    schedule: caDphPollingCron, // 9:30 am every monday in january
+    schedule: caDphPollingCron,
     handler: caDphTimerTrigger,
     // I don't think extraInputs is the right field, just messing around looking for
     // whether we can pass in a variable - then we could use one handler for every
