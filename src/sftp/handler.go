@@ -23,11 +23,6 @@ type SftpHandler struct {
 	zipHandler       zip.ZipHandlerInterface
 }
 
-type SSHClient interface {
-	Close() error
-	// need SSH adapter?
-}
-
 func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
 	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
 

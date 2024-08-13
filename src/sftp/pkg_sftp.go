@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+// TODO - Do we want test coverage for this?
+// If not, can we add this fil
 type PkgSftpImplementation struct {
 	client *sftp.Client
 }

@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 )
 
+
+// TODO - Do we want test coverage for this?
 type LocalCredentialGetter struct {
 }
 

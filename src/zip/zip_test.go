@@ -26,8 +26,7 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 	mockBlobHandler := new(mocks.MockBlobHandler)
 	mockZipClient := new(MockZipClient)
 
-	expectedError := errors.New("Cannot retrieve secret")
-	mockCredentialGetter.On("GetSecret", mock.Anything).Return(nil, expectedError)
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", nil)
 
 	zipPath := filepath.Join("..", "mocks", "test_data", "passworded.zip")
 	zipReader, err := zip.OpenReader(zipPath)
