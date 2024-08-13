@@ -11,18 +11,13 @@ import (
 	"github.com/stretchr/testify/mock"
 	yekazip "github.com/yeka/zip"
 	"io"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
 )
 
 func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t *testing.T) {
-    defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", errors.New("error"))
@@ -35,11 +30,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t
 }
 
 func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
@@ -54,11 +45,7 @@ func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *tes
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
@@ -75,12 +62,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPPasswordName_ReturnsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
-
+	buffer := utils.SetupLogger()
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
 	serverKey := "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
@@ -96,11 +78,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPPasswordName_ReturnsError(t *testing.T) 
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPServerAddressName_ReturnsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
@@ -120,11 +98,7 @@ func Test_NewSFTPHandler_UnableToDialIntoTCP_ReturnsError(t *testing.T) {
 	os.Setenv("SFTP_SERVER_ADDRESS_NAME", "")
 	defer os.Unsetenv("SFTP_SERVER_ADDRESS_NAME")
 
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
@@ -202,11 +176,7 @@ func Test_getPublicKeysForSshClient_UnableToParsePrivateKey_ReturnsError(t *test
 }
 
 func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	var files []os.FileInfo
 	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt.zip")
@@ -244,12 +214,7 @@ func Test_Close_FailsToCloseSFTPClient(t *testing.T) {
 
 	mockSftpClient.On("Close", mock.Anything).Return(errors.New(""))
 
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
-
+	buffer := utils.SetupLogger()
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, credentialGetter: mockCredentialGetter, zipHandler: mockZipHandler}
 
@@ -262,11 +227,7 @@ func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.
 	os.Setenv("SFTP_STARTING_DIRECTORY_NAME", "")
 	defer os.Unsetenv("SFTP_STARTING_DIRECTORY_NAME")
 
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("dogcow", errors.New("error"))
@@ -279,11 +240,7 @@ func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.
 }
 
 func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	var files []os.FileInfo
 	filePath := filepath.Join("..", "..", "mock_data", "copy_file_test.txt.zip")
@@ -305,11 +262,7 @@ func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_CopiesFile(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -340,11 +293,7 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 }
 
 func Test_copySingleFile_SkipsDirectory_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockSftpClient := new(MockSftpWrapper)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, nil)
@@ -359,11 +308,7 @@ func Test_copySingleFile_SkipsDirectory_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToOpenFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockSftpClient := new(MockSftpWrapper)
 	mockSftpClient.On("Open", mock.Anything).Return(&sftp.File{}, errors.New(utils.ErrorKey))
@@ -380,11 +325,7 @@ func Test_copySingleFile_FailsToOpenFile_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockSftpClient := new(MockSftpWrapper)
 	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: errors.New(utils.ErrorKey)}, nil)
@@ -401,11 +342,7 @@ func Test_copySingleFile_FailsToReadFile_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockSftpClient := new(MockSftpWrapper)
 	mockSftpClient.On("Open", mock.Anything).Return(ReadCloserThatErrors{ReadError: io.EOF, CloseError: errors.New(utils.ErrorKey)}, nil)
@@ -422,11 +359,7 @@ func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt")
@@ -457,11 +390,7 @@ func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -486,11 +415,7 @@ func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -518,11 +443,7 @@ func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
 }
 
 func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")
@@ -550,11 +471,7 @@ func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *t
 }
 
 func Test_copySingleFile_DeletesFileFromSFTPServer(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	fileDirectory := filepath.Join("..", "..", "mock_data")
 	filePath := filepath.Join(fileDirectory, "copy_file_test.txt.zip")

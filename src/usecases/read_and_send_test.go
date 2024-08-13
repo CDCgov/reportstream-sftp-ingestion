@@ -1,12 +1,11 @@
 package usecases
 
 import (
-	"bytes"
 	"errors"
 	"github.com/CDCgov/reportstream-sftp-ingestion/mocks"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"log/slog"
 	"testing"
 )
 
@@ -74,11 +73,7 @@ func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 }
 
 func Test_moveFile_UrlMatchesExpectedPattern_UpdatesUrlAndMovesFile(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("MoveFile", sourceUrl, mock.Anything).Return(nil)
@@ -101,11 +96,7 @@ func Test_moveFile_SourceUrlDoesNotContainStartingFolder_FileIsNotMoved(t *testi
 }
 
 func Test_moveFile_BlobHandlerFailsToMoveFile_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("MoveFile", sourceUrl, mock.Anything).Return(errors.New("failed to move the file"))

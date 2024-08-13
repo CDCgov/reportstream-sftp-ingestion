@@ -1,13 +1,12 @@
 package zip
 
 import (
-	"bytes"
 	"errors"
 	"github.com/CDCgov/reportstream-sftp-ingestion/mocks"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/yeka/zip"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"testing"
@@ -16,11 +15,7 @@ import (
 func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockBlobHandler := new(mocks.MockBlobHandler)
@@ -51,11 +46,7 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockBlobHandler := new(mocks.MockBlobHandler)
@@ -86,11 +77,7 @@ func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 
@@ -111,11 +98,7 @@ func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockZipClient := new(MockZipClient)
@@ -140,11 +123,7 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockZipClient := new(MockZipClient)
@@ -176,11 +155,7 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
 	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
+	buffer := utils.SetupLogger()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockBlobHandler := new(mocks.MockBlobHandler)
