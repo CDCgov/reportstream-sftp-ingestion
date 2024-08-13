@@ -258,37 +258,6 @@ func Test_Close_FailsToCloseSFTPClient(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to close SFTP client")
 }
 
-
-/*func Test_Close_FailsToCloseSshClient(t *testing.T) {
-	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockSftpClient := new(MockSftpWrapper)
-	mockCredentialGetter := new(mocks.MockCredentialGetter)
-	mockZipHandler := &MockZipHandler{}
-	mockSshClient := new(MockSshClient)
-
-	mockSshClient.On("Close", mock.Anything).Return(errors.New(""))
-
-	defaultLogger := slog.Default()
-	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
-
-
-	sftpHandler := SftpHandler{
-		sftpClient: mockSftpClient,
-		blobHandler: mockBlobHandler,
-		credentialGetter: mockCredentialGetter,
-		zipHandler: mockZipHandler,
-		sshClient: mockSshClient,
-	}
-
-	sftpHandler.Close()
-
-	assert.Contains(t, buffer.String(), "Failed to close SSH client")
-}*/
-
-
 func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.T) {
 	os.Setenv("SFTP_STARTING_DIRECTORY_NAME", "")
 	defer os.Unsetenv("SFTP_STARTING_DIRECTORY_NAME")
