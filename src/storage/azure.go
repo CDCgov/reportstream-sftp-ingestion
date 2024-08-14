@@ -10,14 +10,9 @@ import (
 )
 
 type AzureBlobHandler struct {
-	blobClient AzureBlobClient
+	blobClient *azblob.Client
 }
 
-type AzureBlobClient interface {
-	DownloadStream(ctx context.Context, containerName string, blobName string, o *azblob.DownloadStreamOptions) (azblob.DownloadStreamResponse, error)
-	UploadBuffer(ctx context.Context, containerName string, blobName string, buffer []byte, o *azblob.UploadBufferOptions) (azblob.UploadBufferResponse, error)
-	DeleteBlob(ctx context.Context, containerName string, blobName string, o *azblob.DeleteBlobOptions) (azblob.DeleteBlobResponse, error)
-}
 
 func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
