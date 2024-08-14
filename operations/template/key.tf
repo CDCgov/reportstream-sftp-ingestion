@@ -54,7 +54,7 @@ resource "azurerm_key_vault_secret" "mock_public_health_lab_private_key" {
 }
 
 resource "azurerm_key_vault_secret" "cadph_private_key" {
-  name  = "cadph-private-key-${var.environment}"
+  name  = "ca-dph-private-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
