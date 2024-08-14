@@ -9,9 +9,14 @@ import (
 	"os"
 )
 
-// TODO - Are we adding test coverage?
 type AzureBlobHandler struct {
-	blobClient *azblob.Client
+	blobClient AzureBlobClient
+}
+
+type AzureBlobClient interface {
+	DownloadStream(ctx context.Context, containerName string, blobName string, o *azblob.DownloadStreamOptions) (azblob.DownloadStreamResponse, error)
+	UploadBuffer(ctx context.Context, containerName string, blobName string, buffer []byte, o *azblob.UploadBufferOptions) (azblob.UploadBufferResponse, error)
+	DeleteBlob(ctx context.Context, containerName string, blobName string, o *azblob.DeleteBlobOptions) (azblob.DeleteBlobResponse, error)
 }
 
 func NewAzureBlobHandler() (AzureBlobHandler, error) {

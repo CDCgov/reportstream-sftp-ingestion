@@ -8,6 +8,7 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -17,7 +18,8 @@ func Test_NewQueueHandler_FailsToCreateClientFromConnectionString_ReturnsError(t
 	os.Setenv("AZURE_STORAGE_CONNECTION_STRING", "")
 	defer os.Unsetenv("AZURE_STORAGE_CONNECTION_STRING")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockMessageContentHandler := new(MockMessageContentHandler)
 
@@ -33,7 +35,8 @@ func Test_NewQueueHandler_ReturnsQueueHandler(t *testing.T) {
 	os.Setenv("AZURE_STORAGE_CONNECTION_STRING", "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1")
 	defer os.Unsetenv("AZURE_STORAGE_CONNECTION_STRING")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockMessageContentHandler := new(MockMessageContentHandler)
 
@@ -257,7 +260,8 @@ func Test_ReceiveQueue_UnableToDequeueMessage_ReturnsError(t *testing.T) {
 }
 
 func Test_ReceiveQueue_UnableToHandleMessage_LogsError(t *testing.T) {
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
@@ -318,7 +322,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndUnderDequeueThreshold_Retu
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
@@ -339,7 +344,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_Retur
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
@@ -364,7 +370,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsUnderDe
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
@@ -385,7 +392,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDef
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
@@ -410,7 +418,8 @@ func Test_overDeliveryThreshold_OverThresholdAndUnableToDeadLetter_ReturnsTrue(t
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)

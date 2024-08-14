@@ -8,8 +8,6 @@ import (
 	"log/slog"
 )
 
-// TODO - Are we adding test coverage?
-// TODO exclude from unit testing and add to integration
 type PollingMessageHandler struct {
 }
 

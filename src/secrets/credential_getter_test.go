@@ -3,12 +3,14 @@ package secrets
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"os"
 	"testing"
 )
 
 func Test_GetCredentialGetter_EnvIsNotSet_ReturnsLocalCredentialGetter(t *testing.T) {
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	os.Setenv("ENV", "")
 	defer os.Unsetenv("ENV")
@@ -21,7 +23,8 @@ func Test_GetCredentialGetter_EnvIsNotSet_ReturnsLocalCredentialGetter(t *testin
 }
 
 func Test_GetCredentialGetter_EnvIsLocal_ReturnsLocalCredentialGetter(t *testing.T) {
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	os.Setenv("ENV", "local")
 	defer os.Unsetenv("ENV")
@@ -34,7 +37,8 @@ func Test_GetCredentialGetter_EnvIsLocal_ReturnsLocalCredentialGetter(t *testing
 }
 
 func Test_GetCredentialGetter_EnvIsNotLocal_ReturnsAzureCredentialGetter(t *testing.T) {
-	buffer := utils.SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
 	os.Setenv("ENV", "not local")
 	defer os.Unsetenv("ENV")

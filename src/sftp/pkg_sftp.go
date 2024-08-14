@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// TODO - Either Add coverage or exclude and cover with Integration testing.
 type PkgSftpImplementation struct {
 	client *sftp.Client
 }
