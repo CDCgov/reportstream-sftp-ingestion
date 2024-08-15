@@ -1,4 +1,4 @@
-# ReportStream SFTP
+# ReportStream SFTP Ingestion Service
 
 ## Requirements
 
