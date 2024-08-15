@@ -1,7 +1,7 @@
 package secrets
 
 import (
-	"bytes"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"os"
@@ -9,11 +9,8 @@ import (
 )
 
 func Test_GetCredentialGetter_EnvIsNotSet_ReturnsLocalCredentialGetter(t *testing.T) {
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	os.Setenv("ENV", "")
 	defer os.Unsetenv("ENV")
@@ -26,11 +23,8 @@ func Test_GetCredentialGetter_EnvIsNotSet_ReturnsLocalCredentialGetter(t *testin
 }
 
 func Test_GetCredentialGetter_EnvIsLocal_ReturnsLocalCredentialGetter(t *testing.T) {
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	os.Setenv("ENV", "local")
 	defer os.Unsetenv("ENV")
@@ -43,11 +37,8 @@ func Test_GetCredentialGetter_EnvIsLocal_ReturnsLocalCredentialGetter(t *testing
 }
 
 func Test_GetCredentialGetter_EnvIsNotLocal_ReturnsAzureCredentialGetter(t *testing.T) {
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	os.Setenv("ENV", "not local")
 	defer os.Unsetenv("ENV")

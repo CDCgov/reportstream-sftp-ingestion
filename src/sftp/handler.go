@@ -16,21 +16,17 @@ import (
 )
 
 type SftpHandler struct {
-	sshClient        *ssh.Client
+	sshClient        *ssh.Client // sshAdapter
 	sftpClient       SftpWrapper
 	blobHandler      usecases.BlobHandler
 	credentialGetter secrets.CredentialGetter
 	zipHandler       zip.ZipHandlerInterface
 }
 
-func NewSftpHandler() (*SftpHandler, error) {
+func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
 	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
 
-	credentialGetter, err := secrets.GetCredentialGetter()
-	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
-		return nil, err
-	}
+
 
 	// TODO uncomment code when partner is setup to receive key
 	//pem, err := getPublicKeysForSshClient(credentialGetter)
@@ -49,6 +45,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 	if err != nil {
+		slog.Error("Unable to get SSH Client Host Key", slog.Any("KeyName", hostKeyCallback), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -122,6 +119,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) {
 	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
+
 	if err != nil {
 		slog.Error("Failed to parse authorized key", slog.Any(utils.ErrorKey, err))
 		return nil, err
