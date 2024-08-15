@@ -1,11 +1,11 @@
 package orchestration
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
@@ -13,6 +13,40 @@ import (
 	"testing"
 	"time"
 )
+
+func Test_NewQueueHandler_FailsToCreateClientFromConnectionString_ReturnsError(t *testing.T) {
+	os.Setenv("AZURE_STORAGE_CONNECTION_STRING", "")
+	defer os.Unsetenv("AZURE_STORAGE_CONNECTION_STRING")
+
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
+
+	mockMessageContentHandler := new(MockMessageContentHandler)
+
+	testQueueHandler, err := NewQueueHandler(mockMessageContentHandler, "test")
+
+	assert.NotNil(t, testQueueHandler)
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "Unable to create Azure Queue Client for primary queue")
+	assert.NotContains(t, buffer.String(), "Unable to create Azure Queue Client for dead letter queue")
+}
+
+func Test_NewQueueHandler_ReturnsQueueHandler(t *testing.T) {
+	os.Setenv("AZURE_STORAGE_CONNECTION_STRING", "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://sftp-Azurite:10000/devstoreaccount1;QueueEndpoint=http://sftp-Azurite:10001/devstoreaccount1")
+	defer os.Unsetenv("AZURE_STORAGE_CONNECTION_STRING")
+
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
+
+	mockMessageContentHandler := new(MockMessageContentHandler)
+
+	testQueueHandler, err := NewQueueHandler(mockMessageContentHandler, "test")
+
+	assert.NotNil(t, testQueueHandler)
+	assert.NoError(t, err)
+	assert.NotContains(t, buffer.String(), "Unable to create Azure Queue Client for primary queue")
+	assert.NotContains(t, buffer.String(), "Unable to create Azure Queue Client for dead letter queue")
+}
 
 func Test_getUrlFromMessage_DataIsValid_ReturnsUrl(t *testing.T) {
 	messageText := "{\"topic\":\"/subscriptions/123/resourceGroups/resourceGroup/providers/Microsoft.Storage/storageAccounts/storageAccount\",\"subject\":\"/blobServices/default/containers/container/blobs/customer/import/msg2.hl7\",\"eventType\":\"Microsoft.Storage.BlobCreated\",\"id\":\"1234\",\"data\":{\"api\":\"PutBlob\",\"clientRequestId\":\"abcd\",\"requestId\":\"efghi\",\"eTag\":\"0x123\",\"contentType\":\"application/octet-stream\",\"contentLength\":1122,\"blobType\":\"BlockBlob\",\"url\":\"https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7\",\"sequencer\":\"000\",\"storageDiagnostics\":{\"batchId\":\"00000\"}},\"dataVersion\":\"\",\"metadataVersion\":\"1\",\"eventTime\":\"2024-06-06T19:57:35.6993902Z\"}"
@@ -226,11 +260,8 @@ func Test_ReceiveQueue_UnableToDequeueMessage_ReturnsError(t *testing.T) {
 }
 
 func Test_ReceiveQueue_UnableToHandleMessage_LogsError(t *testing.T) {
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	// Setup for DequeueMessage
 	mockQueueClient := MockQueueClient{}
@@ -291,11 +322,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndUnderDequeueThreshold_Retu
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
@@ -316,11 +344,8 @@ func Test_overDeliveryThreshold_DeliveryCountParsedAndOverDequeueThreshold_Retur
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
@@ -345,11 +370,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsUnderDe
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockQueueClient := MockQueueClient{}
 	mockReadAndSendUsecase := MockReadAndSendUsecase{}
@@ -370,11 +392,8 @@ func Test_overDeliveryThreshold_DequeueThresholdCannotBeParsedAndAttemptsOverDef
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "Five")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
@@ -399,11 +418,8 @@ func Test_overDeliveryThreshold_OverThresholdAndUnableToDeadLetter_ReturnsTrue(t
 	os.Setenv("QUEUE_MAX_DELIVERY_ATTEMPTS", "5")
 	defer os.Unsetenv("QUEUE_MAX_DELIVERY_ATTEMPTS")
 
-	defaultLogger := slog.Default()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
-
-	buffer := &bytes.Buffer{}
-	slog.SetDefault(slog.New(slog.NewTextHandler(buffer, nil)))
 
 	mockQueueClient := MockQueueClient{}
 	mockQueueClient.On("DeleteMessage", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(azqueue.DeleteMessageResponse{}, nil)
@@ -523,7 +539,14 @@ func (receiver *MockQueueClient) EnqueueMessage(ctx context.Context, content str
 type MockReadAndSendUsecase struct {
 	mock.Mock
 }
+type MockMessageContentHandler struct {
+	mock.Mock
+}
 
+func (receiver *MockMessageContentHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
+	args := receiver.Called(message)
+	return args.Error(0)
+}
 func (receiver *MockReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	args := receiver.Called(sourceUrl)
 	return args.Error(0)

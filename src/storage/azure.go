@@ -13,6 +13,7 @@ type AzureBlobHandler struct {
 	blobClient *azblob.Client
 }
 
+
 func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
