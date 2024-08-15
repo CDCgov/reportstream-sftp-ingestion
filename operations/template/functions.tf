@@ -7,6 +7,9 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
   storage_account_name       = azurerm_storage_account.storage.name
   storage_account_access_key = azurerm_storage_account.storage.primary_access_key
 
+  https_only = true
+
+
   app_settings = {
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_connection_string
     POLLING_TRIGGER_QUEUE_NAME      = azurerm_storage_queue.polling_trigger_queue.name
