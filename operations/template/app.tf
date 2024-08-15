@@ -99,6 +99,7 @@ resource "azurerm_linux_web_app" "sftp" {
     SFTP_KEY_NAME                   = azurerm_key_vault_secret.sftp_key.name
     SFTP_SERVER_ADDRESS_NAME        = azurerm_key_vault_secret.sftp_server_address.name
     SFTP_SERVER_PUBLIC_KEY_NAME     = azurerm_key_vault_secret.sftp_server_public_key.name
+    TEMP                            = "temp"
   }
 
   identity {
