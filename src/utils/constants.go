@@ -19,7 +19,7 @@ const FailureFolder = "failure"
 const UnzipFolder = "unzip"
 
 // In read_and_send, move files to the `FailureFolder` when we get the below response from ReportStream
-const ReportStreamNonTransientFailure = "400"
+const ReportStreamNonTransientFailure = "reportStreamNonTransientFailure"
 
 // Use this when logging an error.
 // E.g. `slog.Warn("Failed to construct the ReportStream senders", slog.Any(utils.ErrorKey, err))`

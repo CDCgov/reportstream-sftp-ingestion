@@ -21,13 +21,13 @@ func Test_ReadAndSend_FailsToReadBlob_ReturnsError(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_ReadAndSend_400FromReportStream_MovesFileToFailureFolder(t *testing.T) {
+func Test_ReadAndSend_NonTransientFailureFromReportStream_MovesFileToFailureFolder(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("FetchFile", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", utils.SourceUrl, utils.FailureSourceUrl).Return(nil)
 
 	mockMessageSender := &MockMessageSender{}
-	mockMessageSender.On("SendMessage", mock.Anything).Return("", errors.New("400 Bad Request"))
+	mockMessageSender.On("SendMessage", mock.Anything).Return("", errors.New(utils.ReportStreamNonTransientFailure))
 
 	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
 

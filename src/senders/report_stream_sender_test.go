@@ -377,7 +377,7 @@ func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove300_ReturnsError
 			}
 			`))
 		} else {
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(http.StatusFound)
 			w.Write([]byte(`
 			{
 			  "id" : "78809588-1193-4861-a6a7-52493f7dd254",
@@ -413,8 +413,146 @@ func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove300_ReturnsError
 
 	reportId, err := sender.SendMessage(message)
 
-	assert.Equal(suite.T(), "404 Not Found", err.Error())
 	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), "302 Found", err.Error())
+	assert.Equal(suite.T(), "", reportId)
+}
+
+func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIs400_ReturnsNonTransientError() {
+	sender, err := NewSender()
+	assert.NoError(suite.T(), err)
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	sender.credentialGetter = mockCredentialGetter
+
+	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(suite.T(), err)
+
+	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+
+	// Set up a test server for ReportStream
+	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.URL.Path == "/api/token" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{
+				"sub": "flexion.*.report_e6b68103-dd38-420e-8118-2b2f6c9fa3c4",
+				"access_token": "eyJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MTk1MjcyNzgsInNjb3BlIjoiZmxleGlvbi4qLnJlcG9ydCIsInN1YiI6ImZsZXhpb24uKi5yZXBvcnRfZTZiNjgxMDMtZGQzOC00MjBlLTgxMTgtMmIyZjZjOWZhM2M0In0.liHv9SJYxztgMmCPKGIF2lzcMMMzFAoatLlIC33uz5jbA5wSJa8iIa5yzJ1ZaECI",
+				"token_type": "bearer",
+				"expires_in": 300,
+				"expires_at_seconds": 1719527278,
+				"scope": "flexion.*.report"
+			}
+			`))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`
+			{
+			  "id" : "78809588-1193-4861-a6a7-52493f7dd254",
+			  "submissionId" : 26,
+			  "overallStatus" : "Received",
+			  "timestamp" : "2024-05-20T21:11:36.144Z",
+			  "plannedCompletionAt" : null,
+			  "actualCompletionAt" : null,
+			  "sender" : "flexion.simulated-hospital",
+			  "reportItemCount" : 1,
+			  "errorCount" : 0,
+			  "warningCount" : 0,
+			  "httpStatus" : 201,
+			  "destinations" : [ ],
+			  "actionName" : "receive",
+			  "externalName" : null,
+			  "reportId" : "78809588-1193-4861-a6a7-52493f7dd254",
+			  "topic" : "etor-ti",
+			  "bodyFormat" : "",
+			  "errors" : [ ],
+			  "warnings" : [ ],
+			  "destinationCount" : 0,
+			  "fileName" : ""
+			}
+			`))
+		}
+
+	}))
+	defer server.Close()
+
+	sender.baseUrl = server.URL
+	message, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "order_message.hl7"))
+
+	reportId, err := sender.SendMessage(message)
+
+	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), utils.ReportStreamNonTransientFailure, err.Error())
+	assert.Equal(suite.T(), "", reportId)
+}
+
+func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove499_ReturnsError() {
+	sender, err := NewSender()
+	assert.NoError(suite.T(), err)
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	sender.credentialGetter = mockCredentialGetter
+
+	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	assert.NoError(suite.T(), err)
+
+	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+
+	// Set up a test server for ReportStream
+	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		if r.URL.Path == "/api/token" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{
+				"sub": "flexion.*.report_e6b68103-dd38-420e-8118-2b2f6c9fa3c4",
+				"access_token": "eyJhbGciOiJIUzM4NCJ9.eyJleHAiOjE3MTk1MjcyNzgsInNjb3BlIjoiZmxleGlvbi4qLnJlcG9ydCIsInN1YiI6ImZsZXhpb24uKi5yZXBvcnRfZTZiNjgxMDMtZGQzOC00MjBlLTgxMTgtMmIyZjZjOWZhM2M0In0.liHv9SJYxztgMmCPKGIF2lzcMMMzFAoatLlIC33uz5jbA5wSJa8iIa5yzJ1ZaECI",
+				"token_type": "bearer",
+				"expires_in": 300,
+				"expires_at_seconds": 1719527278,
+				"scope": "flexion.*.report"
+			}
+			`))
+		} else {
+			w.WriteHeader(http.StatusBadGateway)
+			w.Write([]byte(`
+			{
+			  "id" : "78809588-1193-4861-a6a7-52493f7dd254",
+			  "submissionId" : 26,
+			  "overallStatus" : "Received",
+			  "timestamp" : "2024-05-20T21:11:36.144Z",
+			  "plannedCompletionAt" : null,
+			  "actualCompletionAt" : null,
+			  "sender" : "flexion.simulated-hospital",
+			  "reportItemCount" : 1,
+			  "errorCount" : 0,
+			  "warningCount" : 0,
+			  "httpStatus" : 201,
+			  "destinations" : [ ],
+			  "actionName" : "receive",
+			  "externalName" : null,
+			  "reportId" : "78809588-1193-4861-a6a7-52493f7dd254",
+			  "topic" : "etor-ti",
+			  "bodyFormat" : "",
+			  "errors" : [ ],
+			  "warnings" : [ ],
+			  "destinationCount" : 0,
+			  "fileName" : ""
+			}
+			`))
+		}
+
+	}))
+	defer server.Close()
+
+	sender.baseUrl = server.URL
+	message, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "order_message.hl7"))
+
+	reportId, err := sender.SendMessage(message)
+
+	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), "502 Bad Gateway", err.Error())
 	assert.Equal(suite.T(), "", reportId)
 }
 
