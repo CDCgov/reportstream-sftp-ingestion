@@ -30,7 +30,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_SERVER_PUBLIC_KEY_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get server key secret")
 }
 
 func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *testing.T) {
@@ -64,7 +64,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_USER_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get SFTP username secret")
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPPasswordName_ReturnsError(t *testing.T) {
@@ -81,7 +81,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPPasswordName_ReturnsError(t *testing.T) 
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_PASSWORD_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get SFTP password secret")
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPServerAddressName_ReturnsError(t *testing.T) {
@@ -99,13 +99,10 @@ func Test_NewSFTPHandler_UnableToGetSFTPServerAddressName_ReturnsError(t *testin
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_SERVER_ADDRESS_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get SFTP server address secret")
 }
 
 func Test_NewSFTPHandler_UnableToDialIntoTCP_ReturnsError(t *testing.T) {
-	os.Setenv("SFTP_SERVER_ADDRESS_NAME", "")
-	defer os.Unsetenv("SFTP_SERVER_ADDRESS_NAME")
-
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -229,9 +226,6 @@ func Test_Close_FailsToCloseSFTPClient(t *testing.T) {
 }
 
 func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.T) {
-	os.Setenv("SFTP_STARTING_DIRECTORY_NAME", "")
-	defer os.Unsetenv("SFTP_STARTING_DIRECTORY_NAME")
-
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -242,7 +236,7 @@ func Test_CopyFiles_CantGetSFTPStartingDirectoryNameSecret_LogsError(t *testing.
 
 	sftpHandler.CopyFiles()
 
-	assert.Contains(t, buffer.String(), "Unable to get SFTP_STARTING_DIRECTORY_NAME")
+	assert.Contains(t, buffer.String(), "Unable to get SFTP starting directory secret")
 }
 
 func Test_CopyFiles_FailsToReadDirectory_LogsError(t *testing.T) {
