@@ -16,21 +16,15 @@ import (
 )
 
 type SftpHandler struct {
-	sshClient        *ssh.Client
+	sshClient        *ssh.Client // sshAdapter
 	sftpClient       SftpWrapper
 	blobHandler      usecases.BlobHandler
 	credentialGetter secrets.CredentialGetter
 	zipHandler       zip.ZipHandlerInterface
 }
 
-func NewSftpHandler() (*SftpHandler, error) {
-	// TODO - pass in info about what customer we're using (and thus what URL/key/password to use)
-
-	credentialGetter, err := secrets.GetCredentialGetter()
-	if err != nil {
-		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
-		return nil, err
-	}
+func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
+	// In the future, we'll pass in info about what customer we're using (and thus what URL/key/password to use)
 
 	// TODO uncomment code when partner is setup to receive key
 	//pem, err := getPublicKeysForSshClient(credentialGetter)
@@ -47,6 +41,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
 	if err != nil {
+		slog.Error("Unable to get SSH Client Host Key", slog.Any("KeyName", hostKeyCallback), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -117,6 +112,7 @@ func NewSftpHandler() (*SftpHandler, error) {
 
 func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) {
 	pk, _, _, _, err := ssh.ParseAuthorizedKey([]byte(serverKey))
+
 	if err != nil {
 		slog.Error("Failed to parse authorized key", slog.Any(utils.ErrorKey, err))
 		return nil, err
@@ -250,7 +246,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
-	// TODO - if non-CA customers want us to retrieve non-zip files, will need to update this `if`
+	// If future partners want us to retrieve non-zip files, we'll need to update this `if`
 	if !strings.Contains(fileInfo.Name(), ".zip") {
 		slog.Info("Skipping file because it is not a zip file", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
@@ -267,8 +263,6 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	if err != nil {
 		slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
 	}
-	// TODO - currently the zip file stays in the `unzip` folder regardless of success, failure, or partial failure.
-	// 	Do we want to move the zip somewhere if done?
 
 	//delete file from local filesystem
 	err = os.Remove(fileInfo.Name())

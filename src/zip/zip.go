@@ -48,11 +48,6 @@ func NewZipHandler() (ZipHandler, error) {
 	}, nil
 }
 
-// TODO - move remaining items to future cards?
-// TODO - check storage size/costs on the container (unzipping into memory vs on the directory of the service)
-// TODO - update CA password after deploy per env
-// TODO - check on visibility timeout for messages (find out default and make sure we can d/l the zip within the timeframe)
-
 // Unzip opens a zip file (applying a password if necessary) and uploads each file within it to the `import` folder
 // to begin processing. It collects any errors with individual subfiles and uploads that information as well. An error
 // is only returned from the function when we cannot handle the main zip file for some reason or have failed to upload
@@ -93,7 +88,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError {
 	slog.Info("Extracting file", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 
-	// TODO - should we warn or error if not encrypted? This would vary per customer
+	// Apply the partner's Zip password if needed
 	if f.IsEncrypted() {
 		slog.Info("setting password for file", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 		f.SetPassword(zipPassword)
