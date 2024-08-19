@@ -152,6 +152,8 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
 		// The response body from ReportStream may include additional error details. See examples in json_responses.go
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
+		// TODO - return a magic word when the status code is >=400 and < 500. In read_and_send, move to failure folder on magic word
+		//		Also maybe make the info logs above into a combined error?
 		return "", errors.New(res.Status)
 	}
 
