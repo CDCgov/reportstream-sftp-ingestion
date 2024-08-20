@@ -8,14 +8,12 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/yeka/zip"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"testing"
 )
 
 func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
+
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -46,8 +44,6 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 }
 
 func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -78,8 +74,6 @@ func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 }
 
 func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -100,8 +94,6 @@ func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 }
 
 func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -126,8 +118,6 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 }
 
 func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -159,8 +149,6 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 }
 
 func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
-	os.Setenv("CA_DPH_ZIP_PASSWORD_NAME", "Test")
-	defer os.Unsetenv("CA_DPH_ZIP_PASSWORD_NAME")
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 

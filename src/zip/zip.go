@@ -8,7 +8,6 @@ import (
 	"github.com/yeka/zip"
 	"io"
 	"log/slog"
-	"os"
 	"path/filepath"
 )
 
@@ -54,12 +53,12 @@ func NewZipHandler() (ZipHandler, error) {
 // is only returned from the function when we cannot handle the main zip file for some reason or have failed to upload
 // the error list about the contents
 func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
-	slog.Info("Preparing to unzip", slog.String("zipFilePath", zipFilePath))
-	secretName := os.Getenv("CA_DPH_ZIP_PASSWORD_NAME")
-	zipPassword, err := zipHandler.credentialGetter.GetSecret(secretName)
 
+	slog.Info("Preparing to unzip", slog.String("zipFilePath", zipFilePath))
+	zipPasswordSecret := "ca-dph-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
+	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 	if err != nil {
-		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
 		return err
 	}
 
