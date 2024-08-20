@@ -113,6 +113,10 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
   site_config {}
 }
 
+resource "azurerm_web_app_active_slot" "example" {
+  slot_id = azurerm_linux_web_app_slot.live.id
+}
+
 resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
   name                = "sftp_autoscale"
   resource_group_name = data.azurerm_resource_group.group.name
