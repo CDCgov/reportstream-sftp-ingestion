@@ -61,8 +61,8 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	if err != nil {
 		slog.Error("Failed to send the file to ReportStream", slog.Any(utils.ErrorKey, err), slog.String("sourceUrl", sourceUrl))
 
-		// As of June 2024, only the 400 response triggers a move to the `failure` folder. Returning `nil` will let
-		// queue.go delete the queue message so that it will stop retrying
+		// As of August 2024, we trigger on any http status code >= 400 and < 500 and move to the `failure` folder.
+		// Returning `nil` will let queue.go delete the queue message so that it will stop retrying
 		// We're treating all other errors as unexpected (and possibly transient) for now
 		if strings.Contains(err.Error(), utils.ReportStreamNonTransientFailure) {
 			receiver.moveFile(sourceUrl, utils.FailureFolder)

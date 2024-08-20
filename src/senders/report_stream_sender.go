@@ -152,6 +152,9 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
 		// The response body from ReportStream may include additional error details. See examples in json_responses.go
 		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
+		if res.StatusCode >= 400 && res.StatusCode < 500 {
+			return "", errors.New(utils.ReportStreamNonTransientFailure)
+		}
 		return "", errors.New(res.Status)
 	}
 
