@@ -105,7 +105,7 @@ jobs:
       uses: azure/CLI@v2
       with:
         inlineScript: |
-          az webapp deployment slot swap -n ${{ inputs.APP }} --slot pre-live --target-slot live
+          az webapp deployment slot swap -n ${{ inputs.APP }} --slot pre-live --target-slot live --resource-group csels-rsti-${{ inputs.ENVIRONMENT }}${{ github.event.number }}-moderate-rg
 
   function-deploy:
     name: Function Deploy
