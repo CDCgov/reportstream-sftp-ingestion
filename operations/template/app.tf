@@ -99,6 +99,20 @@ resource "azurerm_linux_web_app" "sftp" {
   }
 }
 
+resource "azurerm_linux_web_app_slot" "live" {
+  name           = "live"
+  app_service_id = azurerm_linux_web_app.sftp.id
+
+  site_config {}
+}
+
+resource "azurerm_linux_web_app_slot" "pre_live" {
+  name           = "pre-live"
+  app_service_id = azurerm_linux_web_app.sftp.id
+
+  site_config {}
+}
+
 resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
   name                = "sftp_autoscale"
   resource_group_name = data.azurerm_resource_group.group.name
