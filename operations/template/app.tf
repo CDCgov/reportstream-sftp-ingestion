@@ -4,7 +4,6 @@ resource "azurerm_container_registry" "registry" {
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
   sku                 = "Standard"
-  admin_enabled       = true
 
   lifecycle {
     ignore_changes = [
