@@ -103,7 +103,7 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
   name           = "pre-live"
   app_service_id = azurerm_linux_web_app.sftp.id
 
-  site_config {}
+  site_config = azurerm_linux_web_app.sftp.site_config
 }
 
 resource "azurerm_monitor_autoscale_setting" "sftp_autoscale" {
