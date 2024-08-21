@@ -20,7 +20,7 @@ FROM alpine
 
 RUN apk update && apk upgrade && apk add ca-certificates && rm -rf /var/cache/apk/*
 
-COPY --from=builder /home/myLowPriviledgeUser/app/reportstream-sftp-ingestion /usr/local/bin/reportstream-sftp-ingestion
+COPY --from=builder /home/myLowPrivilegeUser/app/reportstream-sftp-ingestion /usr/local/bin/reportstream-sftp-ingestion
 
 RUN adduser -S myLowPrivilegeUser
 USER myLowPrivilegeUser
