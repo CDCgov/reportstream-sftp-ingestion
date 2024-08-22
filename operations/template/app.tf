@@ -96,7 +96,7 @@ resource "azurerm_linux_web_app" "sftp" {
 
   sticky_settings {
     app_setting_names = [AZURE_STORAGE_CONNECTION_STRING, REPORT_STREAM_URL_PREFIX, FLEXION_PRIVATE_KEY_NAME,
-      AZURE_KEY_VAULT_URI, FLEXION_CLIENT_NAME, QUEUE_MAX_DELIVERY_ATTEMPTS]
+    AZURE_KEY_VAULT_URI, FLEXION_CLIENT_NAME, QUEUE_MAX_DELIVERY_ATTEMPTS]
   }
 
   identity {
@@ -155,7 +155,7 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
     WEBSITES_PORT                   = 8080
     PORT                            = 8080
 
-    ENV                             = var.environment
+    ENV = var.environment
   }
 
   identity {
