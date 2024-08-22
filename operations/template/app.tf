@@ -80,9 +80,9 @@ resource "azurerm_linux_web_app" "sftp" {
   }
 
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL      = "https://${azurerm_container_registry.registry.login_server}"
-    WEBSITES_PORT                   = 8080
-    PORT                            = 8080
+    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
+    WEBSITES_PORT              = 8080
+    PORT                       = 8080
 
     ENV                             = var.environment
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
