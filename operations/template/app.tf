@@ -96,7 +96,7 @@ resource "azurerm_linux_web_app" "sftp" {
 
   sticky_settings {
     app_setting_names = [azurerm_linux_web_app.sftp.app_settings.AZURE_STORAGE_CONNECTION_STRING, azurerm_linux_web_app.sftp.app_settings.REPORT_STREAM_URL_PREFIX, azurerm_linux_web_app.sftp.app_settings.FLEXION_PRIVATE_KEY_NAME,
-      azurerm_linux_web_app.sftp.app_settings.AZURE_KEY_VAULT_URI, azurerm_linux_web_app.sftp.app_settings.FLEXION_CLIENT_NAME, azurerm_linux_web_app.sftp.app_settings.QUEUE_MAX_DELIVERY_ATTEMPTS]
+    azurerm_linux_web_app.sftp.app_settings.AZURE_KEY_VAULT_URI, azurerm_linux_web_app.sftp.app_settings.FLEXION_CLIENT_NAME, azurerm_linux_web_app.sftp.app_settings.QUEUE_MAX_DELIVERY_ATTEMPTS]
   }
 
   identity {
