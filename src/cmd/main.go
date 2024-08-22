@@ -23,6 +23,7 @@ func main() {
 	pollingQueueHandler, err := orchestration.NewQueueHandler(pollingMessageHandler, "polling-trigger")
 	if err != nil {
 		slog.Warn("Failed to create pollingQueueHandler", slog.Any(utils.ErrorKey, err))
+		return
 	}
 	go func() {
 		pollingQueueHandler.ListenToQueue()
@@ -32,10 +33,12 @@ func main() {
 	importMessageHandler, err := orchestration.NewImportMessageHandler()
 	if err != nil {
 		slog.Warn("Failed to create importMessageHandler", slog.Any(utils.ErrorKey, err))
+		return
 	}
 	importQueueHandler, err := orchestration.NewQueueHandler(importMessageHandler, "message-import")
 	if err != nil {
 		slog.Warn("Failed to create importQueueHandler", slog.Any(utils.ErrorKey, err))
+		return
 	}
 	// This ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
 	importQueueHandler.ListenToQueue()

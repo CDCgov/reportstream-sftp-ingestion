@@ -94,6 +94,11 @@ resource "azurerm_linux_web_app" "sftp" {
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
   }
 
+  sticky_settings {
+    app_setting_names = [AZURE_STORAGE_CONNECTION_STRING, REPORT_STREAM_URL_PREFIX, FLEXION_PRIVATE_KEY_NAME,
+      AZURE_KEY_VAULT_URI, FLEXION_CLIENT_NAME, QUEUE_MAX_DELIVERY_ATTEMPTS]
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -151,12 +156,6 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
     PORT                            = 8080
 
     ENV                             = var.environment
-    AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
-    REPORT_STREAM_URL_PREFIX        = "https://${local.rs_domain_prefix}prime.cdc.gov"
-    FLEXION_PRIVATE_KEY_NAME        = azurerm_key_vault_secret.mock_public_health_lab_private_key.name
-    AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
-    FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
-    QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
   }
 
   identity {
