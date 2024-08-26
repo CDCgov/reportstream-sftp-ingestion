@@ -16,7 +16,8 @@ COPY --chown=myLowPrivilegeUser ./ ./
 RUN make compile
 
 
-FROM alpine
+FROM alpine:3.20.2
+
 
 RUN apk update && apk upgrade && apk add ca-certificates && rm -rf /var/cache/apk/*
 
