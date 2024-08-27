@@ -63,7 +63,7 @@ jobs:
 
       - name: 'Get Publish Profile'
         run: |
-          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}" --xml)
+          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}" --slot pre-live --xml)
           echo "::add-mask::$PUBLISH_PROFILE"
           echo "PUBLISH_PROFILE=$PUBLISH_PROFILE" >> $GITHUB_OUTPUT
         id: getPublishProfile
