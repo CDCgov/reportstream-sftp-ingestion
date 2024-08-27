@@ -73,12 +73,5 @@ jobs:
         id: azure-function-deploy
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          slot-name: pre-live
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
-
-      - name: Azure Swap Slots
-        uses: azure/CLI@v2
-        with:
-          inlineScript: |
-            az functionapp deployment slot swap -n ${{ env.AZURE_FUNCTIONAPP_NAME }} --slot pre-live --resource-group csels-rsti-${{ inputs.ENVIRONMENT }}${{ github.event.number }}-moderate-rg
