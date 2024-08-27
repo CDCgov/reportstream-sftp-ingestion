@@ -85,6 +85,8 @@ resource "azurerm_linux_web_app" "sftp" {
     }
   }
 
+  #   When adding new settings that are needed for the live app but shouldn't be used in the pre-live
+  #   slot, add them to `sticky_settings` as well as `app_settings` for the main app resource
   app_settings = {
     DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
     WEBSITES_PORT              = 8080
@@ -97,6 +99,68 @@ resource "azurerm_linux_web_app" "sftp" {
     AZURE_KEY_VAULT_URI             = azurerm_key_vault.key_storage.vault_uri
     FLEXION_CLIENT_NAME             = "flexion.simulated-lab"
     QUEUE_MAX_DELIVERY_ATTEMPTS     = azurerm_eventgrid_system_topic_event_subscription.topic_sub.retry_policy.0.max_delivery_attempts # making the Azure container <-> queue retry count be in sync with the queue <-> application retry count..
+  }
+
+  sticky_settings {
+    app_setting_names = ["AZURE_STORAGE_CONNECTION_STRING", "REPORT_STREAM_URL_PREFIX", "FLEXION_PRIVATE_KEY_NAME",
+    "AZURE_KEY_VAULT_URI", "FLEXION_CLIENT_NAME", "QUEUE_MAX_DELIVERY_ATTEMPTS"]
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_linux_web_app_slot" "pre_live" {
+  name           = "pre-live"
+  app_service_id = azurerm_linux_web_app.sftp.id
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
+
+  https_only = true
+
+  virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
+
+  site_config {
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 5
+
+    scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
+
+    dynamic "ip_restriction" {
+      for_each = local.cdc_domain_environment ? [1] : []
+
+      content {
+        name       = "deny_all_ipv4"
+        action     = "Deny"
+        ip_address = "0.0.0.0/0"
+        priority   = "200"
+      }
+    }
+
+    dynamic "ip_restriction" {
+      for_each = local.cdc_domain_environment ? [1] : []
+
+      content {
+        name       = "deny_all_ipv6"
+        action     = "Deny"
+        ip_address = "::/0"
+        priority   = "201"
+      }
+    }
+  }
+
+  app_settings = {
+    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
+    WEBSITES_PORT              = 8080
+    PORT                       = 8080
+
+    ENV = var.environment
   }
 
   identity {
