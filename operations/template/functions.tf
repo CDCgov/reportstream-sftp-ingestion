@@ -47,7 +47,7 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
 }
 
 resource "azurerm_linux_function_app_slot" "pre_live" {
-  name                 = "example-linux-function-app-slot"
+  name                 = "pre-live"
   function_app_id      = azurerm_linux_function_app.polling_trigger_function_app.id
   storage_account_name = azurerm_storage_account.storage.name
 
