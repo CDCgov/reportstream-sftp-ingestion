@@ -4,7 +4,6 @@ resource "azurerm_container_registry" "registry" {
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
   sku                 = "Standard"
-  admin_enabled       = true
 
   lifecycle {
     ignore_changes = [
@@ -12,6 +11,12 @@ resource "azurerm_container_registry" "registry" {
       tags,
     ]
   }
+}
+
+resource "azurerm_role_assignment" "allow_app_to_pull_from_registry" {
+  principal_id         = azurerm_linux_web_app.sftp.identity.0.principal_id
+  role_definition_name = "AcrPull"
+  scope                = azurerm_container_registry.registry.id
 }
 
 # Create the staging service plan
@@ -53,6 +58,8 @@ resource "azurerm_linux_web_app" "sftp" {
     health_check_path                 = "/health"
     health_check_eviction_time_in_min = 5
 
+    container_registry_use_managed_identity = true
+
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
 
     dynamic "ip_restriction" {
@@ -79,11 +86,9 @@ resource "azurerm_linux_web_app" "sftp" {
   }
 
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL      = "https://${azurerm_container_registry.registry.login_server}"
-    DOCKER_REGISTRY_SERVER_USERNAME = azurerm_container_registry.registry.admin_username
-    DOCKER_REGISTRY_SERVER_PASSWORD = azurerm_container_registry.registry.admin_password
-    WEBSITES_PORT                   = 8080
-    PORT                            = 8080
+    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
+    WEBSITES_PORT              = 8080
+    PORT                       = 8080
 
     ENV                             = var.environment
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
