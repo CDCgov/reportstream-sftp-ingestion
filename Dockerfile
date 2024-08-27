@@ -4,7 +4,7 @@ ENV GOOS=linux
 ENV GOARCH=amd64
 ENV CGO_ENABLED=0
 
-RUN apt update && apt upgrade && apt clean
+RUN apt-get update -y && apt-get upgrade -y && apt-get clean -y
 
 RUN useradd myLowPrivilegeUser
 USER myLowPrivilegeUser
