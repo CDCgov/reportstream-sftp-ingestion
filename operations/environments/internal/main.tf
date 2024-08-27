@@ -8,6 +8,7 @@ terraform {
 
   # Use a remote Terraform state in Azure Storage
   backend "azurerm" {
+    name                 = "test"
     resource_group_name  = "cdcti-terraform"
     storage_account_name = "cdctiterraform"
     container_name       = "tfstate"
