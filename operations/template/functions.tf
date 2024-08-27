@@ -54,7 +54,7 @@ resource "azurerm_linux_function_app_slot" "pre_live" {
   app_settings = {
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_connection_string
     POLLING_TRIGGER_QUEUE_NAME      = azurerm_storage_queue.polling_trigger_queue.name
-#     CA_DPH_POLLING_CRON             = "" # TODO - put a cron that won't ever happen here
+    #     CA_DPH_POLLING_CRON             = "" # TODO - put a cron that won't ever happen here
 
     # Makes the Github Action run significantly faster by not copying the node_modules
     WEBSITE_RUN_FROM_PACKAGE = 1
