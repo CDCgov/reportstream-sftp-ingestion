@@ -6,6 +6,7 @@ ENV CGO_ENABLED=0
 
 RUN apt update && apt upgrade && apt clean
 
+
 RUN useradd myLowPrivilegeUser
 USER myLowPrivilegeUser
 
