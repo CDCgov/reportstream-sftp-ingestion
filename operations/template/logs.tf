@@ -88,3 +88,15 @@ resource "azurerm_monitor_diagnostic_setting" "functionapp_to_logs" {
     category = "FunctionAppLogs"
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "functionapp_slot_to_logs" {
+  name                       = "rs-sftp-function-pre-live-to-logs-${var.environment}"
+  target_resource_id         = azurerm_linux_function_app_slot.pre_live.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.logs_workspace.id
+
+  log_analytics_destination_type = "Dedicated"
+
+  enabled_log {
+    category = "FunctionAppLogs"
+  }
+}
