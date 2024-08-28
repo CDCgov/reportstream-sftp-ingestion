@@ -7,8 +7,8 @@ services:
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise we'll use a mock response
       # REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
-      FLEXION_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
-      FLEXION_CLIENT_NAME: flexion.simulated-hospital
+      CA_PHL_PRIVATE_KEY_NAME: trusted-intermediary-private-key-local.pem #pragma: allowlist secret
+      CA_PHL_CLIENT_NAME: flexion.simulated-hospital
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
       POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
@@ -96,9 +96,9 @@ services:
     environment:
       SFTP_USERS: ti_user:ti_password:::files
     volumes:
-#      - ./mock_credentials/sftp-public-key-local:/home/ti_user/.ssh/keys/id_rsa.pub:ro  # uncomment me when CA uses our public key for authentication
+      - ./mock_credentials/sftp-public-key-local:/home/ti_user/.ssh/keys/id_rsa.pub:ro  # uncomment me when CA uses our public key for authentication
       - ./mock_credentials/sftp-server-private-key-local:/etc/ssh/ssh_host_rsa_key
-#      - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh  # uncomment me when CA uses our public key for authentication
+      - ./localdata/sftp_server_require_password_and_publickey.sh:/etc/sftp.d/sftp_server_require_password_and_publickey.sh  # uncomment me when CA uses our public key for authentication
       - ./localdata/data/sftp:/home/ti_user/files
     ports:
       - "2223:22"

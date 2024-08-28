@@ -22,15 +22,15 @@ type SenderTestSuite struct {
 func (suite *SenderTestSuite) SetupTest() {
 	os.Setenv("ENV", "local")
 	os.Setenv("REPORT_STREAM_URL_PREFIX", "rs.com")
-	os.Setenv("FLEXION_PRIVATE_KEY_NAME", "key")
-	os.Setenv("FLEXION_CLIENT_NAME", "client")
+	os.Setenv("CA_PHL_PRIVATE_KEY_NAME", "key")
+	os.Setenv("CA_PHL_CLIENT_NAME", "client")
 }
 
 func (suite *SenderTestSuite) TearDownTest() {
 	os.Unsetenv("ENV")
 	os.Unsetenv("REPORT_STREAM_URL_PREFIX")
-	os.Unsetenv("FLEXION_PRIVATE_KEY_NAME")
-	os.Unsetenv("FLEXION_CLIENT_NAME")
+	os.Unsetenv("CA_PHL_PRIVATE_KEY_NAME")
+	os.Unsetenv("CA_PHL_CLIENT_NAME")
 }
 
 func (suite *SenderTestSuite) Test_NewSender_VariablesAreSet_ReturnsSender() {
@@ -39,8 +39,8 @@ func (suite *SenderTestSuite) Test_NewSender_VariablesAreSet_ReturnsSender() {
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.baseUrl)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.privateKeyName)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_PRIVATE_KEY_NAME"), sender.privateKeyName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_CLIENT_NAME"), sender.clientName)
 }
 
 func (suite *SenderTestSuite) Test_NewSender_EnvIsEmpty_ReturnsSenderWithLocalCredentials() {
@@ -49,8 +49,8 @@ func (suite *SenderTestSuite) Test_NewSender_EnvIsEmpty_ReturnsSenderWithLocalCr
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.baseUrl)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.privateKeyName)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_PRIVATE_KEY_NAME"), sender.privateKeyName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_CLIENT_NAME"), sender.clientName)
 }
 
 func (suite *SenderTestSuite) Test_GenerateJWT_ReturnsJWT() {

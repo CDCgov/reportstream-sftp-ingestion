@@ -26,11 +26,10 @@ type SftpHandler struct {
 func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
 	// In the future, we'll pass in info about what customer we're using (and thus what URL/key/password to use)
 
-	// TODO uncomment code when partner is setup to receive key
-	//pem, err := getPublicKeysForSshClient(credentialGetter)
-	//if err != nil {
-	//	return nil, err
-	//}
+	pem, err := getPublicKeysForSshClient(credentialGetter)
+	if err != nil {
+		return nil, err
+	}
 
 	serverKeySecret := "sftp-server-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
 	serverKey, err := credentialGetter.GetSecret(serverKeySecret)
@@ -59,11 +58,10 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	// TODO uncomment code when partner is setup to receive key
 	config := &ssh.ClientConfig{
 		User: sftpUser,
 		Auth: []ssh.AuthMethod{
-			//ssh.PublicKeys(pem),
+			ssh.PublicKeys(pem),
 			ssh.Password(sftpPassword),
 		},
 		HostKeyCallback: hostKeyCallback,

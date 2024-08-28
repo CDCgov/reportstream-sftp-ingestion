@@ -33,8 +33,8 @@ func NewSender() (Sender, error) {
 
 	return Sender{
 		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		privateKeyName:   os.Getenv("FLEXION_PRIVATE_KEY_NAME"),
-		clientName:       os.Getenv("FLEXION_CLIENT_NAME"),
+		privateKeyName:   os.Getenv("CA_PHL_PRIVATE_KEY_NAME"),
+		clientName:       os.Getenv("CA_PHL_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil
 }
