@@ -81,7 +81,7 @@ match your newly-created file
    ```json
    {
    "topic": "/subscriptions/52203171-a2ed-4f6c-b5cf-9b368c43f15b/resourceGroups/csels-rsti-internal-moderate-rg/providers/Microsoft.Storage/storageAccounts/cdcrssftpinternal",
-   "subject": "/blobServices/default/containers/sftp/blobs/order_message.hl7",
+   "subject": "/blobServices/default/containers/sftp/blobs/import/order_message.hl7",
    "eventType": "Microsoft.Storage.BlobCreated",
    "id": "dac45448-001e-0031-7649-b8ad2c06c977",
    "data": {
@@ -92,7 +92,7 @@ match your newly-created file
    "contentType": "application/octet-stream",
    "contentLength": 1122,
    "blobType": "BlockBlob",
-   "url": "https://cdcrssftpinternal.blob.core.windows.net/sftp/order_message.hl7",
+   "url": "http://127.0.0.1:12000/devstoreaccount1/sftp/import/order_message.hl7",
    "sequencer": "00000000000000000000000000024DA1000000000006ab03",
    "storageDiagnostics": {
    "batchId": "6677b768-3006-0093-0049-b89735000000"

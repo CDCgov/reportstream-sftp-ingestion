@@ -31,7 +31,7 @@ services:
   sftp-Azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     # uncomment the line below to skip x-ms-version checks
-    # command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0
+    command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/azurite:/data
@@ -51,7 +51,7 @@ services:
       - -c
       - |
         az storage container create -n sftp
-        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name order_message.hl7 --file mock_data/order_message.hl7
+        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name import/order_message.hl7 --file mock_data/order_message.hl7
         az storage queue create -n message-import-queue
         az storage queue create -n message-import-dead-letter-queue
         az storage queue create -n polling-trigger-queue
