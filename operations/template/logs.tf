@@ -25,7 +25,7 @@ resource "azurerm_log_analytics_query_pack" "application_logs_pack" {
   }
 }
 
-resource "azurerm_log_analytics_query_pack_query" "example" {
+resource "azurerm_log_analytics_query_pack_query" "structured_application_logs" {
   display_name = "RS SFTP's Raw Application Logs"
   description  = "View all RS SFTP's application logs in a structured format"
 
