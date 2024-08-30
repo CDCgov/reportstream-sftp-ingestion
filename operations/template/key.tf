@@ -7,7 +7,7 @@ resource "azurerm_key_vault" "key_storage" {
   sku_name  = "standard"
   tenant_id = data.azurerm_client_config.current.tenant_id
 
-  purge_protection_enabled = false
+  purge_protection_enabled = true
 
   lifecycle {
     ignore_changes = [
@@ -28,6 +28,17 @@ resource "azurerm_key_vault_access_policy" "allow_github_deployer" {
     "Delete",
     "Purge",
   ]
+
+  key_permissions = [
+    "Create",
+    "Delete",
+    "Get",
+    "Purge",
+    "Recover",
+    "Update",
+    "GetRotationPolicy",
+    "SetRotationPolicy",
+  ]
 }
 
 resource "azurerm_key_vault_access_policy" "allow_app_read" {
@@ -38,6 +49,18 @@ resource "azurerm_key_vault_access_policy" "allow_app_read" {
   secret_permissions = [
     "List",
     "Get",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "allow_sftp_storage_account_wrapping" {
+  key_vault_id = azurerm_key_vault.key_storage.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_storage_account.storage.identity.0.principal_id
+
+  key_permissions = [
+    "Get",
+    "UnwrapKey",
+    "WrapKey",
   ]
 }
 
@@ -134,5 +157,24 @@ resource "azurerm_key_vault_secret" "sftp_server_public_key" {
   lifecycle {
     ignore_changes = [value]
   }
+  depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
+}
+
+resource "azurerm_key_vault_key" "customer_managed_key" {
+  name         = "customer-managed-key-${var.environment}"
+  key_vault_id = azurerm_key_vault.key_storage.id
+
+  key_type = "RSA"
+  key_size = 4096
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey"
+  ]
+
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
