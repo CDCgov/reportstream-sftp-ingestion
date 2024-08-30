@@ -18,9 +18,11 @@ func main() {
 
 	go setupHealthCheck()
 
-	// Set up the polling message handler and queue listener
 	setUpQueues()
 
+	// This loop keeps the app alive. This lets the pre-live deployment slot remain healthy
+	// even though it's configured without queues, which means we can quickly swap slots
+	// if needed without having to redeploy
 	for {
 		t := time.Now()
 		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
@@ -29,6 +31,7 @@ func main() {
 }
 
 func setUpQueues() {
+	// Set up the polling message handler and queue listener
 	pollingMessageHandler := orchestration.PollingMessageHandler{}
 
 	pollingQueueHandler, err := orchestration.NewQueueHandler(pollingMessageHandler, "polling-trigger")
