@@ -13,8 +13,8 @@ resource "azurerm_storage_account" "storage" {
 
   lifecycle {
     ignore_changes = [
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
+      customer_managed_key,
+      tags, # Ignore changes to tags because the CDC sets these automagically
     ]
   }
 
