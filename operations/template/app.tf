@@ -36,6 +36,13 @@ resource "azurerm_user_assigned_identity" "key_vault_identity" {
   location            = data.azurerm_resource_group.group.location
 
   name = "sftp-key-vault-identity-${var.environment}"
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 # Create the staging service plan
