@@ -76,8 +76,9 @@ resource "azurerm_key_vault_secret" "mock_public_health_lab_private_key" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_dph_zip_password" {
-  name  = "ca-dph-zip-password-${var.environment}"
+# TODO: rename in code after resource name is decided
+resource "azurerm_key_vault_secret" "ca_phl_private_key" {
+  name  = "ca-phl-private-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -88,8 +89,8 @@ resource "azurerm_key_vault_secret" "ca_dph_zip_password" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_starting_directory" {
-  name  = "sftp-starting-directory-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_zip_password" {
+  name  = "ca-phl-zip-password-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -100,8 +101,8 @@ resource "azurerm_key_vault_secret" "sftp_starting_directory" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_user" {
-  name  = "sftp-user-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_starting_directory" {
+  name  = "ca-phl-sftp-starting-directory-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -112,8 +113,8 @@ resource "azurerm_key_vault_secret" "sftp_user" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_password" {
-  name  = "sftp-password-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_user" {
+  name  = "ca-phl-sftp-user-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -124,8 +125,20 @@ resource "azurerm_key_vault_secret" "sftp_password" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_key" {
-  name  = "sftp-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_password" {
+  name  = "ca-phl-sftp-password-${var.environment}"
+  value = "dogcow"
+
+  key_vault_id = azurerm_key_vault.key_storage.id
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+  depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
+}
+# TODO - Do we rename this too
+resource "azurerm_key_vault_secret" "ca_phl_sftp_key" {
+  name  = "ca-phl-sftp-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -136,8 +149,8 @@ resource "azurerm_key_vault_secret" "sftp_key" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_server_address" {
-  name  = "sftp-server-address-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_server_address" {
+  name  = "ca-phl-sftp-server-address-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -148,8 +161,8 @@ resource "azurerm_key_vault_secret" "sftp_server_address" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "sftp_server_public_key" {
-  name  = "sftp-server-public-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_server_public_key" {
+  name  = "ca-phl-sftp-server-public-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
