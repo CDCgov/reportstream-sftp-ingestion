@@ -76,7 +76,6 @@ resource "azurerm_key_vault_secret" "mock_public_health_lab_private_key" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-# TODO: rename in code after resource name is decided
 resource "azurerm_key_vault_secret" "ca_phl_private_key" {
   name  = "ca-phl-private-key-${var.environment}"
   value = "dogcow"
@@ -136,7 +135,7 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_password" {
   }
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
-# TODO - Do we rename this too
+
 resource "azurerm_key_vault_secret" "ca_phl_sftp_key" {
   name  = "ca-phl-sftp-key-${var.environment}"
   value = "dogcow"
