@@ -112,7 +112,8 @@ resource "azurerm_linux_web_app" "sftp" {
   }
 
   #   When adding new settings that are needed for the live app but shouldn't be used in the pre-live
-  #   slot, add them to `sticky_settings` as well as `app_settings` for the main app resource
+  #   slot, add them to `sticky_settings` as well as `app_settings` for the main app resource.
+  #   All queue-related settings should be `sticky` so that the pre-live slot does not send or consume messages.
   app_settings = {
     DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
     WEBSITES_PORT              = 8080
