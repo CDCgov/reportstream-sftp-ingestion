@@ -36,7 +36,7 @@ repos:
     hooks:
       - id: terraform-format
         name: terraform-format
-        entry: bash -c 'terraform fmt -recursive || (echo ""; echo "!!Automatically running terraform format!!";terraform fmt -recursive -write && git status)'
+        entry: bash -c 'terraform fmt -recursive -write'
         language: system
         types_or:
           - terraform
