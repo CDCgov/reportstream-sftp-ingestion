@@ -19,6 +19,12 @@ zero-downtime deployment, and is consistent with the workflow we're using in TI.
 stop it from reading queues. To prevent actions from being duplicated, we're keeping queue configuration settings only
 on the production/live slot, which will leave the pre-live slot running and healthy, but not active.
 
+Even though there are some significant downsides to Deployment Slots, they're Azure's recommended
+approach to zero-downtime deploys (ZDD), and they're lower effort and lower risk than the alternatives.
+Other options to achieve ZDD are Kubernetes (significantly more complexity and effort), creating
+our own custom deploy system (significantly more complexity, effort, and risk), or switching to
+a cloud service provider that makes this easier, like AWS (not currently in scope as an option).
+
 ## Impact
 ### Positive
 - **Zero-downtime deploys**: Zero-downtime deploys are a best practice.
