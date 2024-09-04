@@ -31,12 +31,11 @@ func NewSender() (Sender, error) {
 		return Sender{}, err
 	}
 
-	privateKeySecret := "ca-phl-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
-	privateKey, err := credentialGetter.GetSecret(privateKeySecret)
+	privateKeyName := "ca-phl-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	return Sender{
 		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		privateKeyName:   privateKey,
+		privateKeyName:   privateKeyName,
 		clientName:       os.Getenv("CA_PHL_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil

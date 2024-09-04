@@ -127,7 +127,7 @@ resource "azurerm_linux_web_app" "sftp" {
   }
 
   sticky_settings {
-    app_setting_names = ["AZURE_STORAGE_CONNECTION_STRING", "REPORT_STREAM_URL_PREFIX", "CA_PHL_PRIVATE_KEY_NAME",
+    app_setting_names = ["AZURE_STORAGE_CONNECTION_STRING", "REPORT_STREAM_URL_PREFIX",
     "AZURE_KEY_VAULT_URI", "CA_PHL_CLIENT_NAME", "QUEUE_MAX_DELIVERY_ATTEMPTS"]
   }
 
