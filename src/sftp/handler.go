@@ -32,10 +32,10 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	serverKeySecret := "ca-phl-sftp-server-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
-	serverKey, err := credentialGetter.GetSecret(serverKeySecret)
+	serverKeyName := utils.CA_PHL + "-sftp-server-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	serverKey, err := credentialGetter.GetSecret(serverKeyName)
 	if err != nil {
-		slog.Error("Unable to get server key secret", slog.String("KeyName", serverKeySecret), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get server key secret", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -45,17 +45,17 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	sftpUserNameSecret := "ca-phl-sftp-user-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpUserNameSecret := utils.CA_PHL + "-sftp-user-" + utils.EnvironmentName() // pragma: allowlist secret
 	sftpUser, err := credentialGetter.GetSecret(sftpUserNameSecret)
 	if err != nil {
 		slog.Error("Unable to get SFTP username secret", slog.String("KeyName", sftpUserNameSecret), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
-	sftpPasswordSecret := "ca-phl-sftp-password-" + utils.EnvironmentName() // pragma: allowlist secret
-	sftpPassword, err := credentialGetter.GetSecret(sftpPasswordSecret)
+	sftpPasswordName := utils.CA_PHL + "-sftp-password-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpPassword, err := credentialGetter.GetSecret(sftpPasswordName)
 	if err != nil {
-		slog.Error("Unable to get SFTP password secret", slog.String("KeyName", sftpPasswordSecret), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP password secret", slog.String("KeyName", sftpPasswordName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -68,7 +68,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		HostKeyCallback: hostKeyCallback,
 	}
 
-	sftpServerAddressSecret := "ca-phl-sftp-server-address-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpServerAddressSecret := utils.CA_PHL + "-sftp-server-address-" + utils.EnvironmentName() // pragma: allowlist secret
 	sftpServerAddress, err := credentialGetter.GetSecret(sftpServerAddressSecret)
 	if err != nil {
 		slog.Error("Unable to get SFTP server address secret", slog.String("KeyName", sftpServerAddressSecret), slog.Any(utils.ErrorKey, err))
@@ -122,11 +122,11 @@ func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) 
 
 func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
 
-	userAuthenticationKeySecret := "ca-phl-sftp-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	userAuthenticationKeyName := utils.CA_PHL + "-sftp-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
-	key, err := credentialGetter.GetSecret(userAuthenticationKeySecret)
+	key, err := credentialGetter.GetSecret(userAuthenticationKeyName)
 	if err != nil {
-		slog.Error("Unable to retrieve user authentication key secret", slog.String("KeyName", userAuthenticationKeySecret), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to retrieve user authentication key secret", slog.String("KeyName", userAuthenticationKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -156,10 +156,10 @@ func (receiver *SftpHandler) Close() {
 }
 
 func (receiver *SftpHandler) CopyFiles() {
-	sftpStartingDirectorySecret := "ca-phl-sftp-starting-directory-" + utils.EnvironmentName() // pragma: allowlist secret
-	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectorySecret)
+	sftpStartingDirectoryName := utils.CA_PHL + "-sftp-starting-directory-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpStartingDirectory, err := receiver.credentialGetter.GetSecret(sftpStartingDirectoryName)
 	if err != nil {
-		slog.Error("Unable to get SFTP starting directory secret", slog.String("KeyName", sftpStartingDirectorySecret), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP starting directory secret", slog.String("KeyName", sftpStartingDirectoryName), slog.Any(utils.ErrorKey, err))
 		return
 	}
 

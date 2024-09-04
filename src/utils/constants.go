@@ -28,3 +28,6 @@ const ErrorKey = "error"
 // Used in logging.
 // E.g. `slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fileInfo.Name()))`
 const FileNameKey = "file name"
+
+//
+const CA_PHL = "ca-phl"

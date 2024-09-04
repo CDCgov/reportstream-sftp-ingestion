@@ -55,7 +55,7 @@ func NewZipHandler() (ZipHandler, error) {
 func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	slog.Info("Preparing to unzip", slog.String("zipFilePath", zipFilePath))
-	zipPasswordSecret := "ca-phl-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
+	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 	if err != nil {
 		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
