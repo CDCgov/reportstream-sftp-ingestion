@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -17,6 +18,19 @@ func main() {
 
 	go setupHealthCheck()
 
+	setUpQueues()
+
+	// This loop keeps the app alive. This lets the pre-live deployment slot remain healthy
+	// even though it's configured without queues, which means we can quickly swap slots
+	// if needed without having to redeploy
+	for {
+		t := time.Now()
+		slog.Info(t.Format("2006-01-02T15:04:05Z07:00"))
+		time.Sleep(10 * time.Minute)
+	}
+}
+
+func setUpQueues() {
 	// Set up the polling message handler and queue listener
 	pollingMessageHandler := orchestration.PollingMessageHandler{}
 
@@ -40,8 +54,10 @@ func main() {
 		slog.Warn("Failed to create importQueueHandler", slog.Any(utils.ErrorKey, err))
 		return
 	}
-	// This ListenToQueue is not split into a separate Go Routine since it is the core driver of the application
-	importQueueHandler.ListenToQueue()
+
+	go func() {
+		importQueueHandler.ListenToQueue()
+	}()
 }
 
 func setupLogging() {
