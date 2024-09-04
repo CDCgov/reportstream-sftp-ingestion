@@ -124,18 +124,6 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_user" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_phl_sftp_password" {
-  name  = "ca-phl-sftp-password-${var.environment}"
-  value = "dogcow"
-
-  key_vault_id = azurerm_key_vault.key_storage.id
-
-  lifecycle {
-    ignore_changes = [value]
-  }
-  depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
-}
-
 resource "azurerm_key_vault_secret" "ca_phl_sftp_key" {
   name  = "ca-phl-sftp-key-${var.environment}"
   value = "dogcow"
