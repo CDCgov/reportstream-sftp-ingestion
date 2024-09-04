@@ -144,15 +144,6 @@ resource "azurerm_linux_web_app" "sftp" {
     type = "SystemAssigned"
   }
 
-
-  lifecycle {
-    ignore_changes = [
-      site_config[0].application_stack[0].docker_image_name,
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
-    ]
-  }
-
 }
 
 resource "azurerm_linux_web_app_slot" "pre_live" {
