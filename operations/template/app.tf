@@ -71,14 +71,6 @@ resource "azurerm_linux_web_app" "sftp" {
   location            = azurerm_service_plan.plan.location
   service_plan_id     = azurerm_service_plan.plan.id
 
-  lifecycle {
-    ignore_changes = [
-      site_config[0].application_stack[0].docker_image_name,
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
-    ]
-  }
-
   https_only = true
 
   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
@@ -144,12 +136,18 @@ resource "azurerm_linux_web_app" "sftp" {
     type = "SystemAssigned"
   }
 
+  lifecycle {
+    ignore_changes = [
+      site_config[0].application_stack[0].docker_image_name,
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_linux_web_app_slot" "pre_live" {
   name           = "pre-live"
   app_service_id = azurerm_linux_web_app.sftp.id
-
 
   https_only = true
 
@@ -160,6 +158,11 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
     health_check_eviction_time_in_min = 5
 
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
+
+    application_stack {
+      docker_registry_url = "https://${azurerm_container_registry.registry.login_server}"
+      docker_image_name   = "ignore_because_specified_later_in_deployment"
+    }
 
     dynamic "ip_restriction" {
       for_each = local.cdc_domain_environment ? [1] : []
@@ -193,6 +196,14 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      site_config[0].application_stack[0].docker_image_name,
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
   }
 }
 
