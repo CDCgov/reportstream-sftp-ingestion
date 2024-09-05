@@ -31,7 +31,7 @@ resource "azurerm_storage_account_customer_managed_key" "storage_storage_account
 
   depends_on = [
     azurerm_key_vault_access_policy.allow_github_deployer,
-    azurerm_key_vault_access_policy.allow_sftp_storage_account_wrapping
+#     azurerm_key_vault_access_policy.allow_sftp_storage_account_wrapping
   ] //wait for the permission that allows our deployer to write the secret
 }
 
