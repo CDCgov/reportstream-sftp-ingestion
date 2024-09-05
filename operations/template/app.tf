@@ -35,7 +35,7 @@ resource "azurerm_user_assigned_identity" "key_vault_identity" {
   resource_group_name = data.azurerm_resource_group.group.name
   location            = data.azurerm_resource_group.group.location
 
-  name = "ca-phl-sftp-key-vault-identity-${var.environment}"
+  name = "sftp-key-vault-identity-${var.environment}"
 
   lifecycle {
     ignore_changes = [
