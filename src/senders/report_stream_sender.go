@@ -30,12 +30,12 @@ func NewSender() (Sender, error) {
 		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
 		return Sender{}, err
 	}
-
-	privateKeyName := utils.CA_PHL + "-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	// ca-phl-reportstream-private-key
+	reportStreamPrivateKeyName := utils.CA_PHL + "reportstream-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	return Sender{
 		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		privateKeyName:   privateKeyName,
+		privateKeyName:   reportStreamPrivateKeyName,
 		clientName:       os.Getenv("CA_PHL_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil

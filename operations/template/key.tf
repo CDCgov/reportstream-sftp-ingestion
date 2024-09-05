@@ -89,8 +89,8 @@ resource "azurerm_key_vault_secret" "mock_public_health_lab_private_key" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_phl_private_key" {
-  name  = "ca-phl-private-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_reportstream_private_key" {
+  name  = "ca-phl-reportstream-private-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -137,8 +137,8 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_user" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_phl_sftp_key" {
-  name  = "ca-phl-sftp-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_private_key" {
+  name  = "ca-phl-sftp-private-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
@@ -161,8 +161,8 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_server_address" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_phl_sftp_server_public_key" {
-  name  = "ca-phl-sftp-server-public-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_public_key" {
+  name  = "ca-phl-sftp-public-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id

@@ -32,10 +32,10 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	serverKeyName := utils.CA_PHL + "-sftp-server-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
-	serverKey, err := credentialGetter.GetSecret(serverKeyName)
+	sftpKeyName := utils.CA_PHL + "-sftp-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	serverKey, err := credentialGetter.GetSecret(sftpKeyName)
 	if err != nil {
-		slog.Error("Unable to get server key secret", slog.String("KeyName", serverKeyName), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get SFTP key secret", slog.String("KeyName", sftpKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -114,7 +114,7 @@ func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) 
 
 func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
 
-	userAuthenticationKeyName := utils.CA_PHL + "-sftp-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	userAuthenticationKeyName := utils.CA_PHL + "-sftp-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	key, err := credentialGetter.GetSecret(userAuthenticationKeyName)
 	if err != nil {
