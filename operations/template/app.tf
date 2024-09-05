@@ -185,7 +185,6 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
   }
 
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
     WEBSITES_PORT              = 8080
     PORT                       = 8080
 
