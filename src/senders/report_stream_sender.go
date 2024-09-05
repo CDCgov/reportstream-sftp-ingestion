@@ -31,7 +31,7 @@ func NewSender() (Sender, error) {
 		return Sender{}, err
 	}
 	// ca-phl-reportstream-private-key
-	reportStreamPrivateKeyName := utils.CA_PHL + "reportstream-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	reportStreamPrivateKeyName := utils.CA_PHL + "-reportstream-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	return Sender{
 		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
