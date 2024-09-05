@@ -123,8 +123,8 @@ resource "azurerm_linux_web_app" "sftp" {
   #   slot, add them to `sticky_settings` as well as `app_settings` for the main app resource.
   #   All queue-related settings should be `sticky` so that the pre-live slot does not send or consume messages.
   app_settings = {
-    WEBSITES_PORT              = 8080
-    PORT                       = 8080
+    WEBSITES_PORT = 8080
+    PORT          = 8080
 
     ENV                             = var.environment
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
@@ -185,8 +185,8 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
   }
 
   app_settings = {
-    WEBSITES_PORT              = 8080
-    PORT                       = 8080
+    WEBSITES_PORT = 8080
+    PORT          = 8080
 
     ENV = var.environment
   }
