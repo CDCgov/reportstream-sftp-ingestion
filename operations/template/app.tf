@@ -23,6 +23,8 @@ resource "azurerm_container_registry" "registry" {
       tags,
     ]
   }
+
+  depends_on = [azurerm_key_vault_access_policy.allow_container_registry_wrapping] // Wait for keyvault access policy to be in place before creating
 }
 
 resource "azurerm_role_assignment" "allow_app_to_pull_from_registry" {
@@ -69,13 +71,6 @@ resource "azurerm_linux_web_app" "sftp" {
   location            = azurerm_service_plan.plan.location
   service_plan_id     = azurerm_service_plan.plan.id
 
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
-    ]
-  }
-
   https_only = true
 
   virtual_network_subnet_id = local.cdc_domain_environment ? azurerm_subnet.app.id : null
@@ -87,6 +82,11 @@ resource "azurerm_linux_web_app" "sftp" {
     container_registry_use_managed_identity = true
 
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
+
+    application_stack {
+      docker_registry_url = "https://${azurerm_container_registry.registry.login_server}"
+      docker_image_name   = "ignore_because_specified_later_in_deployment"
+    }
 
     dynamic "ip_restriction" {
       for_each = local.cdc_domain_environment ? [1] : []
@@ -115,9 +115,8 @@ resource "azurerm_linux_web_app" "sftp" {
   #   slot, add them to `sticky_settings` as well as `app_settings` for the main app resource.
   #   All queue-related settings should be `sticky` so that the pre-live slot does not send or consume messages.
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
-    WEBSITES_PORT              = 8080
-    PORT                       = 8080
+    WEBSITES_PORT = 8080
+    PORT          = 8080
 
     ENV                             = var.environment
     AZURE_STORAGE_CONNECTION_STRING = azurerm_storage_account.storage.primary_blob_connection_string
@@ -136,18 +135,19 @@ resource "azurerm_linux_web_app" "sftp" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      site_config[0].application_stack[0].docker_image_name,
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_linux_web_app_slot" "pre_live" {
   name           = "pre-live"
   app_service_id = azurerm_linux_web_app.sftp.id
-
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags because the CDC sets these automagically
-      tags,
-    ]
-  }
 
   https_only = true
 
@@ -158,6 +158,11 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
     health_check_eviction_time_in_min = 5
 
     scm_use_main_ip_restriction = local.cdc_domain_environment ? true : null
+
+    application_stack {
+      docker_registry_url = "https://${azurerm_container_registry.registry.login_server}"
+      docker_image_name   = "ignore_because_specified_later_in_deployment"
+    }
 
     dynamic "ip_restriction" {
       for_each = local.cdc_domain_environment ? [1] : []
@@ -183,15 +188,22 @@ resource "azurerm_linux_web_app_slot" "pre_live" {
   }
 
   app_settings = {
-    DOCKER_REGISTRY_SERVER_URL = "https://${azurerm_container_registry.registry.login_server}"
-    WEBSITES_PORT              = 8080
-    PORT                       = 8080
+    WEBSITES_PORT = 8080
+    PORT          = 8080
 
     ENV = var.environment
   }
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      site_config[0].application_stack[0].docker_image_name,
+      # Ignore changes to tags because the CDC sets these automagically
+      tags,
+    ]
   }
 }
 
