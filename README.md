@@ -120,6 +120,14 @@ In the `sftp` container, upload a file to an `import` folder. If that folder doe
 it by going to `Upload`, expanding `Advanced`, and putting `import` in the `Upload to folder` box!
 [upload_file.png](docs/upload_file.png)
 
+or 
+
+Log into CA SFTP and drop a file into the Output folder. 
+Then kick off the Azure Function in the portal. 
+
+Credentials and URL can be found in Notion under CA Info. 
+
+
 #### End-to-end Tests
 
 #### Load Testing
