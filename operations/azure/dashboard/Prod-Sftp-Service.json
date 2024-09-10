@@ -1,0 +1,1555 @@
+{
+  "properties": {
+    "lenses": [
+      {
+        "order": 0,
+        "parts": [
+          {
+            "position": {
+              "x": 0,
+              "y": 0,
+              "colSpan": 3,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "settings": {
+                    "content": "### App performance",
+                    "title": "",
+                    "subtitle": "",
+                    "markdownSource": 1,
+                    "markdownUri": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 3,
+              "y": 0,
+              "colSpan": 4,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "AverageMemoryWorkingSet",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Average memory working set"
+                          }
+                        }
+                      ],
+                      "title": "Average memory usage over time",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 86400000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "AverageMemoryWorkingSet",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Average memory working set"
+                          }
+                        }
+                      ],
+                      "title": "Average memory usage over time",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 7,
+              "y": 0,
+              "colSpan": 4,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "CpuTime",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "CPU Time"
+                          }
+                        }
+                      ],
+                      "title": "Average memory usage over time",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 86400000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "CpuTime",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "CPU Time"
+                          }
+                        }
+                      ],
+                      "title": "CPU consumption",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 11,
+              "y": 0,
+              "colSpan": 4,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Threads",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Thread Count"
+                          }
+                        }
+                      ],
+                      "title": "Thread count",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Threads",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Thread Count"
+                          }
+                        }
+                      ],
+                      "title": "Thread count",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 15,
+              "y": 0,
+              "colSpan": 4,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Handles",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Handle Count"
+                          }
+                        }
+                      ],
+                      "title": "Sum Handle Count for clna31f8017-2633-4f8f-9fbc-888d15d14c78",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 86400000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Handles",
+                          "aggregationType": 1,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Handle Count"
+                          }
+                        }
+                      ],
+                      "title": "Sum Handle Count for clna31f8017-2633-4f8f-9fbc-888d15d14c78",
+                      "titleKind": 1,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 3,
+              "colSpan": 3,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "settings": {
+                    "content": "### Usage",
+                    "title": "",
+                    "subtitle": "",
+                    "markdownSource": 1,
+                    "markdownUri": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 3,
+              "y": 3,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "HttpResponseTime",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Response Time"
+                          }
+                        }
+                      ],
+                      "title": "Response time",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "HttpResponseTime",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Response Time"
+                          }
+                        }
+                      ],
+                      "title": "Response time",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 9,
+              "y": 3,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Requests",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Requests"
+                          }
+                        }
+                      ],
+                      "title": "Total requests",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Requests",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Requests"
+                          }
+                        }
+                      ],
+                      "title": "Total requests",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 6,
+              "colSpan": 3,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "settings": {
+                    "content": "### Http codes",
+                    "title": "",
+                    "subtitle": "",
+                    "markdownSource": 1,
+                    "markdownUri": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 3,
+              "y": 6,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http5xx",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http Server Errors"
+                          }
+                        }
+                      ],
+                      "title": "Count of Http server errors",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http5xx",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http Server Errors"
+                          }
+                        }
+                      ],
+                      "title": "Count of Http server errors",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              },
+              "filters": {
+                "MsPortalFx_TimeRange": {
+                  "model": {
+                    "format": "local",
+                    "granularity": "auto",
+                    "relative": "43200m"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 9,
+              "y": 6,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http401",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 401"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http403",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 403"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http404",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 404"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http404",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 404"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http406",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 406"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http2xx",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 2xx"
+                          }
+                        }
+                      ],
+                      "title": "Count of Http status codes",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http401",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 401"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http403",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 403"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http404",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 404"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http404",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 404"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http406",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 406"
+                          }
+                        },
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "Http2xx",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Http 2xx"
+                          }
+                        }
+                      ],
+                      "title": "Count of Http status codes",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 9,
+              "colSpan": 3,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "settings": {
+                    "content": "### Bandwidth",
+                    "title": "",
+                    "subtitle": "",
+                    "markdownSource": 1,
+                    "markdownUri": null
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 3,
+              "y": 9,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "BytesSent",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Data Out"
+                          }
+                        }
+                      ],
+                      "title": "Outgoing bandwidth",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "BytesSent",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Data Out"
+                          }
+                        }
+                      ],
+                      "title": "Outgoing bandwidth",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 9,
+              "y": 9,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "value": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "BytesReceived",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Data In"
+                          }
+                        }
+                      ],
+                      "title": "Incoming bandwidth",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        }
+                      },
+                      "timespan": {
+                        "relative": {
+                          "duration": 2592000000
+                        },
+                        "showUTCTime": false,
+                        "grain": 1
+                      }
+                    }
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "BytesReceived",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Data In"
+                          }
+                        }
+                      ],
+                      "title": "Incoming bandwidth",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideSubtitle": false
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 0,
+              "y": 12,
+              "colSpan": 3,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [],
+              "type": "Extension/HubsExtension/PartType/MarkdownPart",
+              "settings": {
+                "content": {
+                  "content": "\n",
+                  "title": "Instance Count",
+                  "subtitle": "",
+                  "markdownSource": 1,
+                  "markdownUri": ""
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 3,
+              "y": 12,
+              "colSpan": 6,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "options",
+                  "isOptional": true
+                },
+                {
+                  "name": "sharedTimeRange",
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/HubsExtension/PartType/MonitorChartPart",
+              "settings": {
+                "content": {
+                  "options": {
+                    "chart": {
+                      "metrics": [
+                        {
+                          "resourceMetadata": {
+                            "id": "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                          },
+                          "name": "InstanceCount",
+                          "aggregationType": 7,
+                          "namespace": "microsoft.web/sites",
+                          "metricVisualization": {
+                            "displayName": "Automatic Scaling Instance Count",
+                            "resourceDisplayName": "cdc-rs-sftp-${var.environment}"
+                          }
+                        }
+                      ],
+                      "title": "Instance Count",
+                      "titleKind": 2,
+                      "visualization": {
+                        "chartType": 2,
+                        "legendVisualization": {
+                          "isVisible": true,
+                          "position": 2,
+                          "hideHoverCard": false,
+                          "hideLabelNames": true
+                        },
+                        "axisVisualization": {
+                          "x": {
+                            "isVisible": true,
+                            "axisType": 2
+                          },
+                          "y": {
+                            "isVisible": true,
+                            "axisType": 1
+                          }
+                        },
+                        "disablePinning": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "position": {
+              "x": 9,
+              "y": 12,
+              "colSpan": 10,
+              "rowSpan": 3
+            },
+            "metadata": {
+              "inputs": [
+                {
+                  "name": "resourceTypeMode",
+                  "isOptional": true
+                },
+                {
+                  "name": "ComponentId",
+                  "isOptional": true
+                },
+                {
+                  "name": "Scope",
+                  "value": {
+                    "resourceIds": [
+                      "/subscriptions/${data.azurerm_client_config.current.object_id}/resourceGroups/csels-rsti-${var.environment}-moderate-rg/providers/Microsoft.Web/sites/cdc-rs-sftp-${var.environment}"
+                    ]
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "PartId",
+                  "value": "8f25a144-034c-470c-9138-348824576912",
+                  "isOptional": true
+                },
+                {
+                  "name": "Version",
+                  "value": "2.0",
+                  "isOptional": true
+                },
+                {
+                  "name": "TimeRange",
+                  "value": "PT1H",
+                  "isOptional": true
+                },
+                {
+                  "name": "DashboardId",
+                  "isOptional": true
+                },
+                {
+                  "name": "DraftRequestParameters",
+                  "value": {
+                    "scope": "hierarchy"
+                  },
+                  "isOptional": true
+                },
+                {
+                  "name": "Query",
+                  "value": "AppServiceConsoleLogs \n| extend central_time = datetime_utc_to_local(TimeGenerated,'US/Central') \n| project central_time, JsonResult = parse_json(ResultDescription) \n| evaluate bag_unpack(JsonResult, ignoredProperties=dynamic(['@timestamp', 'BundleId', 'Entry Step', 'Entry Time', 'thread_name'])) \n| where level in ('ERROR') \n| project-reorder central_time, level, msg\n\n",
+                  "isOptional": true
+                },
+                {
+                  "name": "ControlType",
+                  "value": "AnalyticsGrid",
+                  "isOptional": true
+                },
+                {
+                  "name": "SpecificChart",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartTitle",
+                  "value": "Analytics",
+                  "isOptional": true
+                },
+                {
+                  "name": "PartSubTitle",
+                  "value": "cdc-rs-sftp-${var.environment}",
+                  "isOptional": true
+                },
+                {
+                  "name": "Dimensions",
+                  "isOptional": true
+                },
+                {
+                  "name": "LegendOptions",
+                  "isOptional": true
+                },
+                {
+                  "name": "IsQueryContainTimeRange",
+                  "value": false,
+                  "isOptional": true
+                }
+              ],
+              "type": "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart",
+              "settings": {
+                "content": {
+                  "PartTitle": "Logs"
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "model": {
+        "timeRange": {
+          "value": {
+            "relative": {
+              "duration": 24,
+              "timeUnit": 1
+            }
+          },
+          "type": "MsPortalFx.Composition.Configuration.ValueTypes.TimeRange"
+        },
+        "filterLocale": {
+          "value": "en-us"
+        },
+        "filters": {
+          "value": {
+            "MsPortalFx_TimeRange": {
+              "model": {
+                "format": "utc",
+                "granularity": "auto",
+                "relative": "24h"
+              },
+              "displayCache": {
+                "name": "UTC Time",
+                "value": "Past 24 hours"
+              },
+              "filteredPartIds": [
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc3b",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc3d",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc3f",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc41",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc45",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc47",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc4b",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc4d",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc51",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc53",
+                "StartboardPart-MonitorChartPart-15ad2939-63c2-4db2-a0a9-9a823a55dc57",
+                "StartboardPart-LogsDashboardPart-15ad2939-63c2-4db2-a0a9-9a823a55dc59"
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "name": "Prod SFTP Service",
+  "type": "Microsoft.Portal/dashboards",
+  "location": "INSERT LOCATION",
+  "tags": {
+    "hidden-title": "Prod SFTP Service"
+  },
+  "apiVersion": "2022-12-01-preview"
+}
