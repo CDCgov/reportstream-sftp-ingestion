@@ -138,7 +138,7 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_user" {
 }
 
 resource "azurerm_key_vault_secret" "ca_phl_sftp_private_key" {
-  name  = "ca-phl-sftp-private-key-${var.environment}"
+  name  = "ca-phl-sftp-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
