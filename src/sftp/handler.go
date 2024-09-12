@@ -57,9 +57,6 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(pem),
 		},
-		HostKeyAlgorithms: []string{
-			ssh.KeyAlgoRSASHA256,
-		},
 		HostKeyCallback: hostKeyCallback,
 	}
 
@@ -117,7 +114,7 @@ func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) 
 
 func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
 
-	userAuthenticationKeyName := utils.CA_PHL + "-sftp-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	userAuthenticationKeyName := utils.CA_PHL + "-sftp-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	key, err := credentialGetter.GetSecret(userAuthenticationKeyName)
 	if err != nil {
