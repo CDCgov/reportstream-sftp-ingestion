@@ -77,18 +77,6 @@ resource "azurerm_key_vault_access_policy" "allow_container_registry_wrapping" {
 }
 
 
-resource "azurerm_key_vault_secret" "mock_public_health_lab_private_key" {
-  name  = "mock-public-health-lab-private-key-${var.environment}"
-  value = "dogcow"
-
-  key_vault_id = azurerm_key_vault.key_storage.id
-
-  lifecycle {
-    ignore_changes = [value]
-  }
-  depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
-}
-
 resource "azurerm_key_vault_secret" "ca_phl_reportstream_private_key" {
   name  = "ca-phl-reportstream-private-key-${var.environment}"
   value = "dogcow"
@@ -138,7 +126,7 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_user" {
 }
 
 resource "azurerm_key_vault_secret" "ca_phl_sftp_private_key" {
-  name  = "ca-phl-sftp-key-${var.environment}"
+  name  = "ca-phl-sftp-private-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id
