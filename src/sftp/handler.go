@@ -52,10 +52,18 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
+	sftpPasswordSecret := "sftp-password-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpPassword, err := credentialGetter.GetSecret(sftpPasswordSecret)
+	if err != nil {
+		slog.Error("Unable to get SFTP password secret", slog.String("KeyName", sftpPasswordSecret), slog.Any(utils.ErrorKey, err))
+		return nil, err
+	}
+
 	config := &ssh.ClientConfig{
 		User: sftpUser,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(pem),
+			//ssh.PublicKeys(pem),
+			ssh.Password(sftpPassword),
 		},
 		HostKeyCallback: hostKeyCallback,
 	}
