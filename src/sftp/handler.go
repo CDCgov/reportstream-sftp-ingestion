@@ -58,7 +58,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 			ssh.PublicKeys(pem),
 		},
 		HostKeyAlgorithms: []string{
-			ssh.KeyAlgoDSA,
+			ssh.KeyAlgoRSASHA256,
 		},
 		HostKeyCallback: hostKeyCallback,
 	}
