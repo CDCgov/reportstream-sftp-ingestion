@@ -150,8 +150,8 @@ resource "azurerm_key_vault_secret" "ca_phl_sftp_server_address" {
   depends_on = [azurerm_key_vault_access_policy.allow_github_deployer] //wait for the permission that allows our deployer to write the secret
 }
 
-resource "azurerm_key_vault_secret" "ca_phl_sftp_public_key" {
-  name  = "ca-phl-sftp-public-key-${var.environment}"
+resource "azurerm_key_vault_secret" "ca_phl_sftp_host_public_key" {
+  name  = "ca-phl-sftp-host-public-key-${var.environment}"
   value = "dogcow"
 
   key_vault_id = azurerm_key_vault.key_storage.id

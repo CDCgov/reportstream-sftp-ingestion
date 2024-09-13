@@ -32,7 +32,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	sftpKeyName := utils.CA_PHL + "-sftp-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	sftpKeyName := utils.CA_PHL + "-sftp-host-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
 	serverKey, err := credentialGetter.GetSecret(sftpKeyName)
 	if err != nil {
 		slog.Error("Unable to get SFTP key secret", slog.String("KeyName", sftpKeyName), slog.Any(utils.ErrorKey, err))
