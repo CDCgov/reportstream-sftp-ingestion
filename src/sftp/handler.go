@@ -28,7 +28,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 
 	pem, err := getPublicKeysForSshClient(credentialGetter)
 	if err != nil {
-		slog.Error("Unable to get public keys for ssh client", slog.Any("KeyName", pem), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get public keys for ssh client", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
