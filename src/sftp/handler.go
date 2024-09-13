@@ -26,9 +26,9 @@ type SftpHandler struct {
 func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
 	// In the future, we'll pass in info about what customer we're using (and thus what URL/key/password to use)
 
-	pem, err := getPublicKeysForSshClient(credentialGetter)
+	userCredentialPrivateKey, err := getUserCredentialPrivateKey(credentialGetter)
 	if err != nil {
-		slog.Error("Unable to get public keys for ssh client", slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get user's credential private key", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
@@ -55,7 +55,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 	config := &ssh.ClientConfig{
 		User: sftpUser,
 		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(pem),
+			ssh.PublicKeys(userCredentialPrivateKey),
 		},
 		HostKeyCallback: hostKeyCallback,
 	}
@@ -112,7 +112,7 @@ func getSshClientHostKeyCallback(serverKey string) (ssh.HostKeyCallback, error) 
 	return ssh.FixedHostKey(pk), nil
 }
 
-func getPublicKeysForSshClient(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
+func getUserCredentialPrivateKey(credentialGetter secrets.CredentialGetter) (ssh.Signer, error) {
 
 	userAuthenticationKeyName := utils.CA_PHL + "-sftp-user-credential-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 

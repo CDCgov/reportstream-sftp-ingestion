@@ -20,7 +20,7 @@ import (
 const serverKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDg90HXaJnI1KtfJp8MWHxAwC00PvQCZKm4FRRdPGhEMepXIeLdjOtZV6LdePMT3WUmNkd6vaJ4EEmFUtH9lKLidALL9blOJF1iZKXK81JBJsds8axz5cqAau6aclgc9B1z2tAa+JtaSqN7uXvfPsrmsVss4jcOxX+thAhz7U6chN6ahabgIPqHBEjwvPlVNNbSqv0Q0eS4WaEEo/39tiXn5DYpPRC6DjuZ3m5s3VIgHznTv2Ufp3kcLcfEDZFwjm5XRWLNNvM5h3aW1vmr4lgBwuEzPV7CYIdIyDxe9V7YYcGfO+uu/VrDpY1wSmcD3lzHLLTbi5WWOurwiMsWIVRZfa/rmzuoTYknd5iJoiTyIWmR7L0FLfzPlDYJZmAWSdLZrZaUdD8SDIoKMSEV/5/ZzcI0wuoknis+zpyFqT0jfOy7E4GtG8pEQf7JGXaiExNd9TKxbRmaxp3Yv4WgPBThY39Va7EMUC/s0hX2Ah8pIWZG4Lze4x7Z4dElCOHDgnsl3Akc399jnIDfUY4bVn+rfBJntx9mBRaNnV1GqRodbSkHK5dTcZEmRslhuhsQVO2CxrlkPhFEe0XXpA3llO9YIkf4sCZDUbRFKPJiHyDhfrf2/HzkLndODdFaAnICYd51zOI1SgP3aFx60bZ2nPSoLs9DsR1LLIpz4uoiy5hCHw== sschuresko@flexion-mac-J40DPF4YQR"
 const user = "ti_user"
 
-func Test_NewSFTPHandler_UnableToGetSshClientPublicKey_ReturnsError(t *testing.T) {
+func Test_NewSFTPHandler_UnableToGetUserCredentialPrivateKey_ReturnsError(t *testing.T) {
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -31,7 +31,7 @@ func Test_NewSFTPHandler_UnableToGetSshClientPublicKey_ReturnsError(t *testing.T
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get public keys for ssh client")
+	assert.Contains(t, buffer.String(), "Unable to get user's credential private key")
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t *testing.T) {
@@ -43,7 +43,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(secretValue, nil).Once()
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("", errors.New("error"))
-	
+
 	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
 
 	assert.Nil(t, sftpHandler)
@@ -80,7 +80,6 @@ func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(secretValue, nil).Once()
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(serverKey, nil).Once()
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("", errors.New("error"))
-
 
 	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
 
@@ -122,7 +121,6 @@ func Test_NewSFTPHandler_UnableToDialIntoTCP_ReturnsError(t *testing.T) {
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(user, nil).Once()
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("wrong-value", nil).Once()
 
-
 	sftpHandler, err := NewSftpHandler(mockCredentialGetter)
 
 	assert.Nil(t, sftpHandler)
@@ -153,7 +151,7 @@ func Test_getPublicKeysForSshClient_ReturnsPem(t *testing.T) {
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(secretValue, nil)
 
-	pem, err := getPublicKeysForSshClient(mockCredentialGetter)
+	pem, err := getUserCredentialPrivateKey(mockCredentialGetter)
 
 	mockCredentialGetter.AssertCalled(t, "GetSecret", mock.Anything)
 	assert.NotNil(t, pem)
@@ -165,7 +163,7 @@ func Test_getPublicKeysForSshClient_UnableToRetrieveSFTPKey_ReturnsError(t *test
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("", errors.New(utils.ErrorKey))
 
-	pem, err := getPublicKeysForSshClient(mockCredentialGetter)
+	pem, err := getUserCredentialPrivateKey(mockCredentialGetter)
 
 	mockCredentialGetter.AssertCalled(t, "GetSecret", mock.Anything)
 	assert.Nil(t, pem)
@@ -179,7 +177,7 @@ func Test_getPublicKeysForSshClient_UnableToParsePrivateKey_ReturnsError(t *test
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return(secretValue, nil)
 
-	pem, err := getPublicKeysForSshClient(mockCredentialGetter)
+	pem, err := getUserCredentialPrivateKey(mockCredentialGetter)
 
 	mockCredentialGetter.AssertCalled(t, "GetSecret", mock.Anything)
 	assert.Nil(t, pem)
