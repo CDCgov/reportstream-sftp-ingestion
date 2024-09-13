@@ -32,16 +32,16 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 		return nil, err
 	}
 
-	sftpKeyName := utils.CA_PHL + "-sftp-host-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
-	serverKey, err := credentialGetter.GetSecret(sftpKeyName)
+	hostPublicKeyName := utils.CA_PHL + "-sftp-host-public-key-" + utils.EnvironmentName() // pragma: allowlist secret
+	hostPublicKey, err := credentialGetter.GetSecret(hostPublicKeyName)
 	if err != nil {
-		slog.Error("Unable to get SFTP key secret", slog.String("KeyName", sftpKeyName), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get host public key", slog.String("KeyName", hostPublicKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
-	hostKeyCallback, err := getSshClientHostKeyCallback(serverKey)
+	hostKeyCallback, err := getSshClientHostKeyCallback(hostPublicKey)
 	if err != nil {
-		slog.Error("Unable to get SSH Client Host Key", slog.Any("KeyName", hostKeyCallback), slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable construct the host key callback", slog.Any("KeyName", hostPublicKeyName), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 

@@ -48,7 +48,7 @@ func Test_NewSFTPHandler_UnableToGetSFTPServerPublicKeyNameSecret_ReturnsError(t
 
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
-	assert.Contains(t, buffer.String(), "Unable to get SFTP key secret")
+	assert.Contains(t, buffer.String(), "Unable to get host public key")
 }
 
 func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *testing.T) {
@@ -66,7 +66,7 @@ func Test_NewSFTPHandler_UnableToGetSSHClientHostKeyCallback_ReturnsError(t *tes
 	assert.Nil(t, sftpHandler)
 	assert.Error(t, err)
 
-	assert.Contains(t, buffer.String(), "Unable to get SSH Client Host Key")
+	assert.Contains(t, buffer.String(), "Unable construct the host key callback")
 }
 
 func Test_NewSFTPHandler_UnableToGetSFTPUserNameSecret_ReturnsError(t *testing.T) {
