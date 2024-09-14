@@ -29,5 +29,6 @@ const ErrorKey = "error"
 // E.g. `slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fileInfo.Name()))`
 const FileNameKey = "file name"
 
-//
+// The name to uniquely identify California's (CA) public health lab (PHL)
+// Used to prepend CA-PHL specific secrets
 const CA_PHL = "ca-phl"
