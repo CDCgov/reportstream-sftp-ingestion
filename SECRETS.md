@@ -1,5 +1,7 @@
 # Secrets
 
+Rotating secrets is tricky and tedious, the purpose of this document is to align contributors with the current state of secrets and ensure they continue to align as secrets are created/renamed or deleted.
+
 ## Current Secrets
 
 Below are the secrets that currently exist in Azure KeyVault and what they represent:
@@ -12,23 +14,27 @@ Below are the secrets that currently exist in Azure KeyVault and what they repre
 - SFTP user private key: `ca-phl-sftp-user-credential-private-key-env`
 - RS JWT signing key: `ca-phl-reportstream-private-key-env`
 
-## Types
+### Types
 
-Currently, there are these types of keys:
+Currently, there are two types of secrets to access our partners. Each secret associated with said service will contain one its name after the partner's name:
 
-- To access to partners:
-  - To access report stream
-  - To access SFTP
+- To access ReportStream: `reportstream`
+- To access SFTP: `sftp`
+
+There are also two types of keys using RSA:
+
+- Private key, distinguished by .pem ending
+- Public key, distinguished by .pem.pub ending
 
 ## Naming Convention
 
 The current naming convention for secrets is:
 
-- partner-name-user-type
+- [partner-name]-[associated-service]-[purpose]
 
-## Past Naming
+### Past Naming
 
-Previously, the secrets existed in a different name, here are the mappings from old to new:
+Previously, the secrets existed in a different name, for prosperity here are the mappings from old to new:
 
 - `ca-dph-zip-password-env` => `ca-phl-zip-password-env`
 - `sftp-starting-directory-env` => `ca-phl-sftp-starting-directory-env`
