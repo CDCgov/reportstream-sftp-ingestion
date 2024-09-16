@@ -132,10 +132,11 @@ The credentials and domain name for CA's SFTP environment can be found in Keybas
 
 To manually trigger the Azure function...
 
-1. Go to the `polling-function-{env}` function app in the Azure Portal.
-2. Navigate to the CORS section, and add `https://portal.azure.com` as an allowed origin.  Click save.
-3. Navigate back to the Overview section, and click on the trigger function.
-4. Click on the Test/Run button, and then click on the Run button that pops-up.
+1. If this is in an Azure Entra domain environment, you will need to log in as your -SU account.
+2. Go to the `polling-function-{env}` function app in the Azure Portal.
+3. Navigate to the CORS section, and add `https://portal.azure.com` as an allowed origin.  Click save.
+4. Navigate back to the Overview section, and click on the trigger function.
+5. Click on the Test/Run button, and then click on the Run button that pops-up.
 
 
 #### End-to-end Tests
