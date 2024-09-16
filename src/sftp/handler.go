@@ -28,7 +28,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, er
 
 	userCredentialPrivateKey, err := getUserCredentialPrivateKey(credentialGetter)
 	if err != nil {
-		slog.Error("Unable to get user's credential private key", slog.Any(utils.ErrorKey, err))
+		slog.Error("Unable to get user credential private key", slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
 
