@@ -120,12 +120,12 @@ In the `sftp` container, upload a file to an `import` folder. If that folder doe
 it by going to `Upload`, expanding `Advanced`, and putting `import` in the `Upload to folder` box!
 [upload_file.png](docs/upload_file.png)
 
-or 
+or
 
-Log into CA SFTP and drop a file into the Output folder. 
-Then kick off the Azure Function in the portal. 
+Log into CA SFTP and drop a file into the Output folder.
+Then kick off the Azure Function in the portal.
 
-Credentials and URL can be found in Notion under CA Info. 
+Credentials and URL can be found in Notion under CA Info.
 
 
 #### End-to-end Tests
@@ -180,6 +180,10 @@ PR reviews before merge.
 
 The Production environment is the real deal.  It deploys to a CDC Azure Entra domain and subscription.  Deployments
 occur when a release is published.
+
+### Secrets
+
+See [SECRETS.md](./SECRETS.md) for a description of our secrets.
 
 ## Related documents
 
