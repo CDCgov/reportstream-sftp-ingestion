@@ -29,7 +29,7 @@ Currently, there are two types of secrets to access our partners. Each secret as
 one its name after the partner's name:
 
 - To access ReportStream: `reportstream` is included in the name.
-- To access SFTP: `sftp` is included in the name.
+- To access an external SFTP site: `sftp` is included in the name.
 
 There are also two types of secrets when it comes to connecting to an SFTP server.
 
