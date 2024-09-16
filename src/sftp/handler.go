@@ -224,6 +224,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	}
 
 	var blobPath string
+	// Upload the retrieved file to either the `unzip` or `import` folder
 	if strings.Contains(fileInfo.Name(), ".zip") {
 		blobPath = filepath.Join(utils.UnzipFolder, fileInfo.Name())
 	} else {
@@ -237,9 +238,8 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
-	// If future partners want us to retrieve non-zip files, we'll need to update this `if`
 	if !strings.Contains(fileInfo.Name(), ".zip") {
-		slog.Info("Skipping file because it is not a zip file", slog.String(utils.FileNameKey, fileInfo.Name()))
+		slog.Info("This is not a zip file so we won't unzip it before import", slog.String(utils.FileNameKey, fileInfo.Name()))
 		return
 	}
 

@@ -388,7 +388,7 @@ func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 	assert.NotContains(t, buffer.String(), "Failed to open file")
 	assert.NotContains(t, buffer.String(), "Failed to read file")
 	assert.NotContains(t, buffer.String(), "Failed to upload file")
-	assert.Contains(t, buffer.String(), "Skipping file because it is not a zip file")
+	assert.Contains(t, buffer.String(), "This is not a zip file so we won't unzip it before import")
 }
 
 func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
