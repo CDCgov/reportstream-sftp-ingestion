@@ -30,7 +30,7 @@ services:
   sftp-Azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     # uncomment the line below to skip x-ms-version checks
-    command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0
+    # command: azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0
     volumes:
       # map to Azurite data objects to the build directory
       - ./localdata/data/azurite:/data
