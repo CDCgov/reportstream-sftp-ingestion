@@ -114,18 +114,28 @@ As of 7/3/24, when we copy a file from the local SFTP server, we try to unzip it
 files into the import folder, and if there are any errors, we upload an error file for the zip. If the original file is
 not a zip, we just copy it into the import folder.
 
-#### Manual cloud testing
-To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure portal.
+#### Manual Cloud Testing
+
+##### Upload to Our Azure Container
+
+To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure Portal.
 In the `sftp` container, upload a file to an `import` folder. If that folder doesn't already exist, you can create
 it by going to `Upload`, expanding `Advanced`, and putting `import` in the `Upload to folder` box!
 [upload_file.png](docs/upload_file.png)
 
-or
+##### Upload to SFTP Server
 
-Log into CA SFTP and drop a file into the Output folder.
-Then kick off the Azure Function in the portal.
+Log into CA's SFTP staging environment and drop a file into the `OUTPUT` folder.  You can either wait for one of our
+lower environments to trigger, or you can manually trigger the Azure function from the Azure Portal.
 
-Credentials and URL can be found in Notion under CA Info.
+The credentials and domain name for CA's SFTP environment can be found in Keybase under CA Info.
+
+To manually trigger the Azure function...
+
+1. Go to the `polling-function-{env}` function app in the Azure Portal.
+2. Navigate to the CORS section, and add `https://portal.azure.com` as an allowed origin.  Click save.
+3. Navigate back to the Overview section, and click on the trigger function.
+4. Click on the Test/Run button, and then click on the Run button that pops-up.
 
 
 #### End-to-end Tests
