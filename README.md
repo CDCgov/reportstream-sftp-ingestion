@@ -81,7 +81,7 @@ match your newly-created file
    ```json
    {
    "topic": "/subscriptions/52203171-a2ed-4f6c-b5cf-9b368c43f15b/resourceGroups/csels-rsti-internal-moderate-rg/providers/Microsoft.Storage/storageAccounts/cdcrssftpinternal",
-   "subject": "/blobServices/default/containers/sftp/blobs/order_message.hl7",
+   "subject": "/blobServices/default/containers/sftp/blobs/import/order_message.hl7",
    "eventType": "Microsoft.Storage.BlobCreated",
    "id": "dac45448-001e-0031-7649-b8ad2c06c977",
    "data": {
@@ -92,7 +92,7 @@ match your newly-created file
    "contentType": "application/octet-stream",
    "contentLength": 1122,
    "blobType": "BlockBlob",
-   "url": "https://cdcrssftpinternal.blob.core.windows.net/sftp/order_message.hl7",
+   "url": "http://127.0.0.1:12000/devstoreaccount1/sftp/import/order_message.hl7",
    "sequencer": "00000000000000000000000000024DA1000000000006ab03",
    "storageDiagnostics": {
    "batchId": "6677b768-3006-0093-0049-b89735000000"
@@ -114,11 +114,30 @@ As of 7/3/24, when we copy a file from the local SFTP server, we try to unzip it
 files into the import folder, and if there are any errors, we upload an error file for the zip. If the original file is
 not a zip, we just copy it into the import folder.
 
-#### Manual cloud testing
-To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure portal.
+#### Manual Cloud Testing
+
+##### Upload to Our Azure Container
+
+To trigger file ingestion in a deployed environment, go to the `cdcrssftp{env}` storage account in the Azure Portal.
 In the `sftp` container, upload a file to an `import` folder. If that folder doesn't already exist, you can create
 it by going to `Upload`, expanding `Advanced`, and putting `import` in the `Upload to folder` box!
 [upload_file.png](docs/upload_file.png)
+
+##### Upload to SFTP Server
+
+Log into CA's SFTP staging environment and drop a file into the `OUTPUT` folder.  You can either wait for one of our
+lower environments to trigger, or you can manually trigger the Azure function from the Azure Portal.
+
+The credentials and domain name for CA's SFTP environment can be found in Keybase under CA Info.
+
+To manually trigger the Azure function...
+
+1. If this is in an Azure Entra domain environment, you will need to log in as your -SU account.
+2. Go to the `polling-function-{env}` function app in the Azure Portal.
+3. Navigate to the CORS section, and add `https://portal.azure.com` as an allowed origin.  Click save.
+4. Navigate back to the Overview section, and click on the trigger function.
+5. Click on the Test/Run button, and then click on the Run button that pops-up.
+
 
 #### End-to-end Tests
 
@@ -172,6 +191,10 @@ PR reviews before merge.
 
 The Production environment is the real deal.  It deploys to a CDC Azure Entra domain and subscription.  Deployments
 occur when a release is published.
+
+### Secrets
+
+See [SECRETS.md](./SECRETS.md) for a description of our secrets.
 
 ## Related documents
 

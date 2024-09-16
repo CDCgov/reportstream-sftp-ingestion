@@ -33,7 +33,7 @@ terraform.tfstate*
 .terraform*
 
 # Local blob storage data
-/localdata
+/localdata/data
 
 
 # Items added by creating the Azure function:

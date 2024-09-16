@@ -15,6 +15,8 @@ import (
 	"testing"
 )
 
+const reportStreamPrivateKeyName = "ca-phl-reportstream-private-key-local"
+
 type SenderTestSuite struct {
 	suite.Suite
 }
@@ -22,15 +24,13 @@ type SenderTestSuite struct {
 func (suite *SenderTestSuite) SetupTest() {
 	os.Setenv("ENV", "local")
 	os.Setenv("REPORT_STREAM_URL_PREFIX", "rs.com")
-	os.Setenv("FLEXION_PRIVATE_KEY_NAME", "key")
-	os.Setenv("FLEXION_CLIENT_NAME", "client")
+	os.Setenv("CA_PHL_CLIENT_NAME", "client")
 }
 
 func (suite *SenderTestSuite) TearDownTest() {
 	os.Unsetenv("ENV")
 	os.Unsetenv("REPORT_STREAM_URL_PREFIX")
-	os.Unsetenv("FLEXION_PRIVATE_KEY_NAME")
-	os.Unsetenv("FLEXION_CLIENT_NAME")
+	os.Unsetenv("CA_PHL_CLIENT_NAME")
 }
 
 func (suite *SenderTestSuite) Test_NewSender_VariablesAreSet_ReturnsSender() {
@@ -39,8 +39,7 @@ func (suite *SenderTestSuite) Test_NewSender_VariablesAreSet_ReturnsSender() {
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.baseUrl)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.privateKeyName)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_CLIENT_NAME"), sender.clientName)
 }
 
 func (suite *SenderTestSuite) Test_NewSender_EnvIsEmpty_ReturnsSenderWithLocalCredentials() {
@@ -49,19 +48,17 @@ func (suite *SenderTestSuite) Test_NewSender_EnvIsEmpty_ReturnsSenderWithLocalCr
 
 	assert.NoError(suite.T(), err)
 	assert.Equal(suite.T(), os.Getenv("REPORT_STREAM_URL_PREFIX"), sender.baseUrl)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_PRIVATE_KEY_NAME"), sender.privateKeyName)
-	assert.Equal(suite.T(), os.Getenv("FLEXION_CLIENT_NAME"), sender.clientName)
+	assert.Equal(suite.T(), os.Getenv("CA_PHL_CLIENT_NAME"), sender.clientName)
 }
 
 func (suite *SenderTestSuite) Test_GenerateJWT_ReturnsJWT() {
-
 	sender, err := NewSender()
 
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 	jwt, err := sender.generateJwt()
 
 	assert.NoError(suite.T(), err)
@@ -75,7 +72,7 @@ func (suite *SenderTestSuite) Test_GenerateJWT_UnableToGetPrivateKey_ReturnsErro
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
 	_, err = sender.generateJwt()
 
 	assert.Error(suite.T(), err)
@@ -88,7 +85,7 @@ func (suite *SenderTestSuite) Test_getToken_ReturnsAccessToken() {
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -119,7 +116,7 @@ func (suite *SenderTestSuite) Test_getToken_UnableToGenerateJWT_ReturnsError() {
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	sender.credentialGetter = mockCredentialGetter
 
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(&rsa.PrivateKey{}, errors.New("failed to retrieve private key"))
 	token, err := sender.getToken()
 
 	assert.Error(suite.T(), err)
@@ -134,7 +131,7 @@ func (suite *SenderTestSuite) Test_getToken_UnableToCallTokenEndpoint_ReturnsErr
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	token, err := sender.getToken()
 
@@ -149,7 +146,7 @@ func (suite *SenderTestSuite) Test_getToken_ReportStreamResponseStatusIsInvalid_
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -181,7 +178,7 @@ func (suite *SenderTestSuite) Test_getToken_UnableToMarshallResponseBody_Returns
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -209,7 +206,7 @@ func (suite *SenderTestSuite) Test_SendMessage_MessageSentToReportStream_Returns
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -273,7 +270,7 @@ func (suite *SenderTestSuite) Test_SendMessage_UnableToGetToken_ReturnsError() {
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, errors.New(utils.ErrorKey))
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, errors.New(utils.ErrorKey))
 
 	message, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "order_message.hl7"))
 
@@ -291,7 +288,7 @@ func (suite *SenderTestSuite) Test_SendMessage_UnableToCallTokenEndpoint_Returns
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -330,7 +327,7 @@ func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove300_ReturnsError
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -396,7 +393,7 @@ func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIs400_ReturnsNonTransie
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -465,7 +462,7 @@ func (suite *SenderTestSuite) Test_SendMessage_StatusCodeIsAbove499_ReturnsError
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	assert.NoError(suite.T(), err)
 
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
@@ -531,7 +528,7 @@ func (suite *SenderTestSuite) Test_SendMessage_UnableToParseResponseBody_Returns
 	sender.credentialGetter = mockCredentialGetter
 
 	testKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	mockCredentialGetter.On("GetPrivateKey", "key").Return(testKey, nil)
+	mockCredentialGetter.On("GetPrivateKey", reportStreamPrivateKeyName).Return(testKey, nil)
 
 	// Set up a test server for ReportStream
 	// Response parts: Body, Status Code, Access Token (part of body), Error (part of body)
