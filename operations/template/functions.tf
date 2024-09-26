@@ -13,6 +13,8 @@ resource "azurerm_linux_function_app" "polling_trigger_function_app" {
     POLLING_TRIGGER_QUEUE_NAME      = azurerm_storage_queue.polling_trigger_queue.name
     CA_DPH_POLLING_CRON             = var.cron
 
+    WEBSITE_TIME_ZONE = "America/Los_Angeles"
+
     # Makes the Github Action run significantly faster by not copying the node_modules
     WEBSITE_RUN_FROM_PACKAGE = 1
   }
