@@ -358,7 +358,7 @@ func Test_copySingleFile_FailsToCloseFile_LogsError(t *testing.T) {
 	assert.Contains(t, buffer.String(), "Failed to close file after reading")
 }
 
-func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
+func Test_copySingleFile_FileIsNotZipFile_DoesNotUnzipFile(t *testing.T) {
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
@@ -382,12 +382,11 @@ func Test_copySingleFile_FileIsNotZipFile_LogThatFileIsSkipped(t *testing.T) {
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
 	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	mockZipHandler.AssertNotCalled(t, "Unzip", mock.Anything)
+	mockSftpClient.AssertCalled(t, "Remove", mock.Anything)
 	assert.Contains(t, buffer.String(), "Considering file")
 	assert.NotContains(t, buffer.String(), "Skipping directory")
-	assert.NotContains(t, buffer.String(), "Failed to open file")
-	assert.NotContains(t, buffer.String(), "Failed to read file")
-	assert.NotContains(t, buffer.String(), "Failed to upload file")
-	assert.Contains(t, buffer.String(), "This is not a zip file so we won't unzip it before import")
+	assert.Contains(t, buffer.String(), "Successfully copied file and removed from SFTP server")
 }
 
 func Test_copySingleFile_FailsToUploadFile_LogsError(t *testing.T) {
