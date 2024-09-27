@@ -238,27 +238,24 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
-	if !strings.Contains(fileInfo.Name(), ".zip") {
-		slog.Info("This is not a zip file so we won't unzip it before import", slog.String(utils.FileNameKey, fileInfo.Name()))
-		return
-	}
+	if strings.Contains(fileInfo.Name(), ".zip") {
+		// write file to local filesystem
+		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
+		if err != nil {
+			slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+			return
+		}
 
-	// write file to local filesystem
-	err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
-	if err != nil {
-		slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
-		return
-	}
+		err = receiver.zipHandler.Unzip(fileInfo.Name())
+		if err != nil {
+			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
+		}
 
-	err = receiver.zipHandler.Unzip(fileInfo.Name())
-	if err != nil {
-		slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
-	}
-
-	//delete file from local filesystem
-	err = os.Remove(fileInfo.Name())
-	if err != nil {
-		slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+		//delete file from local filesystem
+		err = os.Remove(fileInfo.Name())
+		if err != nil {
+			slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
+		}
 	}
 
 	err = receiver.sftpClient.Remove(fullFilePath)
