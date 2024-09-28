@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@azure/functions": "4.5.1",
-    "@azure/storage-queue": "12.23.0"
+    "@azure/storage-queue": "12.24.0"
   },
   "devDependencies": {
     "@types/node": "20.16.10",
