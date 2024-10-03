@@ -79,12 +79,15 @@ jobs:
       - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
           FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
-          echo "::add-mask::$FUNCTION_LIST"
-          echo "FUNCTION_LIST" >> $GITHUB_OUTPUT
+          if [[ $FUNCTION_LIST == *"ResourceNotFound"*]]; then 
+            FAIL=true
+          fi
+          echo "::add-mask::FAIL"
+          echo "FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
       - name: 'Azure FunctionApp Check'
-        if: steps.getFunctionList.outputs.FUNCTION_LIST == ''
+        if: steps.getFunctionList.outputs.FAIL == true
         run: |
           echo 'Azure FunctionApp Function is empty'
           exit 1  
