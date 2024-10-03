@@ -84,7 +84,7 @@ jobs:
             FAIL="true" 
           fi 
           echo "$FAIL"
-          echo "$FAIL" >> $GITHUB_OUTPUT
+          echo "FAIL=$FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
       - name: 'Azure FunctionApp Check'
