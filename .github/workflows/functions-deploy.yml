@@ -82,8 +82,8 @@ jobs:
           if [[ $FUNCTION_LIST == *"ResourceNotFound"*]]; then 
             FAIL=true
           fi
-          echo "::add-mask::FAIL"
-          echo "FAIL" >> $GITHUB_OUTPUT
+          echo "::add-mask::$FAIL"
+          echo "$FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
       - name: 'Azure FunctionApp Check'
