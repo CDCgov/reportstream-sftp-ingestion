@@ -82,6 +82,7 @@ jobs:
           if [[ $FUNCTION_LIST == *"ResourceNotFound"* ]]; then 
             FAIL=true 
           fi 
+          echo "$FAIL"
           echo "$FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
