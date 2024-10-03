@@ -32,7 +32,7 @@ resource "azurerm_log_analytics_query_pack_query" "structured_application_logs" 
   query_pack_id = azurerm_log_analytics_query_pack.application_logs_pack.id
   categories    = ["applications"]
 
-  body = "AppServiceConsoleLogs | extend JsonResult = parse_json(ResultDescription) | project-away TimeGenerated, Level, ResultDescription, Host, Type, _ResourceId, OperationName, TenantId, SourceSystem | evaluate bag_unpack(JsonResult)"
+  body = "AppServiceConsoleLogs | project JsonResult = parse_json(ResultDescription) | evaluate bag_unpack(JsonResult) | project-reorder ['time'], level, msg"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "app_to_logs" {
