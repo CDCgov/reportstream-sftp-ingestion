@@ -78,6 +78,7 @@ jobs:
 
       - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
+          FAIL=false
           FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
           if [[ $FUNCTION_LIST == *"ResourceNotFound"* ]]; then 
             FAIL=true 
