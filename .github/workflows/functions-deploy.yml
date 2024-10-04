@@ -61,25 +61,25 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: 'Get Publish Profile'
-        run: |
-          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}" --xml)
-          echo "::add-mask::$PUBLISH_PROFILE"
-          echo "PUBLISH_PROFILE=$PUBLISH_PROFILE" >> $GITHUB_OUTPUT
-        id: getPublishProfile
-
-      - name: 'Run Azure Functions Action'
-        uses: Azure/functions-action@v1
-        id: azure-function-deploy
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
+#      - name: 'Get Publish Profile'
+#        run: |
+#          PUBLISH_PROFILE=$(az webapp deployment list-publishing-profiles -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}" --xml)
+#          echo "::add-mask::$PUBLISH_PROFILE"
+#          echo "PUBLISH_PROFILE=$PUBLISH_PROFILE" >> $GITHUB_OUTPUT
+#        id: getPublishProfile
+#
+#      - name: 'Run Azure Functions Action'
+#        uses: Azure/functions-action@v1
+#        id: azure-function-deploy
+#        with:
+#          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+#          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+#          publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
 
       - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
           FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
-          if [[ $FUNCTION_LIST == *"ResourceNotFound"*]]; then 
+          if [[ $FUNCTION_LIST == *"[]"* ]]; then 
             FAIL=true
           fi
           echo "::add-mask::FAIL"
