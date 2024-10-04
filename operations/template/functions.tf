@@ -1,6 +1,6 @@
 # resource for Azure Functions for SFTP
 resource "azurerm_linux_function_app" "polling_trigger_function_app" {
-  name                       = "polling-function-${var.environment}-test"
+  name                       = "polling-function-${var.environment}"
   location                   = data.azurerm_resource_group.group.location
   resource_group_name        = data.azurerm_resource_group.group.name
   service_plan_id            = azurerm_service_plan.plan.id
