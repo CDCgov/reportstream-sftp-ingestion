@@ -85,7 +85,7 @@ jobs:
           echo "FAIL=$FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
-      - name: 'Azure FunctionApp Check'
+      - name: 'Azure FunctionApp Failed'
         if: steps.getFunctionList.outputs.FAIL == 'true'
         run: |
           echo 'Azure FunctionApp Function is empty'
