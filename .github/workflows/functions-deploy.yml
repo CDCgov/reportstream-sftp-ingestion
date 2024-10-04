@@ -86,7 +86,7 @@ jobs:
         id: getFunctionList
 
       - name: 'Azure FunctionApp Check'
-        if: steps.getFunctionList.outputs.FAIL == true
+        if: steps.getFunctionList.outputs.FAIL == 'true'
         run: |
           echo 'Azure FunctionApp Function is empty'
           exit 1 
