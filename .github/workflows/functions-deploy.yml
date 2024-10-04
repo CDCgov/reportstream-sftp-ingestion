@@ -76,6 +76,17 @@ jobs:
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           publish-profile: ${{ steps.getPublishProfile.outputs.PUBLISH_PROFILE }}
 
-      - name: 'Validate that Azure FunctionApp loaded Functions'
+      - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
-          az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}"
+          FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
+          if [[ $FUNCTION_LIST == *"[]"* ]]; then 
+            FAIL=true
+          fi
+          echo "FAIL=$FAIL" >> $GITHUB_OUTPUT
+        id: getFunctionList
+
+      - name: 'Azure FunctionApp Failed'
+        if: steps.getFunctionList.outputs.FAIL == 'true'
+        run: |
+          echo 'Azure FunctionApp Function is empty'
+          exit 1 
