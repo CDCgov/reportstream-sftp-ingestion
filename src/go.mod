@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
 	github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid v1.0.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets v1.1.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.4.1
@@ -30,7 +30,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
