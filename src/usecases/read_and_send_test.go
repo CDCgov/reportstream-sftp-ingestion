@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -67,6 +69,29 @@ func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockBlobHandler.AssertCalled(t, "MoveFile", utils.SourceUrl, utils.SuccessSourceUrl)
+}
+
+func Test_ConvertToUtf8_ConvertsSuccessfully_ReturnsEncodedContent(t *testing.T) {
+	mockBlobHandler := &mocks.MockBlobHandler{}
+	mockMessageSender := &MockMessageSender{}
+	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	originalContent, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "ISO-8859-1.hl7"))
+	// The mu character is a single byte (0xb5 in hex or 181 in decimal) in the western ISO 8859-1 encoding
+	// In UTF-8, it's two bytes (0xc2 0xb5 in hex or 194 181 in decimal)
+	utfMu := string([]byte{194, 181})
+	westernMu := string([]byte{181})
+
+	encodedContent, err := usecase.ConvertToUtf8(originalContent)
+
+	assert.NoError(t, err)
+	assert.NotEqual(t, originalContent, encodedContent)
+
+	// Since the byte form of the UTF mu contains the byte form of the western mu and
+	// Go checks `Contains` using bytes, we can't assert that the encoded content
+	// doesn't contain the western mu (because byte-wise, it does)
+	assert.Contains(t, string(encodedContent), utfMu)
+	assert.Contains(t, string(originalContent), westernMu)
+	assert.NotContains(t, string(originalContent), utfMu)
 }
 
 func Test_moveFile_UrlMatchesExpectedPattern_UpdatesUrlAndMovesFile(t *testing.T) {
