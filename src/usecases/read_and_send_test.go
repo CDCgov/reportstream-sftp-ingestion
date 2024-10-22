@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -67,6 +69,38 @@ func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 
 	assert.NoError(t, err)
 	mockBlobHandler.AssertCalled(t, "MoveFile", utils.SourceUrl, utils.SuccessSourceUrl)
+}
+
+func Test_ConvertToUtf8_ConvertsSuccessfully_ReturnsEncodedContent(t *testing.T) {
+	usecase := ReadAndSendUsecase{}
+	originalContent, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "ISO-8859-1.hl7"))
+	// The mu character is a single byte (0xb5 in hex or 181 in decimal) in the western ISO 8859-1 encoding
+	// In UTF-8, it's two bytes (0xc2 0xb5 in hex or 194 181 in decimal)
+	utfMu := []byte{194, 181}
+	westernMu := []byte{181}
+
+	encodedContent, err := usecase.ConvertToUtf8(originalContent)
+
+	assert.NoError(t, err)
+	assert.NotEqual(t, originalContent, encodedContent)
+
+	// Since the byte form of the UTF mu contains the byte form of the western mu,
+	// we can't assert that the encoded content doesn't contain the western mu
+	assert.Subset(t, encodedContent, utfMu)
+	assert.Subset(t, originalContent, westernMu)
+	assert.NotSubset(t, originalContent, utfMu)
+}
+
+func Test_ConvertToUtf8_SourceDataIsNotWesternEncoded_GarblesContent(t *testing.T) {
+	usecase := ReadAndSendUsecase{}
+	originalContent := "µmol/L"
+	doubleEncoded := "Âµmol/L"
+
+	encodedContent, err := usecase.ConvertToUtf8([]byte(originalContent))
+
+	assert.NoError(t, err)
+	assert.NotEqual(t, originalContent, encodedContent)
+	assert.Equal(t, doubleEncoded, string(encodedContent))
 }
 
 func Test_moveFile_UrlMatchesExpectedPattern_UpdatesUrlAndMovesFile(t *testing.T) {

@@ -77,7 +77,7 @@ func (sender Sender) getToken() (string, error) {
 	}
 
 	data := url.Values{
-		"scope":                 {"ca-phl.*.report"},
+		"scope":                 {"ca-phl.*.report"}, // TODO - this needs to be flexion locally and ca-phl elsewhere
 		"grant_type":            {"client_credentials"},
 		"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
 		"client_assertion":      {senderJwt},
