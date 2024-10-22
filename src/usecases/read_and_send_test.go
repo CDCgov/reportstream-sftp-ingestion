@@ -72,9 +72,7 @@ func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 }
 
 func Test_ConvertToUtf8_ConvertsSuccessfully_ReturnsEncodedContent(t *testing.T) {
-	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockMessageSender := &MockMessageSender{}
-	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := ReadAndSendUsecase{}
 	originalContent, _ := os.ReadFile(filepath.Join("..", "..", "mock_data", "ISO-8859-1.hl7"))
 	// The mu character is a single byte (0xb5 in hex or 181 in decimal) in the western ISO 8859-1 encoding
 	// In UTF-8, it's two bytes (0xc2 0xb5 in hex or 194 181 in decimal)
@@ -95,9 +93,7 @@ func Test_ConvertToUtf8_ConvertsSuccessfully_ReturnsEncodedContent(t *testing.T)
 }
 
 func Test_ConvertToUtf8_SourceDataIsNotWesternEncoded_GarblesContent(t *testing.T) {
-	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockMessageSender := &MockMessageSender{}
-	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	usecase := ReadAndSendUsecase{}
 	originalContent := "µmol/L"
 	doubleEncoded := "Âµmol/L"
 
