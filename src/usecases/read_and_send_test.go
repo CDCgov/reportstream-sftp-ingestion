@@ -94,6 +94,20 @@ func Test_ConvertToUtf8_ConvertsSuccessfully_ReturnsEncodedContent(t *testing.T)
 	assert.NotContains(t, string(originalContent), utfMu)
 }
 
+func Test_ConvertToUtf8_SourceDataIsNotWesternEncoded_GarblesContent(t *testing.T) {
+	mockBlobHandler := &mocks.MockBlobHandler{}
+	mockMessageSender := &MockMessageSender{}
+	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler, messageSender: mockMessageSender}
+	originalContent := "µmol/L"
+	doubleEncoded := "Âµmol/L"
+
+	encodedContent, err := usecase.ConvertToUtf8([]byte(originalContent))
+
+	assert.NoError(t, err)
+	assert.NotEqual(t, originalContent, encodedContent)
+	assert.Equal(t, doubleEncoded, string(encodedContent))
+}
+
 func Test_moveFile_UrlMatchesExpectedPattern_UpdatesUrlAndMovesFile(t *testing.T) {
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
