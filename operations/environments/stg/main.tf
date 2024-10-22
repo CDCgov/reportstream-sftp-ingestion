@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "4.5.0"
+      version = "4.6.0"
     }
   }
 
@@ -30,5 +30,5 @@ module "template" {
 
   environment = "stg"
   deployer_id = "f5feabe7-5d37-40ba-94f2-e5c0760b4561" //github app registration in CDC Azure Entra
-  cron        = "0 30 9 * * 1-5"                       // Every weekday at 9:30 AM
+  cron        = "* * * 30 Feb *"                       //run every second of February 30th, which never happens and is the equivalent of never running
 }
