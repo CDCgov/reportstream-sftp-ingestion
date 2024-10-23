@@ -13,10 +13,6 @@ on:
         type: string
         required: false
         default: ""
-      TERRAFORM_APPLY_PARAMETERS:
-        type: string
-        required: false
-        default: ""
     secrets:
       AZURE_CLIENT_ID:
         required: true
@@ -24,6 +20,8 @@ on:
         required: true
       AZURE_SUBSCRIPTION_ID:
         required: true
+      TERRAFORM_APPLY_PARAMETERS:
+        required: false
     outputs:
       REGISTRY:
         description: The container registry
@@ -67,7 +65,7 @@ jobs:
         run: terraform validate -no-color
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false ${{ inputs.TERRAFORM_APPLY_PARAMETERS }}
+        run: terraform apply -auto-approve -input=false ${{ secrets.TERRAFORM_APPLY_PARAMETERS }}
 
       - name: Login via Azure CLI
         uses: azure/login@v2
