@@ -2,7 +2,7 @@ resource "azurerm_monitor_action_group" "notify_slack_email" {
   count               = local.non_pr_environment ? 1 : 0
   name                = "cdc-rs-sftp-${var.environment}-actiongroup"
   resource_group_name = data.azurerm_resource_group.group.name
-  short_name          = "cdcti-alerts"
+  short_name          = "cdc-rs-sftp-alerts"
 
   email_receiver {
     name          = "cdc-rs-sftp-flexion-slack-email-receiver"
