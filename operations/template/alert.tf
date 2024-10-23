@@ -70,7 +70,7 @@ resource "azurerm_monitor_metric_alert" "azure_4XX_alert" {
 
 resource "azurerm_monitor_metric_alert" "azure_5XX_alert" {
   count               = local.non_pr_environment ? 1 : 0
-  name                = "cdcti-${var.environment}-azure-http-5XX-alert"
+  name                = "cdc-rs-sftp-${var.environment}-azure-http-5XX-alert"
   resource_group_name = data.azurerm_resource_group.group.name
   scopes              = [azurerm_linux_web_app.sftp.id]
   description         = "Action will be triggered when Http Status Code 5XX is greater than or equal to 1"
