@@ -30,7 +30,7 @@ resource "azurerm_resource_group" "group" { //create the PR resource group becau
 }
 
 module "template" {
-  source            = "../../template/"
+  source = "../../template/"
 
   environment       = "pr${var.pr_number}"
   deployer_id       = "d59c2c86-de5e-41b7-a752-0869a73f5a60" //github app registration in Flexion Azure Entra
