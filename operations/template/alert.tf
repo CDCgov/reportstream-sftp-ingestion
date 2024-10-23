@@ -1,4 +1,5 @@
 data "azurerm_monitor_action_group" "notify_slack_email" {
+  count               = local.non_pr_environment ? 1 : 0
   resource_group_name = data.azurerm_resource_group.group.name
   name                = "cdcti${var.environment}-actiongroup"
 }
