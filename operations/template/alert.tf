@@ -1,31 +1,6 @@
-resource "azurerm_monitor_action_group" "notify_slack_email" {
-  count               = local.non_pr_environment ? 1 : 0
-  name                = "cdc-rs-sftp-${var.environment}-actiongroup"
+data "azurerm_monitor_action_group" "notify_slack_email" {
   resource_group_name = data.azurerm_resource_group.group.name
-  short_name          = "cdcti-alerts"
-
-  email_receiver {
-    name          = "cdc-rs-sftp-flexion-slack-email-receiver"
-    email_address = var.alert_slack_email
-  }
-
-  #   below tags are managed by CDC
-  lifecycle {
-    ignore_changes = [
-      tags["business_steward"],
-      tags["center"],
-      tags["environment"],
-      tags["escid"],
-      tags["funding_source"],
-      tags["pii_data"],
-      tags["security_compliance"],
-      tags["security_steward"],
-      tags["support_group"],
-      tags["system"],
-      tags["technical_steward"],
-      tags["zone"]
-    ]
-  }
+  name                = "cdcti${var.environment}-actiongroup"
 }
 
 resource "azurerm_monitor_metric_alert" "azure_4XX_alert" {
@@ -46,7 +21,7 @@ resource "azurerm_monitor_metric_alert" "azure_4XX_alert" {
   }
 
   action {
-    action_group_id = azurerm_monitor_action_group.notify_slack_email[count.index].id
+    action_group_id = data.azurerm_resource_group.group[count.index].id
   }
 
   lifecycle {
