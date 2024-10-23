@@ -4,6 +4,12 @@
 
 Go installed on your machine
 
+## A Note on File Encoding
+As of October 2024, we are only connecting to CADPH. Their SFTP site uses ISO 8859-1 encoding, which
+must be converted to UTF-8 before sending to ReportStream or special characters will be garbled.
+Before we can connect with any partners who use another encoding, we'll need to make encoding
+conversion configurable.
+
 ## Using and Running
 
 To run the application use the below command

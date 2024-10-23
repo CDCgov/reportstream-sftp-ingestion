@@ -4,6 +4,7 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/senders"
 	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
+	"golang.org/x/text/encoding/charmap"
 	"log/slog"
 	"os"
 	"strings"
@@ -57,7 +58,13 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 		return err
 	}
 
-	reportId, err := receiver.messageSender.SendMessage(content)
+	encodedContent, err := receiver.ConvertToUtf8(content)
+	if err != nil {
+		slog.Error("Failed to encode content", slog.String("filepath", sourceUrl), slog.Any(utils.ErrorKey, err))
+		return err
+	}
+
+	reportId, err := receiver.messageSender.SendMessage(encodedContent)
 	if err != nil {
 		slog.Error("Failed to send the file to ReportStream", slog.Any(utils.ErrorKey, err), slog.String("sourceUrl", sourceUrl))
 
@@ -78,6 +85,17 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 	receiver.moveFile(sourceUrl, utils.SuccessFolder)
 
 	return nil
+}
+
+// ConvertToUtf8 converts an HL7 file to UTF-8 encoding, which ReportStream expects
+// CADPH files are ISO-8859-1, so for now we'll assume all files are this format
+// TODO - make this conversion dynamic, possibly by file detection or partner config
+func (receiver *ReadAndSendUsecase) ConvertToUtf8(content []byte) ([]byte, error) {
+	encodedContent, err := charmap.ISO8859_1.NewDecoder().Bytes(content)
+	if err != nil {
+		return nil, err
+	}
+	return encodedContent, nil
 }
 
 func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName string) {
