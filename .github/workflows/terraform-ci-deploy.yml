@@ -36,7 +36,7 @@ jobs:
       ENVIRONMENT: pr
       TERRAFORM_DIRECTORY: operations/environments/pr
       TERRAFORM_INIT_PARAMETERS: -backend-config="key=rs_sftp_pr_${{ github.event.number }}.tfstate"
-      TERRAFORM_APPLY_PARAMETERS: -var="pr_number=${{ github.event.number }}"
+      TERRAFORM_APPLY_PARAMETERS: -var="pr_number=${{ github.event.number }}" -var="alert_slack_email=${{ secrets.ALERT_SLACK_EMAIL }}"
     secrets:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
