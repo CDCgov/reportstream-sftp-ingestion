@@ -21,7 +21,7 @@ resource "azurerm_monitor_metric_alert" "azure_4XX_alert" {
   }
 
   action {
-    action_group_id = data.azurerm_resource_group.group[count.index].id
+    action_group_id = data.azurerm_monitor_action_group.notify_slack_email.id
   }
 
   lifecycle {
