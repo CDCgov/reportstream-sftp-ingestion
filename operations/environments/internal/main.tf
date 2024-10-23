@@ -28,7 +28,8 @@ provider "azurerm" {
 module "template" {
   source = "../../template/"
 
-  environment = "internal"
-  deployer_id = "d59c2c86-de5e-41b7-a752-0869a73f5a60" //github app registration in Flexion Azure Entra
-  cron        = "* * * 30 Feb *"                       //run every second of February 30th, which never happens and is the equivalent of never running.  If you want to run this, manually trigger the function in Azure.
+  environment       = "internal"
+  deployer_id       = "d59c2c86-de5e-41b7-a752-0869a73f5a60" //github app registration in Flexion Azure Entra
+  cron              = "* * * 30 Feb *"                       //run every second of February 30th, which never happens and is the equivalent of never running.  If you want to run this, manually trigger the function in Azure.
+  alert_slack_email = var.alert_slack_email
 }
