@@ -77,16 +77,6 @@ func setupLogging() {
 func setupHealthCheck() {
 	slog.Info("Bootstrapping health check")
 
-	http.HandleFunc("/test400", func(response http.ResponseWriter, request *http.Request) {
-		slog.Info("4xx ping", slog.String("method", request.Method), slog.String("path", request.URL.String()))
-
-		response.WriteHeader(400)
-		_, err := io.WriteString(response, "400 Peters are Great")
-		if err != nil {
-			slog.Error("Failed to respond to health check", slog.Any(utils.ErrorKey, err))
-		}
-	})
-
 	http.HandleFunc("/", func(response http.ResponseWriter, request *http.Request) {
 		slog.Info("Health check ping", slog.String("method", request.Method), slog.String("path", request.URL.String()))
 
