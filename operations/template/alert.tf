@@ -91,7 +91,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "rs_sftp_log_errors_alert
   resource_group_name = data.azurerm_resource_group.group.name
 
   action {
-    action_group  = data.azurerm_monitor_action_group.notify_slack_email[count.index].id
+    action_group  = [data.azurerm_monitor_action_group.notify_slack_email[count.index].id]
     email_subject = "${var.environment}: RS SFTP log errors detected!"
   }
 
