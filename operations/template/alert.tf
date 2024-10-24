@@ -83,3 +83,55 @@ resource "azurerm_monitor_metric_alert" "azure_5XX_alert" {
     ]
   }
 }
+
+resource "azurerm_monitor_scheduled_query_rules_alert" "rs_sftp_log_errors_alert" {
+  count               = local.non_pr_environment ? 1 : 0
+  name                = "cdc-rs-sftp-${var.environment}-log-errors-alert"
+  location            = data.azurerm_resource_group.group.location
+  resource_group_name = data.azurerm_resource_group.group.name
+
+  action {
+    action_group  = [data.azurerm_monitor_action_group.notify_slack_email[count.index].id]
+    email_subject = "${var.environment}: RS SFTP log errors detected!"
+  }
+
+  data_source_id = azurerm_linux_web_app.sftp.id
+  description    = "Alert when total errors cross threshold"
+  enabled        = true
+
+  query = <<-QUERY
+      AppServiceConsoleLogs
+      | project columnifexists("ResultDescription", 'default_value')
+      | project  JsonResult = parse_json(ResultDescription)
+      | evaluate bag_unpack(JsonResult) : (level: string, msg: string)
+      | where level in ( 'ERROR' )
+    QUERY
+
+  severity                = 3
+  frequency               = 5
+  time_window             = 15
+  auto_mitigation_enabled = true
+
+  trigger {
+    operator  = "GreaterThanOrEqual"
+    threshold = 1
+  }
+
+  #   below tags are managed by CDC
+  lifecycle {
+    ignore_changes = [
+      tags["business_steward"],
+      tags["center"],
+      tags["environment"],
+      tags["escid"],
+      tags["funding_source"],
+      tags["pii_data"],
+      tags["security_compliance"],
+      tags["security_steward"],
+      tags["support_group"],
+      tags["system"],
+      tags["technical_steward"],
+      tags["zone"]
+    ]
+  }
+}
