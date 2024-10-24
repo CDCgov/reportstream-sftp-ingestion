@@ -151,7 +151,7 @@ resource "azurerm_monitor_metric_alert" "low_instance_count_alert" {
     metric_name      = "ObservedCapacity"
     aggregation      = "Average"
     operator         = "LessThanOrEqual"
-    threshold        = azurerm_monitor_autoscale_setting.sftp_autoscale.profile[0].capacity[0].default + 0.5
+    threshold        = azurerm_monitor_autoscale_setting.sftp_autoscale.profile[0].capacity[0].default - 0.5
   }
 
   action {
