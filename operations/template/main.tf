@@ -9,6 +9,7 @@ locals {
   higher_environment_level       = var.environment == "stg" || var.environment == "prd"
   cdc_domain_environment         = var.environment == "dev" || var.environment == "stg" || var.environment == "prd"
   non_pr_environment             = length(regexall("^pr\\d+", var.environment)) == 0
+  cheezburger                    = "cheezburger"
 }
 
 data "azurerm_resource_group" "group" {
