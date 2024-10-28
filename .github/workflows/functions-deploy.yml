@@ -79,7 +79,12 @@ jobs:
       - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
           FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
-          if [[ $FUNCTION_LIST == *"[]"* ]]; then 
+          if [[ $FUNCTION_LIST == *"[]"* ]]; then
+            echo 'Azure FunctionApp Function is empty. Sleeping 15 seconds, then will check again'
+            sleep 15
+            FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
+          fi
+          if [[ $FUNCTION_LIST == *"[]"* ]]; then
             FAIL=true
           fi
           echo "FAIL=$FAIL" >> $GITHUB_OUTPUT
@@ -89,4 +94,4 @@ jobs:
         if: steps.getFunctionList.outputs.FAIL == 'true'
         run: |
           echo 'Azure FunctionApp Function is empty'
-          exit 1 
+          exit 1
