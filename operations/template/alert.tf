@@ -104,7 +104,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "rs_sftp_log_errors_alert
       | where _ResourceId !contains "pre-live"
       | project columnifexists("ResultDescription", 'default_value')
       | project  JsonResult = parse_json(ResultDescription)
-      | evaluate bag_unpack(JsonResult) : (level: string, msg: string, ["@timestamp"]: string)
+      | evaluate bag_unpack(JsonResult) : (level: string, msg: string, ["time"]: string)
       | where level in ( 'ERROR' )
     QUERY
 
