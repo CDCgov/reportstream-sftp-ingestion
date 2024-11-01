@@ -11,7 +11,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/functions": "4.5.1",
+    "@azure/functions": "4.6.0",
     "@azure/storage-queue": "12.24.0"
   },
   "devDependencies": {
