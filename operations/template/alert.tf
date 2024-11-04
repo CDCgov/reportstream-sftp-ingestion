@@ -177,3 +177,85 @@ resource "azurerm_monitor_metric_alert" "low_instance_count_alert" {
     ]
   }
 }
+
+resource "azurerm_monitor_metric_alert" "rs_sftp_dynamic_memory_alert" {
+  count               = local.non_pr_environment ? 1 : 0
+  name                = "cdc-rs-sftp-${var.environment}-dynamic-memory-alert"
+  resource_group_name = data.azurerm_resource_group.group.name
+  scopes              = [azurerm_linux_web_app.sftp.id]
+  description         = "Alert when memory usage is high on CDC RS SFTP"
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  dynamic_criteria {
+    metric_name       = "MemoryWorkingSet"
+    metric_namespace  = "Microsoft.Web/sites"
+    aggregation       = "Average"
+    operator          = "GreaterThan"
+    alert_sensitivity = "Medium"
+  }
+
+  action {
+    action_group_id = data.azurerm_monitor_action_group.notify_slack_email[count.index].id
+  }
+
+  lifecycle {
+    # Ignore changes to tags because the CDC sets these automagically
+    ignore_changes = [
+      tags["business_steward"],
+      tags["center"],
+      tags["environment"],
+      tags["escid"],
+      tags["funding_source"],
+      tags["pii_data"],
+      tags["security_compliance"],
+      tags["security_steward"],
+      tags["support_group"],
+      tags["system"],
+      tags["technical_steward"],
+      tags["zone"]
+    ]
+  }
+}
+
+resource "azurerm_monitor_metric_alert" "rs_sftp_memory_alert" {
+  count               = local.non_pr_environment ? 1 : 0
+  name                = "cdc-rs-sftp-${var.environment}-memory-alert"
+  resource_group_name = data.azurerm_resource_group.group.name
+  scopes              = [azurerm_linux_web_app.sftp.id]
+  description         = "Alert when memory usage is high on CDC RS SFTP"
+  severity            = 2
+  frequency           = "PT5M"
+  window_size         = "PT15M"
+
+  criteria {
+    metric_name      = "MemoryWorkingSet"
+    metric_namespace = "Microsoft.Web/sites"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = local.higher_environment_level ? 4000000000 : 2000000000 #4gb and 2gb in bytes. This is half what the service plan allows
+  }
+
+  action {
+    action_group_id = data.azurerm_monitor_action_group.notify_slack_email[count.index].id
+  }
+
+  lifecycle {
+    # Ignore changes to tags because the CDC sets these automagically
+    ignore_changes = [
+      tags["business_steward"],
+      tags["center"],
+      tags["environment"],
+      tags["escid"],
+      tags["funding_source"],
+      tags["pii_data"],
+      tags["security_compliance"],
+      tags["security_steward"],
+      tags["support_group"],
+      tags["system"],
+      tags["technical_steward"],
+      tags["zone"]
+    ]
+  }
+}
