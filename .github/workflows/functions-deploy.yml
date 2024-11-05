@@ -78,21 +78,30 @@ jobs:
 
       - name: 'Retrieve Azure FunctionApp loaded Functions'
         run: |
-          FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
-          if [[ $FUNCTION_LIST == *"[]"* ]]; then
-            echo "::notice Azure FunctionApp Function is empty. Sleeping 15 seconds, then will check again"
-            sleep 15
-            FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
+          MAX_TIME=300   # Maximum time in seconds (5 minutes)
+          INTERVAL=5     # Check every 5 seconds
+          ELAPSED_TIME=0
+          FAIL=true
 
-            if [[ $FUNCTION_LIST == *"[]"* ]]; then
-              FAIL=true
+          # Loop until the function is created or the maximum time is reached
+          while [ $ELAPSED_TIME -lt $MAX_TIME ]; do
+            FUNCTION_LIST=$(az functionapp function list -g "csels-rsti-${{ inputs.TF_ENVIRONMENT }}-moderate-rg" -n "polling-function-${{ inputs.TF_ENVIRONMENT }}")
+            if [[ $FUNCTION_LIST != *"[]"* ]]; then
+              echo "Function found after $ELAPSED_TIME seconds"
+              FAIL=false
+              break
             fi
-          fi
+            # If we don't have a function yet, sleep INTERVAL seconds and increment elapsed time
+            echo "Function not found, sleeping $INTERVAL seconds. $ELAPSED_TIME seconds have elapsed so far"
+            sleep $INTERVAL
+            ELAPSED_TIME=$((ELAPSED_TIME + INTERVAL))
+          done
+
           echo "FAIL=$FAIL" >> $GITHUB_OUTPUT
         id: getFunctionList
 
       - name: 'Azure FunctionApp Failed'
         if: steps.getFunctionList.outputs.FAIL == 'true'
         run: |
-          echo "::notice Azure FunctionApp Function is empty"
+          echo 'Azure FunctionApp Function is empty'
           exit 1
