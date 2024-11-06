@@ -238,7 +238,9 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 
 	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
-	if strings.Contains(fileInfo.Name(), ".zip") {
+	deleteZip := false
+	isZip := strings.Contains(fileInfo.Name(), ".zip")
+	if isZip {
 		// write file to local filesystem
 		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
 		if err != nil {
@@ -249,6 +251,8 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		err = receiver.zipHandler.Unzip(fileInfo.Name())
 		if err != nil {
 			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
+		} else {
+			deleteZip = true
 		}
 
 		//delete file from local filesystem
@@ -258,10 +262,12 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		}
 	}
 
-	err = receiver.sftpClient.Remove(fullFilePath)
-	if err != nil {
-		slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
-		return
+	if !isZip || (isZip && deleteZip) {
+		err = receiver.sftpClient.Remove(fullFilePath)
+		if err != nil {
+			slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
+			return
+		}
 	}
 
 	slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fullFilePath))
