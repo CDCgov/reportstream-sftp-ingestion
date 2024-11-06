@@ -270,5 +270,6 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		}
 	}
 
+	//This logging statement needs refactoring for when the unzip fails
 	slog.Info("Successfully copied file and removed from SFTP server", slog.Any(utils.FileNameKey, fullFilePath))
 }
