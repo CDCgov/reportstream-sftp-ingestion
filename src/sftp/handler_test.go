@@ -439,7 +439,9 @@ func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
 
 	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, mock.Anything)
 	mockSftpClient.AssertCalled(t, "Open", mock.Anything)
+	mockSftpClient.AssertNotCalled(t, "Remove", mock.Anything)
 	assert.Contains(t, buffer.String(), "Failed to unzip file")
+
 }
 
 func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *testing.T) {
