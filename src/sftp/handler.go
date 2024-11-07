@@ -262,7 +262,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		}
 	}
 
-	if !isZip || (isZip && deleteZip) {
+	if !isZip || deleteZip {
 		err = receiver.sftpClient.Remove(fullFilePath)
 		if err != nil {
 			slog.Error("Failed to remove file from SFTP server", slog.Any(utils.ErrorKey, err), slog.String(utils.FileNameKey, fullFilePath))
