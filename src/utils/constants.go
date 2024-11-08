@@ -18,6 +18,10 @@ const FailureFolder = "failure"
 // Zip files are placed in this folder after being retrieved from an external SFTP site
 const UnzipFolder = "unzip"
 
+const UnzippingFailureFolder = "unzipping_failure"
+
+const UnzippingProcessingFailureFolder = "processing_failure"
+
 // In read_and_send, move files to the `FailureFolder` when we get the below response from ReportStream
 const ReportStreamNonTransientFailure = "reportStreamNonTransientFailure"
 

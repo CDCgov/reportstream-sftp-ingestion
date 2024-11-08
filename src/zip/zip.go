@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"path/filepath"
+	"strings"
 )
 
 type ZipHandler struct {
@@ -53,12 +54,19 @@ func NewZipHandler() (ZipHandler, error) {
 // is only returned from the function when we cannot handle the main zip file for some reason or have failed to upload
 // the error list about the contents
 func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
-
 	slog.Info("Preparing to unzip", slog.String("zipFilePath", zipFilePath))
 	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
+
+	unZipFailureFolderPath := filepath.Join(utils.UnzipFolder, utils.UnzippingFailureFolder)
+	unZipFailureProcessingFolderPath := filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder)
+	unZipSuccessFolderPath := filepath.Join(utils.UnzipFolder, utils.SuccessFolder)
+
 	if err != nil {
 		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
+
+		// move zip file from unzip -> unzip/unzipping_failure
+		zipHandler.MoveZipToFolder(zipFilePath, unZipFailureFolderPath)
 		return err
 	}
 
@@ -66,6 +74,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	if err != nil {
 		slog.Error("Failed to open zip reader", slog.Any(utils.ErrorKey, err))
+		zipHandler.MoveZipToFolder(zipFilePath, unZipFailureFolderPath)
 		return err
 	}
 	defer zipReader.Close()
@@ -76,6 +85,16 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	for _, f := range zipReader.File {
 		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, zipFilePath, errorList)
 	}
+
+	// if errorList has contents -> move zip file from unzip -> unzip/processing_failure
+	if len(errorList) > 0 {
+		zipHandler.MoveZipToFolder(zipFilePath, unZipFailureProcessingFolderPath)
+	} else {
+		// else -> move zip file from unzip -> unzip/success
+		zipHandler.MoveZipToFolder(zipFilePath, unZipSuccessFolderPath)
+	}
+
+
 	// Upload error info if any
 	err = zipHandler.UploadErrorList(zipFilePath, errorList, err)
 	if err != nil {
@@ -83,6 +102,15 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	}
 
 	return nil
+}
+
+// TODO - add a test for this lil buddy - the other tests don't hit its error line
+func (zipHandler ZipHandler) MoveZipToFolder(zipFilePath string, newFolderPath string) {
+	destinationUrl := strings.Replace(zipFilePath, utils.UnzipFolder, newFolderPath, 1)
+	err := zipHandler.blobHandler.MoveFile(zipFilePath, destinationUrl)
+	if err != nil {
+		slog.Error("Unable to move file to "+destinationUrl, slog.Any(utils.ErrorKey, err))
+	}
 }
 
 func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError {
@@ -116,6 +144,7 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 		errorList = append(errorList, FileError{Filename: f.Name, ErrorMessage: err.Error()})
 		return errorList
 	}
+
 	slog.Info("uploaded file to blob for import", slog.String(utils.FileNameKey, f.Name), slog.String("zipFilePath", zipFilePath))
 	return errorList
 }
@@ -128,7 +157,7 @@ func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []Fil
 			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
 		}
 
-		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.FailureFolder, zipFilePath+".txt"))
+		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.UnzipFolder, utils.FailureFolder, zipFilePath+".txt"))
 		if err != nil {
 			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 			return err

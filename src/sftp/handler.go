@@ -236,6 +236,14 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		return
 	}
 
+	// get zip, upload unzip, unzip folder, import folder
+	// get zip, upload unzip, unzip folder
+
+	// failure -> handled by the retry logic
+	// success -> handled by import folder
+
+	// partial failure
+
 	slog.Info("About to consider whether this is a zip", slog.String(utils.FileNameKey, fileInfo.Name()))
 
 	deleteZip := false
