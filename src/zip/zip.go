@@ -58,14 +58,11 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 
-	unZipFailureFolderPath := filepath.Join(utils.UnzipFolder, utils.FailureFolder)
-	unZipSuccessFolderPath := filepath.Join(utils.UnzipFolder, utils.SuccessFolder)
-
 	if err != nil {
 		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
 
 		// move zip file from unzip -> unzip/failure
-		zipHandler.MoveZip(zipFilePath, unZipFailureFolderPath)
+		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
 		return err
 	}
 
@@ -73,7 +70,7 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	if err != nil {
 		slog.Error("Failed to open zip reader", slog.Any(utils.ErrorKey, err))
-		zipHandler.MoveZip(zipFilePath, unZipFailureFolderPath)
+		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
 		return err
 	}
 	defer zipReader.Close()
@@ -87,10 +84,10 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	// if errorList has contents -> move zip file from unzip -> unzip/failure
 	if len(errorList) > 0 {
-		zipHandler.MoveZip(zipFilePath, unZipFailureFolderPath)
+		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
 	} else {
 		// else -> move zip file from unzip -> unzip/success
-		zipHandler.MoveZip(zipFilePath, unZipSuccessFolderPath)
+		zipHandler.MoveZip(zipFilePath, utils.SuccessFolder)
 	}
 
 
@@ -103,9 +100,9 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	return nil
 }
 
-// MoveZip moves a file from 'unzip' into the specified subfolder e.g. 'unzip/success', 'unzip/failure'
-func (zipHandler ZipHandler) MoveZip(zipFilePath string, newFolderPath string) {
-	destinationUrl := strings.Replace(zipFilePath, utils.UnzipFolder, newFolderPath, 1)
+// MoveZip moves a file from 'unzip' into the specified subfolder e.g. 'success', 'failure'
+func (zipHandler ZipHandler) MoveZip(zipFilePath string, subfolder string) {
+	destinationUrl := strings.Replace(zipFilePath, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, subfolder), 1)
 	err := zipHandler.blobHandler.MoveFile(zipFilePath, destinationUrl)
 	if err != nil {
 		slog.Error("Unable to move file to "+destinationUrl, slog.Any(utils.ErrorKey, err))
