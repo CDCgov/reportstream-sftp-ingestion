@@ -14,8 +14,7 @@ import (
 
 
 var unZipSuccessPath = "unzip/success/cheeseburger.zip"
-var unZipFailurePath = "unzip/unzipping_failure/cheeseburger.zip"
-var unZipProcessingFailurePath = "unzip/processing_failure/cheeseburger.zip"
+var unZipFailurePath = "unzip/failure/cheeseburger.zip"
 var unZipFolderPath = "unzip/cheeseburger.zip"
 
 
@@ -197,8 +196,8 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 
 	err = zipHandler.Unzip(unZipFolderPath)
 
-	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipProcessingFailurePath)
-	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, unZipProcessingFailurePath + ".txt")
+	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipFailurePath)
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, unZipFailurePath + ".txt")
 	assert.Contains(t, buffer.String(), "setting password for file")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Failed to read message file")
@@ -231,7 +230,7 @@ func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 
 	err = zipHandler.Unzip(unZipFolderPath)
 
-	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipProcessingFailurePath)
+	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipFailurePath)
 	assert.Contains(t, buffer.String(), "setting password")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Failed to upload message file")
