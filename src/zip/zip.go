@@ -104,7 +104,6 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 	return nil
 }
 
-// TODO - add a test for this lil buddy - the other tests don't hit its error line
 func (zipHandler ZipHandler) MoveZipToFolder(zipFilePath string, newFolderPath string) {
 	destinationUrl := strings.Replace(zipFilePath, utils.UnzipFolder, newFolderPath, 1)
 	err := zipHandler.blobHandler.MoveFile(zipFilePath, destinationUrl)
@@ -157,7 +156,11 @@ func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []Fil
 			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
 		}
 
-		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.UnzipFolder, utils.FailureFolder, zipFilePath+".txt"))
+		//err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder, zipFilePath+".txt"))
+		zipDestinationPath := strings.Replace(zipFilePath + ".txt", utils.UnzipFolder, filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder), 1)
+		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), zipDestinationPath)
+
+		// strings.Replace(zipFilePath, utils.UnzipFolder, newFolderPath, 1)
 		if err != nil {
 			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
 			return err

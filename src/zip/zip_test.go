@@ -13,9 +13,10 @@ import (
 )
 
 
-var unZipSuccessPath = "unzip/success/cheeseburger"
-var unZipFailurePath = "unzip/unzipping_failure/cheeseburger"
-var unZipFolderPath = "unzip/cheeseburger"
+var unZipSuccessPath = "unzip/success/cheeseburger.zip"
+var unZipFailurePath = "unzip/unzipping_failure/cheeseburger.zip"
+var unZipProcessingFailurePath = "unzip/processing_failure/cheeseburger.zip"
+var unZipFolderPath = "unzip/cheeseburger.zip"
 
 
 func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
@@ -48,6 +49,40 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 	assert.Contains(t, buffer.String(), "setting password for file")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipSuccessPath)
+	assert.NoError(t, err)
+}
+
+func Test_Unzip_FileIsPasswordProtected_FailsToMoveZip(t *testing.T) {
+
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
+
+	mockCredentialGetter := new(mocks.MockCredentialGetter)
+	mockBlobHandler := new(mocks.MockBlobHandler)
+	mockZipClient := new(MockZipClient)
+
+	mockCredentialGetter.On("GetSecret", mock.Anything).Return("test123", nil)
+
+	zipPath := filepath.Join("..", "mocks", "test_data", "passworded.zip")
+	zipReader, err := zip.OpenReader(zipPath)
+
+	mockZipClient.On("OpenReader", mock.Anything).Return(zipReader, nil)
+
+	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(errors.New("error"))
+
+	zipHandler := ZipHandler{
+		credentialGetter: mockCredentialGetter,
+		blobHandler:      mockBlobHandler,
+		zipClient:        mockZipClient,
+	}
+
+	err = zipHandler.Unzip(unZipFolderPath)
+
+	assert.Contains(t, buffer.String(), "setting password for file")
+	assert.Contains(t, buffer.String(), "Extracting file")
+	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipSuccessPath)
+	assert.Contains(t, buffer.String(), "Unable to move file to")
 	assert.NoError(t, err)
 }
 
@@ -152,6 +187,7 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 
 	mockZipClient.On("OpenReader", mock.Anything).Return(zipReader, nil)
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
+	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 
 	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
@@ -159,9 +195,10 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 		blobHandler:      mockBlobHandler,
 	}
 
-	err = zipHandler.Unzip("cheezburger.zip")
+	err = zipHandler.Unzip(unZipFolderPath)
 
-	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, "failure/cheezburger.zip.txt")
+	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipProcessingFailurePath)
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, unZipProcessingFailurePath + ".txt")
 	assert.Contains(t, buffer.String(), "setting password for file")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Failed to read message file")
@@ -184,6 +221,7 @@ func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 	mockZipClient.On("OpenReader", mock.Anything).Return(zipReader, nil)
 
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(errors.New("error"))
+	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 
 	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
@@ -191,8 +229,9 @@ func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 		zipClient:        mockZipClient,
 	}
 
-	err = zipHandler.Unzip("cheezburger")
+	err = zipHandler.Unzip(unZipFolderPath)
 
+	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unZipProcessingFailurePath)
 	assert.Contains(t, buffer.String(), "setting password")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Failed to upload message file")
