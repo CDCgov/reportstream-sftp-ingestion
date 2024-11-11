@@ -156,13 +156,11 @@ func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []Fil
 			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
 		}
 
-		//err = zipHandler.blobHandler.UploadFile([]byte(fileContents), filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder, zipFilePath+".txt"))
-		zipDestinationPath := strings.Replace(zipFilePath + ".txt", utils.UnzipFolder, filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder), 1)
-		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), zipDestinationPath)
+		errorDestinationPath := strings.Replace(zipFilePath, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, utils.UnzippingProcessingFailureFolder), 1) + ".txt"
+		err = zipHandler.blobHandler.UploadFile([]byte(fileContents), errorDestinationPath)
 
-		// strings.Replace(zipFilePath, utils.UnzipFolder, newFolderPath, 1)
 		if err != nil {
-			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))
+			slog.Error("Failed to upload failure file", slog.Any(utils.ErrorKey, err), slog.String("errorDestinationPath", errorDestinationPath))
 			return err
 		}
 	}
