@@ -532,8 +532,8 @@ type MockZipHandler struct {
 	mock.Mock
 }
 
-func (receiver *MockZipHandler) Unzip(zipFilePath string) error {
-	args := receiver.Called(zipFilePath)
+func (receiver *MockZipHandler) Unzip(zipFilePath string, blobPath string) error {
+	args := receiver.Called(zipFilePath, blobPath)
 	return args.Error(0)
 }
 

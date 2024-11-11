@@ -19,7 +19,7 @@ type ZipHandler struct {
 }
 
 type ZipHandlerInterface interface {
-	Unzip(zipFilePath string) error
+	Unzip(zipFilePath string, blobPath string) error
 	ExtractAndUploadSingleFile(f *zip.File, zipPassword string, zipFilePath string, errorList []FileError) []FileError
 	UploadErrorList(zipFilePath string, errorList []FileError, err error) error
 }
@@ -53,8 +53,8 @@ func NewZipHandler() (ZipHandler, error) {
 // to begin processing. It collects any errors with individual subfiles and uploads that information as well. An error
 // is only returned from the function when we cannot handle the main zip file for some reason or have failed to upload
 // the error list about the contents
-func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
-	slog.Info("Preparing to unzip", slog.String("zipFilePath", zipFilePath))
+func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
+	slog.Info("Preparing to unzip", slog.String("zipFileName", zipFileName))
 	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 
@@ -62,15 +62,15 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
 
 		// move zip file from unzip -> unzip/failure
-		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
+		zipHandler.MoveZip(blobPath, utils.FailureFolder)
 		return err
 	}
 
-	zipReader, err := zipHandler.zipClient.OpenReader(zipFilePath)
+	zipReader, err := zipHandler.zipClient.OpenReader(zipFileName)
 
 	if err != nil {
 		slog.Error("Failed to open zip reader", slog.Any(utils.ErrorKey, err))
-		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
+		zipHandler.MoveZip(blobPath, utils.FailureFolder)
 		return err
 	}
 	defer zipReader.Close()
@@ -79,20 +79,22 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 
 	// loop over contents
 	for _, f := range zipReader.File {
-		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, zipFilePath, errorList)
+		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, zipFileName, errorList)
 	}
 
 	// if errorList has contents -> move zip file from unzip -> unzip/failure
 	if len(errorList) > 0 {
-		zipHandler.MoveZip(zipFilePath, utils.FailureFolder)
+		slog.Info("Error list length over zero")
+		zipHandler.MoveZip(blobPath, utils.FailureFolder)
 	} else {
 		// else -> move zip file from unzip -> unzip/success
-		zipHandler.MoveZip(zipFilePath, utils.SuccessFolder)
+		slog.Info("Error list length is zero")
+		zipHandler.MoveZip(blobPath, utils.SuccessFolder)
 	}
 
 
 	// Upload error info if any
-	err = zipHandler.UploadErrorList(zipFilePath, errorList, err)
+	err = zipHandler.UploadErrorList(blobPath, errorList, err)
 	if err != nil {
 		return err
 	}
@@ -101,11 +103,15 @@ func (zipHandler ZipHandler) Unzip(zipFilePath string) error {
 }
 
 // MoveZip moves a file from 'unzip' into the specified subfolder e.g. 'success', 'failure'
-func (zipHandler ZipHandler) MoveZip(zipFilePath string, subfolder string) {
-	destinationUrl := strings.Replace(zipFilePath, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, subfolder), 1)
-	err := zipHandler.blobHandler.MoveFile(zipFilePath, destinationUrl)
+func (zipHandler ZipHandler) MoveZip(blobPath string, subfolder string) {
+	slog.Info("About to move file", slog.String("blobPath", blobPath), slog.String("destination subfolder", subfolder))
+	sourceUrl := filepath.Join(utils.ContainerName, blobPath)
+	destinationUrl := strings.Replace(sourceUrl, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, subfolder), 1)
+	err := zipHandler.blobHandler.MoveFile(sourceUrl, destinationUrl)
 	if err != nil {
 		slog.Error("Unable to move file to "+destinationUrl, slog.Any(utils.ErrorKey, err))
+	} else {
+		slog.Info("Successfully moved file to "+destinationUrl)
 	}
 }
 
@@ -150,6 +156,7 @@ func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []Fil
 	if len(errorList) > 0 {
 		fileContents := ""
 		for _, fileError := range errorList {
+
 			fileContents += fileError.Filename + ": " + fileError.ErrorMessage + "\n"
 		}
 

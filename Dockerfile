@@ -26,6 +26,8 @@ COPY --from=builder /home/myLowPrivilegeUser/app/reportstream-sftp-ingestion /us
 RUN adduser -S myLowPrivilegeUser
 USER myLowPrivilegeUser
 
+WORKDIR /home/myLowPrivilegeUser/
+
 ENTRYPOINT ["/usr/local/bin/reportstream-sftp-ingestion"]
 
 EXPOSE 8080
