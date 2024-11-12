@@ -105,6 +105,7 @@ func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 // MoveZip moves a file from 'unzip' into the specified subfolder e.g. 'success', 'failure'
 func (zipHandler ZipHandler) MoveZip(blobPath string, subfolder string) {
 	slog.Info("About to move file", slog.String("blobPath", blobPath), slog.String("destination subfolder", subfolder))
+	// url must include the container name e.g. 'sftp/unzip/cheeseburger.zip' vs 'unzip/cheeseburger.zip'
 	sourceUrl := filepath.Join(utils.ContainerName, blobPath)
 	destinationUrl := strings.Replace(sourceUrl, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, subfolder), 1)
 	err := zipHandler.blobHandler.MoveFile(sourceUrl, destinationUrl)

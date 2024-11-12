@@ -139,10 +139,6 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 	assert.Error(t, err)
 }
 
-/*
-	TODO 11/12
-- add some clarifying comments and examples of path vs URL in Azure stuff
- */
 func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
