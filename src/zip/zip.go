@@ -151,7 +151,7 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 	return errorList
 }
 
-// uploadErrorList takes a list of file-specific errors and uploads them to a single file named after the containing zip
+// UploadErrorList takes a list of file-specific errors and uploads them to a single file named after the containing zip
 func (zipHandler ZipHandler) UploadErrorList(zipFilePath string, errorList []FileError, err error) error {
 	if len(errorList) > 0 {
 		fileContents := ""

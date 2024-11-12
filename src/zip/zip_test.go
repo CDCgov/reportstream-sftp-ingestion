@@ -141,7 +141,6 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 
 /*
 	TODO 11/12
-- Run manual tests
 - add some clarifying comments and examples of path vs URL in Azure stuff
  */
 func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {

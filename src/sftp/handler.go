@@ -241,17 +241,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	deleteZip := false
 	isZip := strings.Contains(fileInfo.Name(), ".zip")
 	if isZip {
-		//TODO - remove these log statements, they're for testing
-		homedir, err := os.UserHomeDir()
-		if err == nil {
-			slog.Info("Homedir: " + homedir)
-		}
-		workdir, err := os.Getwd()
-		if err == nil {
-			slog.Info("workdir: " + workdir)
-		}
 		// write file to local filesystem
-		//zipFileName := filepath.Join("/home/myLowPrivilegeUser", fileInfo.Name())
 		zipFileName := fileInfo.Name()
 		err = os.WriteFile(zipFileName, fileBytes, 0644) // permissions = owner read/write, group read, other read
 		if err != nil {
