@@ -191,7 +191,7 @@ func Test_CopyFiles_SuccessfullyCopiesFiles(t *testing.T) {
 	mockCredentialGetter.On("GetSecret", mock.Anything).Return("dogcow", nil)
 
 	mockZipHandler := &MockZipHandler{}
-	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+	mockZipHandler.On("Unzip", mock.Anything, mock.Anything).Return(nil)
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, credentialGetter: mockCredentialGetter, zipHandler: mockZipHandler}
 
