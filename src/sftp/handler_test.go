@@ -273,7 +273,7 @@ func Test_copySingleFile_CopiesFile(t *testing.T) {
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
-	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+	mockZipHandler.On("Unzip", mock.Anything, mock.Anything).Return(nil)
 
 	sftpHandler := SftpHandler{sftpClient: mockSftpClient, blobHandler: mockBlobHandler, zipHandler: mockZipHandler}
 	sftpHandler.copySingleFile(fileInfo, 1, fileDirectory)
@@ -429,7 +429,7 @@ func Test_copySingleFile_FailsToUnzipFile_LogsError(t *testing.T) {
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
-	mockZipHandler.On("Unzip", mock.Anything).Return(errors.New("fails to unzip file"))
+	mockZipHandler.On("Unzip", mock.Anything, mock.Anything).Return(errors.New("fails to unzip file"))
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
@@ -458,7 +458,7 @@ func Test_copySingleFile_FailsToDeleteFileFromSFTPServer_LogsErrorAndReturn(t *t
 	mockSftpClient.On("Remove", mock.Anything).Return(errors.New("failed to remove file from sftp server"))
 
 	mockZipHandler := &MockZipHandler{}
-	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+	mockZipHandler.On("Unzip", mock.Anything, mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
@@ -487,7 +487,7 @@ func Test_copySingleFile_DeletesFileFromSFTPServer(t *testing.T) {
 	mockSftpClient.On("Remove", mock.Anything).Return(nil)
 
 	mockZipHandler := &MockZipHandler{}
-	mockZipHandler.On("Unzip", mock.Anything).Return(nil)
+	mockZipHandler.On("Unzip", mock.Anything, mock.Anything).Return(nil)
 
 	mockBlobHandler := &mocks.MockBlobHandler{}
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
