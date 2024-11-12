@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+var rsToken ReportStreamToken
+
 type Sender struct {
 	baseUrl          string
 	privateKeyName   string
@@ -71,53 +73,58 @@ func (sender Sender) generateJwt() (string, error) {
 }
 
 func (sender Sender) getToken() (string, error) {
-	senderJwt, err := sender.generateJwt()
-	if err != nil {
-		return "", err
+	// TODO: Does the below work? Confirm that we don't have data loss when converting from int32 to 64.
+	// TODO: Should the ExpiresAtSeconds be int64 since that is what is listed as coming back in RS?
+	if rsToken.AccessToken == "" || int64(rsToken.ExpiresAtSeconds) < time.Now().Unix() {
+
+		senderJwt, err := sender.generateJwt()
+		if err != nil {
+			return "", err
+		}
+
+		data := url.Values{
+			"scope":                 {"ca-phl.*.report"}, // TODO - this needs to be flexion locally and ca-phl elsewhere
+			"grant_type":            {"client_credentials"},
+			"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
+			"client_assertion":      {senderJwt},
+		}
+
+		req, err := http.NewRequest("POST", sender.baseUrl+"/api/token", strings.NewReader(data.Encode()))
+		if err != nil {
+			return "", err
+		}
+
+		req.Header = http.Header{
+			"Content-Type": {"application/x-www-form-urlencoded"},
+		}
+
+		res, err := http.DefaultClient.Do(req)
+
+		if err != nil {
+			slog.Error("error calling token endpoint", slog.Any(utils.ErrorKey, err))
+			return "", err
+		}
+
+		defer res.Body.Close()
+
+		responseBodyBytes, err := io.ReadAll(res.Body)
+
+		if err != nil {
+			return "", err
+		}
+
+		if res.StatusCode != http.StatusOK {
+			slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
+			return "", errors.New(res.Status)
+		}
+
+		err = json.Unmarshal(responseBodyBytes, &rsToken)
+		if err != nil {
+			return "", err
+		}
 	}
 
-	data := url.Values{
-		"scope":                 {"ca-phl.*.report"}, // TODO - this needs to be flexion locally and ca-phl elsewhere
-		"grant_type":            {"client_credentials"},
-		"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
-		"client_assertion":      {senderJwt},
-	}
-
-	req, err := http.NewRequest("POST", sender.baseUrl+"/api/token", strings.NewReader(data.Encode()))
-	if err != nil {
-		return "", err
-	}
-
-	req.Header = http.Header{
-		"Content-Type": {"application/x-www-form-urlencoded"},
-	}
-
-	res, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		slog.Error("error calling token endpoint", slog.Any(utils.ErrorKey, err))
-		return "", err
-	}
-
-	defer res.Body.Close()
-
-	responseBodyBytes, err := io.ReadAll(res.Body)
-
-	if err != nil {
-		return "", err
-	}
-
-	if res.StatusCode != http.StatusOK {
-		slog.Info("response body", slog.String("responseBodyBytes", string(responseBodyBytes)))
-		return "", errors.New(res.Status)
-	}
-	var token ReportStreamToken
-	err = json.Unmarshal(responseBodyBytes, &token)
-	if err != nil {
-		return "", err
-	}
-
-	return token.AccessToken, nil
+	return rsToken.AccessToken, nil
 }
 
 func (sender Sender) SendMessage(message []byte) (string, error) {
