@@ -242,13 +242,14 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	isZip := strings.Contains(fileInfo.Name(), ".zip")
 	if isZip {
 		// write file to local filesystem
-		err = os.WriteFile(fileInfo.Name(), fileBytes, 0644) // permissions = owner read/write, group read, other read
+		zipFileName := fileInfo.Name()
+		err = os.WriteFile(zipFileName, fileBytes, 0644) // permissions = owner read/write, group read, other read
 		if err != nil {
 			slog.Error("Failed to write file", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 			return
 		}
 
-		err = receiver.zipHandler.Unzip(fileInfo.Name())
+		err = receiver.zipHandler.Unzip(zipFileName, blobPath)
 		if err != nil {
 			slog.Error("Failed to unzip file", slog.Any(utils.ErrorKey, err))
 		} else {
@@ -256,7 +257,7 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 		}
 
 		//delete file from local filesystem
-		err = os.Remove(fileInfo.Name())
+		err = os.Remove(zipFileName)
 		if err != nil {
 			slog.Error("Failed to remove file from local server", slog.Any(utils.ErrorKey, err), slog.String("name", fileInfo.Name()))
 		}
