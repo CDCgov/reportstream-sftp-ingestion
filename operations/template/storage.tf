@@ -35,15 +35,21 @@ resource "azurerm_storage_account_customer_managed_key" "storage_storage_account
   ] //wait for the permission that allows our deployer to write the secret
 }
 
-
 resource "azurerm_storage_container" "sftp_container" {
   name                  = "sftp"
   storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
 }
 
+// Used in case of event dead letter
 resource "azurerm_storage_container" "sftp_container_dead_letter" {
   name                  = "sftp-dead-letter"
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "config_container" {
+  name                  = "config"
   storage_account_name  = azurerm_storage_account.storage.name
   container_access_type = "private"
 }
@@ -70,6 +76,9 @@ resource "azurerm_storage_management_policy" "retention_policy" {
 
     filters {
       blob_types = ["blockBlob", "appendBlob"]
+      // Only apply the retention policy to the SFTP containers so that we don't delete our config
+      // Any containers that may contain PHI **must** be included in this prefix_match list
+      prefix_match = ["sftp/", "sftp-dead-letter/"]
     }
 
     actions {

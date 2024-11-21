@@ -13,7 +13,8 @@ export async function caDphTimerTrigger(myTimer: Timer, context: InvocationConte
     // We set the visibility timeout for the message on reading, in queue.go
     // messageTimeToLive of -1 means the message does not expire
     // the queue message contents will (in future) be the key to client-specific config
-    const sendMessageResponse = await queueClient.sendMessage("cadph", {messageTimeToLive: -1})
+    // The message we send here must match the key in config, the scope in report_stream_sender, and the org name in RS
+    const sendMessageResponse = await queueClient.sendMessage("ca-phl", {messageTimeToLive: -1})
     console.log("Sent message successfully, service assigned message Id:", sendMessageResponse.messageId, "service assigned request Id:", sendMessageResponse.requestId );
 
     context.log('Timer function processed request.');
