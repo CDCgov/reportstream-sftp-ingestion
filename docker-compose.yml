@@ -49,6 +49,7 @@ services:
       - /bin/sh
       - -c
       - |
+        az storage container create -n config
         az storage container create -n sftp
         az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name import/order_message.hl7 --file mock_data/order_message.hl7
         az storage queue create -n message-import-queue
