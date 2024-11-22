@@ -16,7 +16,6 @@ services:
       - ./mock_credentials:/home/myLowPrivilegeUser/mock_credentials
     ports:
       - "8081:8080" # default api endpoint port
-    platform: linux/amd64
     depends_on:
       sftp-Azurite:
         condition: service_started
