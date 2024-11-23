@@ -14,7 +14,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/pkg/sftp v1.13.7
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/yeka/zip v0.0.0-20231116150916-03d6312748a9
 	golang.org/x/crypto v0.29.0
 	golang.org/x/text v0.20.0
