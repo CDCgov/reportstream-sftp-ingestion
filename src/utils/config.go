@@ -28,25 +28,26 @@ Stuff we need to do in here:
 // to null-equivalent, but we'll want to check for valid values
 type partnerConfig struct {
 	DisplayName        string `json:"displayName"` //unique name, put in queue message from polling function - keep this short so we can use it in TF resources? Currently TF and RS use `ca-phl`
-	isActive           bool
-	sftpConnectionType string // either external or internal
-	hasZipPassword     bool
-	defaultEncoding    string // e.g. ISO 8859-1"
-	cronExpression     string // might just go into the function app itself and not be config at all
-	containerName      string // currently all in the same container - we'll need either partner specific subfolders or
+	IsActive           bool   `json:"isActive"`
+	SftpConnectionType string `json:"sftpConnectionType"` // either external or internal
+	HasZipPassword     bool   `json:"hasZipPassword"`
+	DefaultEncoding    string `json:"defaultEncoding"` // e.g. ISO 8859-1"
+	CronExpression     string `json:"cronExpression"`  // might just go into the function app itself and not be config at all
+	ContainerName      string `json:"containerName"`   // currently all in the same container - we'll need either partner specific subfolders or
 	// partner-specific containers (so this should maybe be pathName or folderName)
 }
 
 // Map an ID/label to each set of details
 type configEntry struct {
-	partnerId     string
-	partnerConfig partnerConfig
+	PartnerId     string        `json:"partnerId"`
+	PartnerConfig partnerConfig `json:"partnerSettings"`
 }
 
 // When did we last get the file and what did we parse out of it?
 type config struct {
 	lastRetrieved   time.Time
 	partnerSettings []configEntry
+	// TODO: Move this file so that we can import the blob handler
 	//blobHandler     usecases.BlobHandler
 }
 
@@ -72,7 +73,7 @@ type config struct {
 }
 */
 
-func (partnerConfig) populatePartnerConfig(input []byte) {
+func (partnerConfig) populatePartnerConfig(input []byte) partnerConfig {
 
 	jsonData := input
 
@@ -82,17 +83,36 @@ func (partnerConfig) populatePartnerConfig(input []byte) {
 
 	if err != nil {
 		fmt.Println("Error:", err)
-		return
+		return partnerConfig
 	}
 
 	fmt.Println(partnerConfig.DisplayName)
-	fmt.Println(partnerConfig.isActive)
+	fmt.Println(partnerConfig.IsActive)
+
+	return partnerConfig
 
 }
 
-//func populateEntry() error {
-//
-//}
+func (partnerConfig) populateConfigEntry(input []byte) (configEntry, error) {
+
+	jsonData := input
+
+	var configEntry configEntry
+
+	err := json.Unmarshal(jsonData, &configEntry)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return configEntry, err
+	}
+
+	fmt.Println(configEntry.PartnerId)
+	fmt.Println(configEntry.PartnerConfig)
+
+	return configEntry, nil
+
+}
+
 //
 //func populateConfig() error {
 //
