@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"time"
 )
 
@@ -73,7 +73,7 @@ type config struct {
 }
 */
 
-func (partnerConfig) populatePartnerConfig(input []byte) partnerConfig {
+func (partnerConfig) populatePartnerConfig(input []byte) (partnerConfig, error) {
 
 	jsonData := input
 
@@ -82,14 +82,11 @@ func (partnerConfig) populatePartnerConfig(input []byte) partnerConfig {
 	err := json.Unmarshal(jsonData, &partnerConfig)
 
 	if err != nil {
-		fmt.Println("Error:", err)
-		return partnerConfig
+		slog.Error("Unable unmarshall to partner config", slog.Any(ErrorKey, err))
+		return partnerConfig, err
 	}
 
-	fmt.Println(partnerConfig.DisplayName)
-	fmt.Println(partnerConfig.IsActive)
-
-	return partnerConfig
+	return partnerConfig, nil
 
 }
 
@@ -102,12 +99,9 @@ func (partnerConfig) populateConfigEntry(input []byte) (configEntry, error) {
 	err := json.Unmarshal(jsonData, &configEntry)
 
 	if err != nil {
-		fmt.Println("Error:", err)
+		slog.Error("Unable unmarshall to config entry", slog.Any(ErrorKey, err))
 		return configEntry, err
 	}
-
-	fmt.Println(configEntry.PartnerId)
-	fmt.Println(configEntry.PartnerConfig)
 
 	return configEntry, nil
 

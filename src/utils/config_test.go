@@ -17,7 +17,7 @@ func Test_populateConfig_populates(t *testing.T) {
 }`)
 	test := partnerConfig{}
 
-	output := test.populatePartnerConfig(jsonInput)
+	output, _ := test.populatePartnerConfig(jsonInput)
 
 	assert.Contains(t, output.DisplayName, "Test Name")
 	assert.Equal(t, output.IsActive, true)
@@ -28,6 +28,17 @@ func Test_populateConfig_populates(t *testing.T) {
 	assert.Contains(t, output.ContainerName, "container-name")
 
 }
+
+func Test_populateConfig_errors(t *testing.T) {
+	jsonInput := []byte(`bad json`)
+	test := partnerConfig{}
+
+	_, err := test.populatePartnerConfig(jsonInput)
+
+	assert.Error(t, err)
+
+}
+
 func Test_populateConfigEntry_populates(t *testing.T) {
 	jsonInput := []byte(`{
 	"partnerId": "ca-phl",
@@ -52,4 +63,13 @@ func Test_populateConfigEntry_populates(t *testing.T) {
 	assert.Contains(t, output.PartnerConfig.DefaultEncoding, "ISO-8859-1")
 	assert.Contains(t, output.PartnerConfig.CronExpression, "* * * * *")
 	assert.Contains(t, output.PartnerConfig.ContainerName, "container-name")
+}
+
+func Test_populateConfigEntry_errors(t *testing.T) {
+	jsonInput := []byte(`bad json`)
+	test := partnerConfig{}
+
+	_, err := test.populateConfigEntry(jsonInput)
+
+	assert.Error(t, err)
 }
