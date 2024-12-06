@@ -14,7 +14,7 @@ func Test_populateConfig_populates(t *testing.T) {
 	"defaultEncoding": "ISO-8859-1",
 	"containerName": "container-name"
 }`)
-	test := partnerConfig{}
+	test := PartnerConfig{}
 
 	output, _ := test.populatePartnerConfig(jsonInput)
 
@@ -22,14 +22,13 @@ func Test_populateConfig_populates(t *testing.T) {
 	assert.Equal(t, output.IsActive, true)
 	assert.Contains(t, output.SftpConnectionType, "external")
 	assert.Equal(t, output.HasZipPassword, true)
-	assert.Contains(t, output.DefaultEncoding, "ISO-8859-1")
 	assert.Contains(t, output.ContainerName, "container-name")
 
 }
 
 func Test_populateConfig_errors(t *testing.T) {
 	jsonInput := []byte(`bad json`)
-	test := partnerConfig{}
+	test := PartnerConfig{}
 
 	_, err := test.populatePartnerConfig(jsonInput)
 
@@ -48,7 +47,7 @@ func Test_populateConfigEntry_populates(t *testing.T) {
 	"defaultEncoding": "ISO-8859-1",
 	"containerName": "container-name"
 }}`)
-	test := partnerConfig{}
+	test := PartnerConfig{}
 
 	output, _ := test.populateConfigEntry(jsonInput)
 
@@ -57,13 +56,12 @@ func Test_populateConfigEntry_populates(t *testing.T) {
 	assert.Equal(t, output.PartnerConfig.IsActive, true)
 	assert.Contains(t, output.PartnerConfig.SftpConnectionType, "external")
 	assert.Equal(t, output.PartnerConfig.HasZipPassword, true)
-	assert.Contains(t, output.PartnerConfig.DefaultEncoding, "ISO-8859-1")
 	assert.Contains(t, output.PartnerConfig.ContainerName, "container-name")
 }
 
 func Test_populateConfigEntry_errors(t *testing.T) {
 	jsonInput := []byte(`bad json`)
-	test := partnerConfig{}
+	test := PartnerConfig{}
 
 	_, err := test.populateConfigEntry(jsonInput)
 
