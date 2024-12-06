@@ -12,7 +12,6 @@ func Test_populateConfig_populates(t *testing.T) {
 	"sftpConnectionType": "external",
 	"hasZipPassword": true,
 	"defaultEncoding": "ISO-8859-1",
-	"cronExpression": "* * * * *",
 	"containerName": "container-name"
 }`)
 	test := partnerConfig{}
@@ -24,7 +23,6 @@ func Test_populateConfig_populates(t *testing.T) {
 	assert.Contains(t, output.SftpConnectionType, "external")
 	assert.Equal(t, output.HasZipPassword, true)
 	assert.Contains(t, output.DefaultEncoding, "ISO-8859-1")
-	assert.Contains(t, output.CronExpression, "* * * * *")
 	assert.Contains(t, output.ContainerName, "container-name")
 
 }
@@ -48,7 +46,6 @@ func Test_populateConfigEntry_populates(t *testing.T) {
 	"sftpConnectionType": "external",
 	"hasZipPassword": true,
 	"defaultEncoding": "ISO-8859-1",
-	"cronExpression": "* * * * *",
 	"containerName": "container-name"
 }}`)
 	test := partnerConfig{}
@@ -61,7 +58,6 @@ func Test_populateConfigEntry_populates(t *testing.T) {
 	assert.Contains(t, output.PartnerConfig.SftpConnectionType, "external")
 	assert.Equal(t, output.PartnerConfig.HasZipPassword, true)
 	assert.Contains(t, output.PartnerConfig.DefaultEncoding, "ISO-8859-1")
-	assert.Contains(t, output.PartnerConfig.CronExpression, "* * * * *")
 	assert.Contains(t, output.PartnerConfig.ContainerName, "container-name")
 }
 
