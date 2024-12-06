@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"testing"
 )
 
@@ -9,61 +10,53 @@ func Test_populateConfig_populates(t *testing.T) {
 	jsonInput := []byte(`{
 	"displayName": "Test Name",
 	"isActive": true,
-	"sftpConnectionType": "external",
+	"isExternalSftpConnection": true,
 	"hasZipPassword": true,
-	"defaultEncoding": "ISO-8859-1",
-	"containerName": "container-name"
+	"defaultEncoding": "ISO-8859-1"
 }`)
-	test := PartnerConfig{}
+	test := Config{}
 
-	output, _ := test.populatePartnerConfig(jsonInput)
+	_ = test.populatePartnerSettings(jsonInput)
 
-	assert.Contains(t, output.DisplayName, "Test Name")
-	assert.Equal(t, output.IsActive, true)
-	assert.Contains(t, output.SftpConnectionType, "external")
-	assert.Equal(t, output.HasZipPassword, true)
-	assert.Contains(t, output.ContainerName, "container-name")
-
+	assert.Contains(t, test.partnerSettings.DisplayName, "Test Name")
+	assert.Equal(t, test.partnerSettings.IsActive, true)
+	assert.Equal(t, test.partnerSettings.IsExternalSftpConnection, true)
+	assert.Equal(t, test.partnerSettings.HasZipPassword, true)
 }
 
-func Test_populateConfig_errors(t *testing.T) {
+func Test_populateConfig_errors_whenJsonInvalid(t *testing.T) {
 	jsonInput := []byte(`bad json`)
-	test := PartnerConfig{}
+	test := Config{}
 
-	_, err := test.populatePartnerConfig(jsonInput)
+	err := test.populatePartnerSettings(jsonInput)
 
 	assert.Error(t, err)
 
 }
 
-func Test_populateConfigEntry_populates(t *testing.T) {
+func Test_populateConfig_errors_whenEncodingInvalid(t *testing.T) {
 	jsonInput := []byte(`{
-	"partnerId": "ca-phl",
-	"partnerSettings": {
 	"displayName": "Test Name",
 	"isActive": true,
-	"sftpConnectionType": "external",
+	"isExternalSftpConnection": true,
 	"hasZipPassword": true,
-	"defaultEncoding": "ISO-8859-1",
-	"containerName": "container-name"
-}}`)
-	test := PartnerConfig{}
+	"defaultEncoding": "Something else"
+}`)
 
-	output, _ := test.populateConfigEntry(jsonInput)
+	buffer, defaultLogger := SetupLogger()
+	defer slog.SetDefault(defaultLogger)
 
-	assert.Contains(t, output.PartnerId, "ca-phl")
-	assert.Contains(t, output.PartnerConfig.DisplayName, "Test Name")
-	assert.Equal(t, output.PartnerConfig.IsActive, true)
-	assert.Contains(t, output.PartnerConfig.SftpConnectionType, "external")
-	assert.Equal(t, output.PartnerConfig.HasZipPassword, true)
-	assert.Contains(t, output.PartnerConfig.ContainerName, "container-name")
+	test := Config{}
+
+	err := test.populatePartnerSettings(jsonInput)
+
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "Invalid encoding found")
 }
 
-func Test_populateConfigEntry_errors(t *testing.T) {
-	jsonInput := []byte(`bad json`)
-	test := PartnerConfig{}
+func Test_validateDefaultEncoding_errors(t *testing.T) {
 
-	_, err := test.populateConfigEntry(jsonInput)
+	err := validateDefaultEncoding("bad encoding")
 
 	assert.Error(t, err)
 }
