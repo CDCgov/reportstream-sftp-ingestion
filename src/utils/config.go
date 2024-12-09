@@ -32,9 +32,7 @@ type Config struct {
 func (config *Config) populatePartnerSettings(input []byte) error {
 
 	var partnerSettings PartnerSettings
-	jsonData := input
-
-	err := json.Unmarshal(jsonData, &partnerSettings)
+	err := json.Unmarshal(input, &partnerSettings)
 
 	if err != nil {
 		slog.Error("Unable unmarshall to partner settings", slog.Any(ErrorKey, err))
