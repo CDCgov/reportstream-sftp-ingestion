@@ -14,7 +14,7 @@ import (
 
 func Test_ReadAndSend_FailsToReadBlob_ReturnsError(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockBlobHandler.On("FetchFile", utils.SourceUrl).Return([]byte{}, errors.New("it blew up"))
+	mockBlobHandler.On("FetchFileByUrl", utils.SourceUrl).Return([]byte{}, errors.New("it blew up"))
 
 	usecase := ReadAndSendUsecase{blobHandler: mockBlobHandler}
 
@@ -25,7 +25,7 @@ func Test_ReadAndSend_FailsToReadBlob_ReturnsError(t *testing.T) {
 
 func Test_ReadAndSend_NonTransientFailureFromReportStream_MovesFileToFailureFolder(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockBlobHandler.On("FetchFile", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
+	mockBlobHandler.On("FetchFileByUrl", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", utils.SourceUrl, utils.FailureSourceUrl).Return(nil)
 
 	mockMessageSender := &MockMessageSender{}
@@ -41,7 +41,7 @@ func Test_ReadAndSend_NonTransientFailureFromReportStream_MovesFileToFailureFold
 
 func Test_ReadAndSend_UnexpectedErrorFromReportStream_ReturnsErrorAndDoesNotMoveFile(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockBlobHandler.On("FetchFile", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
+	mockBlobHandler.On("FetchFileByUrl", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", utils.SourceUrl, utils.FailureSourceUrl).Return(nil)
 
 	mockMessageSender := &MockMessageSender{}
@@ -57,7 +57,7 @@ func Test_ReadAndSend_UnexpectedErrorFromReportStream_ReturnsErrorAndDoesNotMove
 
 func Test_ReadAndSend_successfulReadAndSend(t *testing.T) {
 	mockBlobHandler := &mocks.MockBlobHandler{}
-	mockBlobHandler.On("FetchFile", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
+	mockBlobHandler.On("FetchFileByUrl", utils.SourceUrl).Return([]byte("The DogCow went Moof!"), nil)
 	mockBlobHandler.On("MoveFile", utils.SourceUrl, utils.SuccessSourceUrl).Return(nil)
 
 	mockMessageSender := &MockMessageSender{}

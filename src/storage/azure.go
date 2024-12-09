@@ -13,7 +13,6 @@ type AzureBlobHandler struct {
 	blobClient *azblob.Client
 }
 
-
 func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
@@ -24,7 +23,7 @@ func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	return AzureBlobHandler{blobClient: blobClient}, nil
 }
 
-func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
+func (receiver AzureBlobHandler) FetchFileByUrl(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
 		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
@@ -42,6 +41,10 @@ func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	resp, err := io.ReadAll(retryReader)
 
 	return resp, err
+}
+
+func (receiver AzureBlobHandler) FetchFile() ([]byte, error) {
+
 }
 
 func (receiver AzureBlobHandler) UploadFile(fileBytes []byte, blobPath string) error {
