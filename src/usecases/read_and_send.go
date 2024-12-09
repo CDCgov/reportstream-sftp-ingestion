@@ -52,7 +52,7 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 // `nil` so that we'll delete the queue message and not retry. On a transient error or an unknown error, we return
 // an error, which will cause the queue message to retry later
 func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
-	content, err := receiver.blobHandler.FetchFile(sourceUrl)
+	content, err := receiver.blobHandler.FetchFileByUrl(sourceUrl)
 	if err != nil {
 		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
