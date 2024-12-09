@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func Test_populateConfig_populates(t *testing.T) {
+func Test_populatePartnerSettings_populates(t *testing.T) {
 	jsonInput := []byte(`{
 	"displayName": "Test Name",
 	"isActive": true,
@@ -24,7 +24,7 @@ func Test_populateConfig_populates(t *testing.T) {
 	assert.Equal(t, test.partnerSettings.HasZipPassword, true)
 }
 
-func Test_populateConfig_errors_whenJsonInvalid(t *testing.T) {
+func Test_populatePartnerSettings_errors_whenJsonInvalid(t *testing.T) {
 	jsonInput := []byte(`bad json`)
 	test := Config{}
 
@@ -34,7 +34,7 @@ func Test_populateConfig_errors_whenJsonInvalid(t *testing.T) {
 
 }
 
-func Test_populateConfig_errors_whenEncodingInvalid(t *testing.T) {
+func Test_populatePartnerSettings_errors_whenEncodingInvalid(t *testing.T) {
 	jsonInput := []byte(`{
 	"displayName": "Test Name",
 	"isActive": true,
