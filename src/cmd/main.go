@@ -65,7 +65,7 @@ func setupLogging() {
 	environment := os.Getenv("ENV")
 
 	if environment == "" {
-		//environment = "local"
+		environment = "local"
 	}
 
 	if environment != "local" {
