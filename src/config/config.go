@@ -18,17 +18,40 @@ type PartnerSettings struct {
 	DefaultEncoding          string `json:"defaultEncoding"`
 }
 
-// When did we last get the file and what did we parse out of it?
 type Config struct {
+	// PartnerId is a unique name to identify a partner. It's put in queue message from polling function and used in blob paths
+	PartnerId       string
 	lastRetrieved   time.Time
 	partnerSettings PartnerSettings
-	PartnerId       string //unique name, put in queue message from polling function - keep this short so we can use it in TF resources? Currently TF and RS use `ca-phl`
 }
 
 // TODO confirm if these should stay here in config or move to constants
 var allowedEncodingList = []string{"ISO-8859-1", "UTF-8"}
 var KnownPartnerIds = []string{utils.CA_PHL, utils.FLEXION}
 var Configs map[string]*Config
+
+/*
+TODO list as of Dec 10:
+- Add tests for NewConfig?
+- Set up another function trigger/CRON for Flexion
+- Set up config files for ca-phl and flexion in all envs (need to change what's in local too - it currently only has one value)
+- What happens if you try to retrieve a map index that doesn't exist? Need to check for errors or nils or something everywhere we get config
+- In polling message handler, use queue message to:
+	- decide whether to do retrieval ('no' for flexion probs)
+	- build key names for retrieving secrets
+	- build file paths for saving files (both zips and hl7s)
+	- add config to tests
+- In import message handler:
+	- parse file path to get partner ID
+	- use partner ID to build key names for retrieving secrets to call RS
+	- add config to tests
+- See if we need to do add'l TF to set up Flexion?
+	- probably at least a cron expression and RS config. It would be nice to have an external Flexion SFTP site to hit for testing
+	- Do we want to start making TF dynamic at this point or wait for add'l partners? I think maybe wait for 1-2 more partners?
+- ADR for not-crashing if one config fails
+- ADR for config in general
+
+*/
 
 func NewConfig(partnerId string) (*Config, error) {
 	// Create blob client
