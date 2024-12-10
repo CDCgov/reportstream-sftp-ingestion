@@ -32,3 +32,4 @@ const FileNameKey = "file name"
 // The name to uniquely identify California's (CA) public health lab (PHL)
 // Used to prepend CA-PHL specific secrets
 const CA_PHL = "ca-phl"
+const FLEXION = "flexion"
