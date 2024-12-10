@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
+	"github.com/google/uuid"
 	"io"
 	"log/slog"
 	"net/http"
@@ -72,6 +73,8 @@ func setupLogging() {
 		slog.SetDefault(logger)
 	}
 
+	// add a unique ID to the currently running container so we can identify logs uniquely in a better way than Azure's built-in _ResourceId and Host field
+	slog.SetDefault(slog.With(slog.String("containerId", uuid.NewString())))
 }
 
 func setupHealthCheck() {
