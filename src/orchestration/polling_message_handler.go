@@ -2,6 +2,7 @@ package orchestration
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
+	"github.com/CDCgov/reportstream-sftp-ingestion/config"
 	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/sftp"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
@@ -13,6 +14,11 @@ type PollingMessageHandler struct {
 
 func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
 	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
+
+	//TODO - clean up this fun random bit - this is an example of how we could access config in future
+	partnerConfig := config.Configs[*message.MessageText]
+	slog.Info("Retrieved config", slog.Any("config", partnerConfig))
+
 	// In future, we will use the message contents to figure out stuff about config and files
 	// SFTP handler currently has hard-coded details about where to retrieve files from
 	credentialGetter, err := secrets.GetCredentialGetter()
