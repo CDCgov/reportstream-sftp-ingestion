@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"errors"
-	"github.com/CDCgov/reportstream-sftp-ingestion/storage"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
 	"slices"
@@ -55,35 +54,6 @@ Future PR:
 	- probably at least a cron expression and RS config. It would be nice to have an external Flexion SFTP site to hit for testing
 	- Do we want to start making TF dynamic at this point or wait for add'l partners? I think maybe wait for 1-2 more partners?
 */
-
-func NewConfig(partnerId string) (*Config, error) {
-	// Create blob client
-	handler, err := storage.NewAzureBlobHandler()
-	if err != nil {
-		slog.Error("Failed to create Azure Blob handler for config retrieval", slog.Any(utils.ErrorKey, err), slog.String("partnerId", partnerId))
-	}
-
-	// Retrieve settings file from Azure
-	fileContents, err := handler.FetchFile("config", partnerId+".json")
-	if err != nil {
-		slog.Error("Failed to retrieve partner settings", slog.Any(utils.ErrorKey, err), slog.String("partnerId", partnerId))
-	}
-
-	// Parse file content by calling populate
-	partnerSettings, err := populatePartnerSettings(fileContents, partnerId)
-	if err != nil {
-		// We log any errors in the called function
-		return nil, err
-	}
-
-	// Set up config object
-	config := &Config{}
-	config.lastRetrieved = time.Now().UTC()
-	config.PartnerId = partnerId
-	config.partnerSettings = partnerSettings
-
-	return config, nil
-}
 
 func populatePartnerSettings(input []byte, partnerId string) (PartnerSettings, error) {
 

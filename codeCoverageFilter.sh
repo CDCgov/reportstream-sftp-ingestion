@@ -12,6 +12,7 @@ EXCLUDE_FILES=(
   github.com/CDCgov/reportstream-sftp-ingestion/mocks/blob_handler.go
   github.com/CDCgov/reportstream-sftp-ingestion/utils/constants.go
   github.com/CDCgov/reportstream-sftp-ingestion/sftp/pkg_sftp.go
+  github.com/CDCgov/reportstream-sftp-ingestion/config/config_struct.go
 )
 
 for exclusion in "${EXCLUDE_FILES[@]}"

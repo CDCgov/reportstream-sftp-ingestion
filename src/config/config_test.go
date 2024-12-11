@@ -59,3 +59,10 @@ func Test_validateDefaultEncoding_errors(t *testing.T) {
 
 	assert.Error(t, err)
 }
+
+func Test_ConfigStruct_populatesCorrectly(t *testing.T) {
+	output, _ := NewConfig("testConfig")
+
+	assert.Equal(t, &output.PartnerId, "testConfig")
+
+}
