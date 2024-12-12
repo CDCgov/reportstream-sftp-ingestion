@@ -14,6 +14,11 @@ type Config struct {
 	partnerSettings PartnerSettings
 }
 
+// TODO confirm if these should stay here in config or move to constants
+var allowedEncodingList = []string{"ISO-8859-1", "UTF-8"}
+var KnownPartnerIds = []string{utils.CA_PHL, utils.FLEXION}
+var Configs = make(map[string]*Config)
+
 func NewConfig(partnerId string) (*Config, error) {
 	// Create blob client
 	handler, err := storage.NewAzureBlobHandler()

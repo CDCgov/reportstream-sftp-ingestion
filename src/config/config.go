@@ -6,7 +6,6 @@ import (
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
 	"slices"
-	"time"
 )
 
 type PartnerSettings struct {
@@ -16,11 +15,6 @@ type PartnerSettings struct {
 	HasZipPassword           bool   `json:"hasZipPassword"`
 	DefaultEncoding          string `json:"defaultEncoding"`
 }
-
-// TODO confirm if these should stay here in config or move to constants
-var allowedEncodingList = []string{"ISO-8859-1", "UTF-8"}
-var KnownPartnerIds = []string{utils.CA_PHL, utils.FLEXION}
-var Configs = make(map[string]*Config)
 
 /*
 TODO list as of Dec 10:
