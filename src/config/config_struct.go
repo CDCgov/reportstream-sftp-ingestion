@@ -12,12 +12,14 @@ func NewConfig(partnerId string) (*Config, error) {
 	handler, err := storage.NewAzureBlobHandler()
 	if err != nil {
 		slog.Error("Failed to create Azure Blob handler for config retrieval", slog.Any(utils.ErrorKey, err), slog.String("partnerId", partnerId))
+		return nil, err
 	}
 
 	// Retrieve settings file from Azure
 	fileContents, err := handler.FetchFile("config", partnerId+".json")
 	if err != nil {
 		slog.Error("Failed to retrieve partner settings", slog.Any(utils.ErrorKey, err), slog.String("partnerId", partnerId))
+		return nil, err
 	}
 
 	// Parse file content by calling populate

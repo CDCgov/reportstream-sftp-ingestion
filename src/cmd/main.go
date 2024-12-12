@@ -24,7 +24,10 @@ func main() {
 			// TODO - add an ADR talking about this. We're not crashing if a single config doesn't load in case only one partner is impacted
 			slog.Error("Unable to load or parse config", slog.Any(utils.ErrorKey, err), slog.String("partner", partnerId))
 		}
+
 		config.Configs[partnerId] = partnerConfig
+		slog.Info("config found", slog.String("Id", partnerId))
+
 	}
 
 	go setupHealthCheck()
