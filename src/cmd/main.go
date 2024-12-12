@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/CDCgov/reportstream-sftp-ingestion/config"
 	"github.com/CDCgov/reportstream-sftp-ingestion/orchestration"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/google/uuid"
@@ -17,18 +16,6 @@ func main() {
 	setupLogging()
 
 	slog.Info("Hello World")
-
-	for _, partnerId := range config.KnownPartnerIds {
-		partnerConfig, err := config.NewConfig(partnerId)
-		if err != nil {
-			// TODO - add an ADR talking about this. We're not crashing if a single config doesn't load in case only one partner is impacted
-			slog.Error("Unable to load or parse config", slog.Any(utils.ErrorKey, err), slog.String("partner", partnerId))
-		}
-
-		config.Configs[partnerId] = partnerConfig
-		slog.Info("config found", slog.String("Id", partnerId))
-
-	}
 
 	go setupHealthCheck()
 

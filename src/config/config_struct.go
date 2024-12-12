@@ -19,6 +19,20 @@ var allowedEncodingList = []string{"ISO-8859-1", "UTF-8"}
 var KnownPartnerIds = []string{utils.CA_PHL, utils.FLEXION}
 var Configs = make(map[string]*Config)
 
+func init() {
+	for _, partnerId := range KnownPartnerIds {
+		partnerConfig, err := NewConfig(partnerId)
+		if err != nil {
+			// TODO - add an ADR talking about this. We're not crashing if a single config doesn't load in case only one partner is impacted
+			slog.Error("Unable to load or parse config", slog.Any(utils.ErrorKey, err), slog.String("partner", partnerId))
+		}
+
+		Configs[partnerId] = partnerConfig
+		slog.Info("config found", slog.String("Id", partnerId))
+
+	}
+}
+
 func NewConfig(partnerId string) (*Config, error) {
 	// Create blob client
 	handler, err := storage.NewAzureBlobHandler()
