@@ -17,13 +17,6 @@ type PartnerSettings struct {
 	DefaultEncoding          string `json:"defaultEncoding"`
 }
 
-type Config struct {
-	// PartnerId is a unique name to identify a partner. It's put in queue message from polling function and used in blob paths
-	PartnerId       string
-	lastRetrieved   time.Time
-	partnerSettings PartnerSettings
-}
-
 // TODO confirm if these should stay here in config or move to constants
 var allowedEncodingList = []string{"ISO-8859-1", "UTF-8"}
 var KnownPartnerIds = []string{utils.CA_PHL, utils.FLEXION}

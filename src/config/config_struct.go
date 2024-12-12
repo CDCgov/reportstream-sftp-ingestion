@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type Config struct {
+	// PartnerId is a unique name to identify a partner. It's put in queue message from polling function and used in blob paths
+	PartnerId       string
+	lastRetrieved   time.Time
+	partnerSettings PartnerSettings
+}
+
 func NewConfig(partnerId string) (*Config, error) {
 	// Create blob client
 	handler, err := storage.NewAzureBlobHandler()
