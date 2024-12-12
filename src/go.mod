@@ -16,7 +16,7 @@ require (
 	github.com/pkg/sftp v1.13.7
 	github.com/stretchr/testify v1.10.0
 	github.com/yeka/zip v0.0.0-20231116150916-03d6312748a9
-	golang.org/x/crypto v0.30.0
+	golang.org/x/crypto v0.31.0
 	golang.org/x/text v0.21.0
 
 )
