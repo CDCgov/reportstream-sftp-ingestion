@@ -13,6 +13,7 @@ type PollingMessageHandler struct {
 
 func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
 	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
+
 	// In future, we will use the message contents to figure out stuff about config and files
 	// SFTP handler currently has hard-coded details about where to retrieve files from
 	credentialGetter, err := secrets.GetCredentialGetter()

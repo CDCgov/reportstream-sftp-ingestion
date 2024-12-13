@@ -13,7 +13,6 @@ type AzureBlobHandler struct {
 	blobClient *azblob.Client
 }
 
-
 func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	connectionString := os.Getenv("AZURE_STORAGE_CONNECTION_STRING")
 	blobClient, err := azblob.NewClientFromConnectionString(connectionString, nil)
@@ -24,14 +23,17 @@ func NewAzureBlobHandler() (AzureBlobHandler, error) {
 	return AzureBlobHandler{blobClient: blobClient}, nil
 }
 
-func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
+func (receiver AzureBlobHandler) FetchFileByUrl(sourceUrl string) ([]byte, error) {
 	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
 	if err != nil {
 		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return nil, err
 	}
+	return receiver.FetchFile(sourceUrlParts.ContainerName, sourceUrlParts.BlobName)
+}
 
-	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), sourceUrlParts.ContainerName, sourceUrlParts.BlobName, nil)
+func (receiver AzureBlobHandler) FetchFile(containerName string, blobName string) ([]byte, error) {
+	streamResponse, err := receiver.blobClient.DownloadStream(context.Background(), containerName, blobName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +41,7 @@ func (receiver AzureBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
 	retryReader := streamResponse.NewRetryReader(context.Background(), nil)
 	defer retryReader.Close()
 
-	resp, err := io.ReadAll(retryReader)
-
-	return resp, err
+	return io.ReadAll(retryReader)
 }
 
 func (receiver AzureBlobHandler) UploadFile(fileBytes []byte, blobPath string) error {
@@ -69,7 +69,7 @@ func (receiver AzureBlobHandler) MoveFile(sourceUrl string, destinationUrl strin
 		return err
 	}
 
-	fileBytes, err := receiver.FetchFile(sourceUrl)
+	fileBytes, err := receiver.FetchFileByUrl(sourceUrl)
 	if err != nil {
 		slog.Error("Unable to fetch file", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err

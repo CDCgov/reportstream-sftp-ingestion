@@ -51,7 +51,8 @@ services:
         az storage container create -n config
         az storage container create -n sftp
         az storage blob upload --overwrite --account-name devstoreaccount1 --container-name sftp --name import/order_message.hl7 --file mock_data/order_message.hl7
-        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name config --name config.json --file config/local.json
+        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name config --name flexion.json --file config/flexion.json
+        az storage blob upload --overwrite --account-name devstoreaccount1 --container-name config --name ca-phl.json --file config/ca-phl.json
         az storage queue create -n message-import-queue
         az storage queue create -n message-import-dead-letter-queue
         az storage queue create -n polling-trigger-queue

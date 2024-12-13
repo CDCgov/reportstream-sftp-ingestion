@@ -1,10 +1,13 @@
-package utils
+package config
 
 import (
+	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"github.com/stretchr/testify/assert"
 	"log/slog"
 	"testing"
 )
+
+const partnerId = "test"
 
 func Test_populatePartnerSettings_populates(t *testing.T) {
 	jsonInput := []byte(`{
@@ -14,21 +17,19 @@ func Test_populatePartnerSettings_populates(t *testing.T) {
 	"hasZipPassword": true,
 	"defaultEncoding": "ISO-8859-1"
 }`)
-	test := Config{}
 
-	_ = test.populatePartnerSettings(jsonInput)
+	partnerSettings, _ := populatePartnerSettings(jsonInput, partnerId)
 
-	assert.Contains(t, test.partnerSettings.DisplayName, "Test Name")
-	assert.Equal(t, test.partnerSettings.IsActive, true)
-	assert.Equal(t, test.partnerSettings.IsExternalSftpConnection, true)
-	assert.Equal(t, test.partnerSettings.HasZipPassword, true)
+	assert.Contains(t, partnerSettings.DisplayName, "Test Name")
+	assert.Equal(t, partnerSettings.IsActive, true)
+	assert.Equal(t, partnerSettings.IsExternalSftpConnection, true)
+	assert.Equal(t, partnerSettings.HasZipPassword, true)
 }
 
 func Test_populatePartnerSettings_errors_whenJsonInvalid(t *testing.T) {
 	jsonInput := []byte(`bad json`)
-	test := Config{}
 
-	err := test.populatePartnerSettings(jsonInput)
+	_, err := populatePartnerSettings(jsonInput, partnerId)
 
 	assert.Error(t, err)
 
@@ -43,12 +44,10 @@ func Test_populatePartnerSettings_errors_whenEncodingInvalid(t *testing.T) {
 	"defaultEncoding": "Something else"
 }`)
 
-	buffer, defaultLogger := SetupLogger()
+	buffer, defaultLogger := utils.SetupLogger()
 	defer slog.SetDefault(defaultLogger)
 
-	test := Config{}
-
-	err := test.populatePartnerSettings(jsonInput)
+	_, err := populatePartnerSettings(jsonInput, partnerId)
 
 	assert.Error(t, err)
 	assert.Contains(t, buffer.String(), "Invalid encoding found")

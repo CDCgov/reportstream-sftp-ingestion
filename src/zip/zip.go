@@ -92,7 +92,6 @@ func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 		zipHandler.MoveZip(blobPath, utils.SuccessFolder)
 	}
 
-
 	// Upload error info if any
 	err = zipHandler.UploadErrorList(blobPath, errorList, err)
 	if err != nil {
@@ -113,7 +112,7 @@ func (zipHandler ZipHandler) MoveZip(blobPath string, subfolder string) {
 	if err != nil {
 		slog.Error("Unable to move file to "+destinationUrl, slog.Any(utils.ErrorKey, err))
 	} else {
-		slog.Info("Successfully moved file to "+destinationUrl)
+		slog.Info("Successfully moved file to " + destinationUrl)
 	}
 }
 

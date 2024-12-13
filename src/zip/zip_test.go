@@ -12,13 +12,11 @@ import (
 	"testing"
 )
 
-
 var filename = "cheeseburger.zip"
 var unzipSuccessUrl = "sftp/unzip/success/cheeseburger.zip"
 var unzipFailurePath = "unzip/failure/cheeseburger.zip"
 var unzipFailureUrl = "sftp/unzip/failure/cheeseburger.zip"
 var blobPath = "unzip/cheeseburger.zip"
-
 
 func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 
@@ -71,7 +69,6 @@ func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 	mockBlobHandler.On("UploadFile", mock.Anything, mock.Anything).Return(nil)
 	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 
-
 	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
@@ -98,7 +95,7 @@ func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 
 	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
-		blobHandler: mockBlobHandler,
+		blobHandler:      mockBlobHandler,
 	}
 
 	err := zipHandler.Unzip(filename, blobPath)
@@ -124,7 +121,7 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 	mockBlobHandler := new(mocks.MockBlobHandler)
 	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 
-	zipHandler := ZipHandler {
+	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
 		zipClient:        mockZipClient,
 		blobHandler:      mockBlobHandler,
@@ -165,7 +162,7 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 	err = zipHandler.Unzip(filename, blobPath)
 
 	mockBlobHandler.AssertCalled(t, "MoveFile", mock.Anything, unzipFailureUrl)
-	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, unzipFailurePath+ ".txt")
+	mockBlobHandler.AssertCalled(t, "UploadFile", mock.Anything, unzipFailurePath+".txt")
 	assert.Contains(t, buffer.String(), "setting password for file")
 	assert.Contains(t, buffer.String(), "Extracting file")
 	assert.Contains(t, buffer.String(), "Failed to read message file")
@@ -212,7 +209,6 @@ func Test_MoveZip_MoveZipSuccessful(t *testing.T) {
 	mockCredentialGetter := new(mocks.MockCredentialGetter)
 	mockBlobHandler := new(mocks.MockBlobHandler)
 	mockZipClient := new(MockZipClient)
-
 
 	mockBlobHandler.On("MoveFile", mock.Anything, mock.Anything).Return(nil)
 

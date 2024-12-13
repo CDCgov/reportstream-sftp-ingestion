@@ -6,7 +6,7 @@ type MockBlobHandler struct {
 	mock.Mock
 }
 
-func (receiver *MockBlobHandler) FetchFile(sourceUrl string) ([]byte, error) {
+func (receiver *MockBlobHandler) FetchFileByUrl(sourceUrl string) ([]byte, error) {
 	args := receiver.Called(sourceUrl)
 	return args.Get(0).([]byte), args.Error(1)
 }

@@ -20,4 +20,3 @@ func SetupLogger() (*bytes.Buffer, *slog.Logger) {
 const SuccessSourceUrl = "http://localhost/sftp/customer/success/order_message.hl7"
 const SourceUrl = "http://localhost/sftp/customer/import/order_message.hl7"
 const FailureSourceUrl = "http://localhost/sftp/customer/failure/order_message.hl7"
-
