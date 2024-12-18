@@ -22,13 +22,6 @@ blast radius when changing settings.
 - secrets will use a consistent naming pattern based on the partner ID used in config (so we can dynamically assemble the key names in code)
 - config keys are their file names (minus .json) and match org names in ReportStream
 
-README
-- skipping PR env? Defaults?
-- config structure? and/or what settings are included? Maybe not, it was just easy to make it flat
-- config loading timing? YAGNI on automagic refresh - restart app to reload configs. This should go somewhere, maybe in a
-- folder structure - partner first with import etc inside of it. This might belong in another ADR
-- add config for Flexion to enable testing
-
 
 ## Impact
 
