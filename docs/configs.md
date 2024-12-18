@@ -1,7 +1,7 @@
-README
-- skipping PR env? Defaults?
-- config structure? and/or what settings are included? Maybe not, it was just easy to make it flat
-- config loading timing? YAGNI on automagic refresh - restart app to reload configs. This should go somewhere, maybe in a
-- folder structure - partner first with import etc inside of it. This might belong in another ADR
-- add config for Flexion to enable testing
+# FAQ
+
+- We don't load configs in the PR environment.  
+- See [The partner settings struct](/src/config/config.go) for the config structure
+- Configs load prior to the application running.  Any changes to the config will require a restart of the Azure container to load those changes
+- For local non-partner specific testing, we have a Flexion based config that can be used in non-prod environments
 

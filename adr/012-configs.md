@@ -22,7 +22,6 @@ blast radius when changing settings.
 - secrets will use a consistent naming pattern based on the partner ID used in config (so we can dynamically assemble the key names in code)
 - config keys are their file names (minus .json) and match org names in ReportStream
 
-
 ## Impact
 
 ### Positive
