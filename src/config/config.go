@@ -8,6 +8,9 @@ import (
 	"slices"
 )
 
+/*
+The below struct is the struct for the values of partner configs. If adding new configs add to this struct
+*/
 type PartnerSettings struct {
 	DisplayName              string `json:"displayName"` // full name if we need pretty names
 	IsActive                 bool   `json:"isActive"`
