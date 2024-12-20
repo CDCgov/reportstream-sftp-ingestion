@@ -59,7 +59,7 @@ func NewConfig(partnerId string) (*Config, error) {
 	config := &Config{}
 	config.lastRetrieved = time.Now().UTC()
 	config.PartnerId = partnerId
-	config.partnerSettings = partnerSettings
+	config.PartnerSettings = partnerSettings
 
 	return config, nil
 }

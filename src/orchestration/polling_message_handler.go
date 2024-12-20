@@ -1,7 +1,6 @@
 package orchestration
 
 import (
-	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/config"
 	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
@@ -17,18 +16,9 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
 	partnerId := *message.MessageText
 
-	isActive := false
-	// TODO get config for partner ID in message
-	if val, ok := config.Configs[partnerId]; ok {
-		isActive = val.PartnerSettings.IsActive
-	} else {
-		// TODO - this will cause the queue message to retry. Is that what we want? Or should we log an error and return nil (deletes message)
-		return errors.New("Partner not found in config: " + partnerId)
-	}
-
+	isActive := checkIsActive(partnerId)
 	if !isActive {
-		slog.Warn("Partner not active, skipping", slog.String("partnerId", partnerId))
-		// Return nil here so we'll delete the queue message and they won't pile up during an intentional downtime
+		// Return nil here so we'll delete the queue message and they won't pile up during an intentional downtime or misconfiguration
 		return nil
 	}
 
@@ -38,8 +28,7 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 		return err
 	}
 
-	// TODO pass partner ID into sftp handler
-	sftpHandler, err := sftp.NewSftpHandler(credentialGetter)
+	sftpHandler, err := sftp.NewSftpHandler(credentialGetter, partnerId)
 	if err != nil {
 		slog.Error("failed to create sftp handler", slog.Any(utils.ErrorKey, err))
 		return err
@@ -55,4 +44,20 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	slog.Info("called CopyFiles")
 
 	return nil
+}
+
+func checkIsActive(partnerId string) bool {
+	isActive := false
+	if val, ok := config.Configs[partnerId]; ok {
+		isActive = val.PartnerSettings.IsActive
+	} else {
+		slog.Error("Partner not found in config", slog.String("partnerId", partnerId))
+		return false
+	}
+
+	if !isActive {
+		slog.Warn("Partner not active, skipping", slog.String("partnerId", partnerId))
+		return false
+	}
+	return true
 }
