@@ -2,6 +2,7 @@ package orchestration
 
 import (
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
+	"github.com/CDCgov/reportstream-sftp-ingestion/config"
 	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
 	"github.com/CDCgov/reportstream-sftp-ingestion/sftp"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
@@ -13,7 +14,20 @@ type PollingMessageHandler struct {
 
 func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.DequeuedMessage) error {
 	slog.Info("Handling polling message", slog.String("message text", *message.MessageText))
+	partnerId := *message.MessageText
 
+	isActive := false
+	// TODO get config for partner ID in message
+	if val, ok := config.Configs[partnerId]; ok {
+		isActive = val.PartnerSettings.IsActive
+	}
+	// TODO - if not ok
+
+	if !isActive {
+		slog.Warn("Partner not active, skipping", slog.String("partnerId", partnerId))
+		return nil
+	}
+	// TODO check config to see if we should do the next steps - if not, log and return? Return error or nil? Let's return nil so we don't pile up messages
 	// In future, we will use the message contents to figure out stuff about config and files
 	// SFTP handler currently has hard-coded details about where to retrieve files from
 	credentialGetter, err := secrets.GetCredentialGetter()
@@ -22,6 +36,7 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 		return err
 	}
 
+	// TODO pass partner ID into sftp handler
 	sftpHandler, err := sftp.NewSftpHandler(credentialGetter)
 	if err != nil {
 		slog.Error("failed to create sftp handler", slog.Any(utils.ErrorKey, err))
