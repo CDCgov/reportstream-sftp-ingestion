@@ -1,6 +1,7 @@
 package orchestration
 
 import (
+	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/config"
 	"github.com/CDCgov/reportstream-sftp-ingestion/secrets"
@@ -20,16 +21,17 @@ func (receiver PollingMessageHandler) HandleMessageContents(message azqueue.Dequ
 	// TODO get config for partner ID in message
 	if val, ok := config.Configs[partnerId]; ok {
 		isActive = val.PartnerSettings.IsActive
+	} else {
+		// TODO - this will cause the queue message to retry. Is that what we want? Or should we log an error and return nil (deletes message)
+		return errors.New("Partner not found in config: " + partnerId)
 	}
-	// TODO - if not ok
 
 	if !isActive {
 		slog.Warn("Partner not active, skipping", slog.String("partnerId", partnerId))
+		// Return nil here so we'll delete the queue message and they won't pile up during an intentional downtime
 		return nil
 	}
-	// TODO check config to see if we should do the next steps - if not, log and return? Return error or nil? Let's return nil so we don't pile up messages
-	// In future, we will use the message contents to figure out stuff about config and files
-	// SFTP handler currently has hard-coded details about where to retrieve files from
+
 	credentialGetter, err := secrets.GetCredentialGetter()
 	if err != nil {
 		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
