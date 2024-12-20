@@ -17,6 +17,7 @@ type PartnerSettings struct {
 }
 
 /*
+TODO - update this list
 TODO list as of Dec 10:
 Current PR:
 - Add tests for NewConfig?
@@ -38,6 +39,7 @@ Future PR:
 	- use partner ID to build key names for retrieving secrets to call RS
 	- add config to tests
 - See if we need to do add'l TF to set up Flexion?
+	- Probably need to set up all secrets in same pattern as the `ca-phl` ones
 	- probably at least a cron expression and RS config. It would be nice to have an external Flexion SFTP site to hit for testing
 	- Do we want to start making TF dynamic at this point or wait for add'l partners? I think maybe wait for 1-2 more partners?
 */
