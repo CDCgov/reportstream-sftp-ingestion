@@ -8,4 +8,4 @@
 - For local non-partner specific testing, we have a Flexion based config that can be used in non-prod environments
 - Config files should only contain non-secret values. Secrets will remain in Azure Key Vault
     - secrets will use a consistent naming pattern based on the same partner ID used in config
-      (so we can dynamically assemble the key names in code)
+      (so we can dynamically assemble the key names in code) [see here](../SECRETS.md)
