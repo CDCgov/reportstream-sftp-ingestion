@@ -16,12 +16,6 @@ In order to enable the usage of partner-specific settings in the different parts
 in a config container in our Azure storage account. Each partner will have its own separate file within the container to minimize potential
 blast radius when changing settings.
 
-
-## Notes
-- config files should only contain non-secret values
-- secrets will use a consistent naming pattern based on the partner ID used in config (so we can dynamically assemble the key names in code)
-- config keys are their file names (minus .json) and match org names in ReportStream
-
 ## Impact
 
 ### Positive
@@ -40,4 +34,4 @@ blast radius when changing settings.
 
 ## Related Issues
 
-- #1082
+- #[1082](https://github.com/CDCgov/trusted-intermediary/issues/1082)
