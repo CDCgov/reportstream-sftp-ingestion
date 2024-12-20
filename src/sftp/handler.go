@@ -26,6 +26,7 @@ type SftpHandler struct {
 func NewSftpHandler(credentialGetter secrets.CredentialGetter) (*SftpHandler, error) {
 	// In the future, we'll pass in info about what customer we're using (and thus what URL/key/password to use)
 
+	// TODO add partner ID to params. Use it instead of CA_PHL to build key names
 	userCredentialPrivateKey, err := getUserCredentialPrivateKey(credentialGetter)
 	if err != nil {
 		slog.Error("Unable to get user credential private key", slog.Any(utils.ErrorKey, err))
