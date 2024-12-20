@@ -17,23 +17,18 @@ type PartnerSettings struct {
 }
 
 /*
-TODO - update this list
-TODO list as of Dec 10:
+TODO list as of Dec 20:
 Current PR:
-- Add tests for NewConfig?
-- Set up config files for ca-phl and flexion in all envs (need to change what's in local too - it currently only has one value)
-	- Do we want to add some kind of logging indicating what config got loaded? Maybe just temporarily for testing purposes?
-- ADR for not-crashing if one config fails
-- ADR for config in general
+- In polling message handler, use queue message to:
+	- decide whether to do retrieval ('no' for flexion probs) (done)
+	- build key names for retrieving secrets (done)
+	- add config to tests
 
 Future PR:
+- Set up config files in prod
 - Set up another function trigger/CRON for Flexion
-- What happens if you try to retrieve a map index that doesn't exist? Need to check for errors or nils or something everywhere we get config
 - In polling message handler, use queue message to:
-	- decide whether to do retrieval ('no' for flexion probs)
-	- build key names for retrieving secrets
 	- build file paths for saving files (both zips and hl7s)
-	- add config to tests
 - In import message handler:
 	- parse file path to get partner ID
 	- use partner ID to build key names for retrieving secrets to call RS

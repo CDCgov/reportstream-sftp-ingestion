@@ -21,9 +21,9 @@ func Test_populatePartnerSettings_populates(t *testing.T) {
 	partnerSettings, _ := populatePartnerSettings(jsonInput, partnerId)
 
 	assert.Contains(t, partnerSettings.DisplayName, "Test Name")
-	assert.Equal(t, partnerSettings.IsActive, true)
-	assert.Equal(t, partnerSettings.IsExternalSftpConnection, true)
-	assert.Equal(t, partnerSettings.HasZipPassword, true)
+	assert.Equal(t, true, partnerSettings.IsActive)
+	assert.Equal(t, true, partnerSettings.IsExternalSftpConnection)
+	assert.Equal(t, true, partnerSettings.HasZipPassword)
 }
 
 func Test_populatePartnerSettings_errors_whenJsonInvalid(t *testing.T) {
@@ -33,6 +33,24 @@ func Test_populatePartnerSettings_errors_whenJsonInvalid(t *testing.T) {
 
 	assert.Error(t, err)
 
+}
+
+func Test_populatePartnerSettings_errors_whenBooleanInvalid(t *testing.T) {
+	jsonInput := []byte(`{
+	"displayName": "Test Name",
+	"isActive": "dogcow",
+	"isExternalSftpConnection": true,
+	"hasZipPassword": true,
+	"defaultEncoding": "ISO-8859-1"
+}`)
+
+	buffer, defaultLogger := utils.SetupLogger()
+	defer slog.SetDefault(defaultLogger)
+
+	_, err := populatePartnerSettings(jsonInput, partnerId)
+
+	assert.Error(t, err)
+	assert.Contains(t, buffer.String(), "cannot unmarshal string into Go struct field PartnerSettings.isActive of type bool")
 }
 
 func Test_populatePartnerSettings_errors_whenEncodingInvalid(t *testing.T) {
