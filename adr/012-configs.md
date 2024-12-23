@@ -4,7 +4,7 @@ Date: 2024-12-12
 
 ## Decision
 
-We will store partner config settings in an Azure container
+We will store partner SFTP config settings in an Azure container
 
 ## Status
 
