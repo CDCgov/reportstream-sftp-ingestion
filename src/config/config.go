@@ -20,12 +20,7 @@ type PartnerSettings struct {
 }
 
 /*
-TODO list as of Dec 20:
-Current PR:
-- In polling message handler, use queue message to:
-	- decide whether to do retrieval ('no' for flexion probs) (done)
-	- build key names for retrieving secrets (done)
-	- add config to tests
+TODO list as of Dec 24:
 
 Future PR:
 - Set up config files in prod
