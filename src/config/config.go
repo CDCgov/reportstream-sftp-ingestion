@@ -19,24 +19,6 @@ type PartnerSettings struct {
 	DefaultEncoding          string `json:"defaultEncoding"`
 }
 
-/*
-TODO list as of Dec 24:
-
-Future PR:
-- Set up config files in prod
-- Set up another function trigger/CRON for Flexion
-- In polling message handler, use queue message to:
-	- build file paths for saving files (both zips and hl7s)
-- In import message handler:
-	- parse file path to get partner ID
-	- use partner ID to build key names for retrieving secrets to call RS
-	- add config to tests
-- See if we need to do add'l TF to set up Flexion?
-	- Probably need to set up all secrets in same pattern as the `ca-phl` ones
-	- probably at least a cron expression and RS config. It would be nice to have an external Flexion SFTP site to hit for testing
-	- Do we want to start making TF dynamic at this point or wait for add'l partners? I think maybe wait for 1-2 more partners?
-*/
-
 func populatePartnerSettings(input []byte, partnerId string) (PartnerSettings, error) {
 
 	var partnerSettings PartnerSettings
