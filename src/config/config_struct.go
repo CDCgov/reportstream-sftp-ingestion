@@ -11,7 +11,7 @@ type Config struct {
 	// PartnerId is a unique name to identify a partner. It's put in queue message from polling function and used in blob paths
 	PartnerId       string
 	lastRetrieved   time.Time
-	partnerSettings PartnerSettings
+	PartnerSettings PartnerSettings
 }
 
 // TODO confirm if these should stay here in config or move to constants
@@ -59,7 +59,7 @@ func NewConfig(partnerId string) (*Config, error) {
 	config := &Config{}
 	config.lastRetrieved = time.Now().UTC()
 	config.PartnerId = partnerId
-	config.partnerSettings = partnerSettings
+	config.PartnerSettings = partnerSettings
 
 	return config, nil
 }
