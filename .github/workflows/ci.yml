@@ -37,6 +37,8 @@ jobs:
           go-version-file: ./src/go.mod
           cache-dependency-path: ./src/go.sum
 
+      - uses: hashicorp/setup-terraform@v3
+
       - name: Vet
         run: make vet
 
