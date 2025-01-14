@@ -49,7 +49,8 @@ func NewConfig(partnerId string) (*Config, error) {
 	}
 
 	// Parse file content by calling populate
-	partnerSettings, err := populatePartnerSettings(fileContents, partnerId)
+	partnerSettings, err := populatePartnerS
+	ettings(fileContents, partnerId)
 	if err != nil {
 		// We log any errors in the called function
 		return nil, err

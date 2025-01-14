@@ -30,12 +30,14 @@ func NewSender() (Sender, error) {
 		slog.Error("Unable to initialize credential getter", slog.Any(utils.ErrorKey, err))
 		return Sender{}, err
 	}
+	// TODO - replace hard-coded utils.CA_PHL with the correct partner ID - maybe pass it in to this method?
 	// ca-phl-reportstream-private-key
 	reportStreamPrivateKeyName := utils.CA_PHL + "-reportstream-private-key-" + utils.EnvironmentName() // pragma: allowlist secret
 
 	return Sender{
-		baseUrl:          os.Getenv("REPORT_STREAM_URL_PREFIX"),
-		privateKeyName:   reportStreamPrivateKeyName,
+		baseUrl:        os.Getenv("REPORT_STREAM_URL_PREFIX"),
+		privateKeyName: reportStreamPrivateKeyName,
+		// TODO - replace CA_PHL_CLIENT_NAME with something dynamic based on partner ID. Also figure out how to set this for all partners
 		clientName:       os.Getenv("CA_PHL_CLIENT_NAME"),
 		credentialGetter: credentialGetter,
 	}, nil
@@ -77,6 +79,7 @@ func (sender Sender) getToken() (string, error) {
 	}
 
 	data := url.Values{
+		// TODO - make scope dynamic based on partner ID
 		"scope":                 {"ca-phl.*.report"}, // TODO - this needs to be flexion locally and ca-phl elsewhere
 		"grant_type":            {"client_credentials"},
 		"client_assertion_type": {"urn:ietf:params:oauth:client-assertion-type:jwt-bearer"},
@@ -150,6 +153,7 @@ func (sender Sender) SendMessage(message []byte) (string, error) {
 		return "", err
 	}
 
+	// TODO - add partnerId info to log messages?
 	if res.StatusCode >= 300 {
 		slog.Info("status", slog.Any("code", res.StatusCode), slog.String("status", res.Status))
 		// The response body from ReportStream may include additional error details. See examples in json_responses.go

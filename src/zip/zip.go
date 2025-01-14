@@ -55,6 +55,7 @@ func NewZipHandler() (ZipHandler, error) {
 // the error list about the contents
 func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 	slog.Info("Preparing to unzip", slog.String("zipFileName", zipFileName))
+	// TODO - replace hard-coded utils.CA_PHL with the correct partner ID. Also handle situation where they don't have a zip PW
 	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 
