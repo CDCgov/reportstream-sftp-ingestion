@@ -25,7 +25,7 @@ type SftpHandler struct {
 }
 
 func NewSftpHandler(credentialGetter secrets.CredentialGetter, partnerId string) (*SftpHandler, error) {
-	// In the future, we'll pass in info about what customer we're using (and thus what URL/key/password to use)
+	// Use the partnerId to pull info about what customer we're using (and thus what URL/key/password to use)
 
 	userCredentialPrivateKey, err := getUserCredentialPrivateKey(credentialGetter, partnerId)
 	if err != nil {
@@ -156,6 +156,20 @@ func (receiver *SftpHandler) CopyFiles() {
 		slog.Error("Unable to get SFTP starting directory secret", slog.String("KeyName", sftpStartingDirectoryName), slog.Any(utils.ErrorKey, err))
 		return
 	}
+
+	/*
+		TODO -
+			- make sure sftp client has partner-specific config set up
+			- when we copy files, put those in a partner ID folder
+			- after file trigger, parse partner ID out of path
+			- then look up config and use that to send to RS
+			- report_stream_sender.go and zip.go are the main places still using the utils.CA_PHL constant
+			- do we want to check partner flag at that point? Like should the on/off flag apply if they're sending to us or only if we're retrieving from them?
+			- do we want to update anything in the timer trigger yet or wait until we've got more than one external partner?
+			- update app settings and sticky settings in app.tf? Currently only includes ca phl and not Flexion
+			- update secrets.md based on new usage
+			- add flexion secrets to key.tf and update values in envs?
+	*/
 
 	slog.Info("starting directory", slog.String("start dir", sftpStartingDirectory))
 

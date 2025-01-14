@@ -33,6 +33,7 @@ func (receiver ImportMessageHandler) HandleMessageContents(message azqueue.Deque
 		return err
 	}
 
+	// TODO - parse partner ID from sourceUrl either here or in ReadAndSend
 	return receiver.usecase.ReadAndSend(sourceUrl)
 }
 

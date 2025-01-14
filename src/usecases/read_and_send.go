@@ -52,12 +52,14 @@ func NewReadAndSendUsecase() (ReadAndSendUsecase, error) {
 // `nil` so that we'll delete the queue message and not retry. On a transient error or an unknown error, we return
 // an error, which will cause the queue message to retry later
 func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
+	// TODO - get partnerId from URL either here or in import_message_handler
 	content, err := receiver.blobHandler.FetchFileByUrl(sourceUrl)
 	if err != nil {
 		slog.Error("Failed to read the file", slog.String("filepath", sourceUrl), slog.Any(utils.ErrorKey, err))
 		return err
 	}
 
+	// TODO - use partnerId to look up correct conversion
 	encodedContent, err := receiver.ConvertToUtf8(content)
 	if err != nil {
 		slog.Error("Failed to encode content", slog.String("filepath", sourceUrl), slog.Any(utils.ErrorKey, err))
@@ -91,6 +93,7 @@ func (receiver *ReadAndSendUsecase) ReadAndSend(sourceUrl string) error {
 // CADPH files are ISO-8859-1, so for now we'll assume all files are this format
 // TODO - make this conversion dynamic, possibly by file detection or partner config
 func (receiver *ReadAndSendUsecase) ConvertToUtf8(content []byte) ([]byte, error) {
+	// TODO - base this choice on partner config
 	encodedContent, err := charmap.ISO8859_1.NewDecoder().Bytes(content)
 	if err != nil {
 		return nil, err
@@ -99,6 +102,7 @@ func (receiver *ReadAndSendUsecase) ConvertToUtf8(content []byte) ([]byte, error
 }
 
 func (receiver *ReadAndSendUsecase) moveFile(sourceUrl string, newFolderName string) {
+	// TODO - confirm if this still makes sense with the new URL structure
 	destinationUrl := strings.Replace(sourceUrl, utils.MessageStartingFolderPath, newFolderName, 1)
 
 	if destinationUrl == sourceUrl {

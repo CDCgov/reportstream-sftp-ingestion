@@ -7,7 +7,7 @@ services:
       ENV: local
       # Uncomment the line below to call local report stream. Otherwise, we'll use a mock response
       # REPORT_STREAM_URL_PREFIX: http://host.docker.internal:7071
-      CA_PHL_CLIENT_NAME: flexion.simulated-lab
+      CA_PHL_CLIENT_NAME: flexion.simulated-lab #TODO - make CA PHL be itself and add Flexion
       QUEUE_MAX_DELIVERY_ATTEMPTS: 5
       POLLING_TRIGGER_QUEUE_NAME: polling-trigger-queue
     volumes:
