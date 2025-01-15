@@ -86,7 +86,7 @@ func NewSftpHandler(credentialGetter secrets.CredentialGetter, partnerId string)
 		return nil, err
 	}
 
-	zipHandler, err := zip.NewZipHandler()
+	zipHandler, err := zip.NewZipHandler(partnerId)
 
 	if err != nil {
 		slog.Error("Failed to init zip handler", slog.Any(utils.ErrorKey, err))
@@ -242,9 +242,9 @@ func (receiver *SftpHandler) copySingleFile(fileInfo os.FileInfo, index int, dir
 	var blobPath string
 	// Upload the retrieved file to either the `unzip` or `import` folder
 	if strings.Contains(fileInfo.Name(), ".zip") {
-		blobPath = filepath.Join(utils.UnzipFolder, fileInfo.Name())
+		blobPath = filepath.Join(receiver.partnerId, utils.UnzipFolder, fileInfo.Name())
 	} else {
-		blobPath = filepath.Join(utils.MessageStartingFolderPath, fileInfo.Name())
+		blobPath = filepath.Join(receiver.partnerId, utils.MessageStartingFolderPath, fileInfo.Name())
 	}
 	err = receiver.blobHandler.UploadFile(fileBytes, blobPath)
 	if err != nil {
