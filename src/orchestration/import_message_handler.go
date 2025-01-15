@@ -34,6 +34,8 @@ func (receiver ImportMessageHandler) HandleMessageContents(message azqueue.Deque
 	}
 
 	// TODO - parse partner ID from sourceUrl either here or in ReadAndSend
+	// URL looks like https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7
+	// and we need to parse out `customer` (and probably see if it's a real one)
 	return receiver.usecase.ReadAndSend(sourceUrl)
 }
 
@@ -47,6 +49,7 @@ func getUrlFromMessage(messageText string) (string, error) {
 	// Map bytes json to Event object format (shape)
 	var event azeventgrid.Event
 	err = event.UnmarshalJSON(eventBytes)
+
 	if err != nil {
 		slog.Error("Failed to unmarshal event", slog.Any(utils.ErrorKey, err))
 		return "", err
