@@ -4,10 +4,12 @@ import (
 	"encoding/base64"
 	"errors"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/eventgrid/azeventgrid"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azqueue"
 	"github.com/CDCgov/reportstream-sftp-ingestion/usecases"
 	"github.com/CDCgov/reportstream-sftp-ingestion/utils"
 	"log/slog"
+	"strings"
 )
 
 type ImportMessageHandler struct {
@@ -36,6 +38,15 @@ func (receiver ImportMessageHandler) HandleMessageContents(message azqueue.Deque
 	// TODO - parse partner ID from sourceUrl either here or in ReadAndSend
 	// URL looks like https://cdcrssftpinternal.blob.core.windows.net/container/customer/import/msg2.hl7
 	// and we need to parse out `customer` (and probably see if it's a real one)
+	sourceUrlParts, err := azblob.ParseURL(sourceUrl)
+	if err != nil {
+		slog.Error("Unable to parse source URL", slog.String("sourceUrl", sourceUrl), slog.Any(utils.ErrorKey, err))
+		return err
+	}
+	partnerId, _, found := strings.Cut(sourceUrlParts.BlobName, "/")
+	if !found {
+		// do something
+	}
 	return receiver.usecase.ReadAndSend(sourceUrl)
 }
 
