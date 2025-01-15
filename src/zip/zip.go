@@ -16,6 +16,7 @@ type ZipHandler struct {
 	credentialGetter secrets.CredentialGetter
 	blobHandler      usecases.BlobHandler
 	zipClient        ZipClient
+	partnerId        string
 }
 
 type ZipHandlerInterface interface {
@@ -29,7 +30,7 @@ type FileError struct {
 	ErrorMessage string
 }
 
-func NewZipHandler() (ZipHandler, error) {
+func NewZipHandler(partnerId string) (ZipHandler, error) {
 	blobHandler, err := storage.NewAzureBlobHandler()
 	if err != nil {
 		slog.Error("Failed to init Azure blob client", slog.Any(utils.ErrorKey, err))
@@ -46,6 +47,7 @@ func NewZipHandler() (ZipHandler, error) {
 		credentialGetter: credentialGetter,
 		blobHandler:      blobHandler,
 		zipClient:        ZipClientWrapper{},
+		partnerId:        partnerId,
 	}, nil
 }
 
@@ -55,14 +57,15 @@ func NewZipHandler() (ZipHandler, error) {
 // the error list about the contents
 func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 	slog.Info("Preparing to unzip", slog.String("zipFileName", zipFileName))
-	// TODO - replace hard-coded utils.CA_PHL with the correct partner ID. Also handle situation where they don't have a zip PW
-	zipPasswordSecret := utils.CA_PHL + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
+	zipPasswordSecret := zipHandler.partnerId + "-zip-password-" + utils.EnvironmentName() // pragma: allowlist secret
 	zipPassword, err := zipHandler.credentialGetter.GetSecret(zipPasswordSecret)
 
+	// TODO - If we have a partner in future who should NOT have a zip password, we won't want to error in that situation
 	if err != nil {
 		slog.Error("Unable to get zip password", slog.Any(utils.ErrorKey, err), slog.String("KeyName", zipPasswordSecret))
 
 		// move zip file from unzip -> unzip/failure
+		// TODO re-think if we want to move the file to a failure folder if there's an issue retrieving the password
 		zipHandler.MoveZip(blobPath, utils.FailureFolder)
 		return err
 	}
@@ -83,7 +86,7 @@ func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 		errorList = zipHandler.ExtractAndUploadSingleFile(f, zipPassword, zipFileName, errorList)
 	}
 
-	// if errorList has contents -> move zip file from unzip -> unzip/failure
+	// if errorList has contents -> move zip file from ca-phl/unzip -> ca-phl/unzip/failure
 	if len(errorList) > 0 {
 		slog.Info("Error list length over zero")
 		zipHandler.MoveZip(blobPath, utils.FailureFolder)
@@ -106,7 +109,7 @@ func (zipHandler ZipHandler) Unzip(zipFileName string, blobPath string) error {
 func (zipHandler ZipHandler) MoveZip(blobPath string, subfolder string) {
 	slog.Info("About to move file", slog.String("blobPath", blobPath), slog.String("destination subfolder", subfolder))
 	// url must include the container name while the blob path does not
-	// e.g. when 'sftp' is the container name, the url is 'sftp/unzip/cheeseburger.zip' and the blob path is 'unzip/cheeseburger.zip'
+	// e.g. when 'sftp' is the container name, the url is 'sftp/ca-phl/unzip/cheeseburger.zip' and the blob path is 'ca-phl/unzip/cheeseburger.zip'
 	sourceUrl := filepath.Join(utils.ContainerName, blobPath)
 	destinationUrl := strings.Replace(sourceUrl, utils.UnzipFolder, filepath.Join(utils.UnzipFolder, subfolder), 1)
 	err := zipHandler.blobHandler.MoveFile(sourceUrl, destinationUrl)
@@ -141,7 +144,7 @@ func (zipHandler ZipHandler) ExtractAndUploadSingleFile(f *zip.File, zipPassword
 		return errorList
 	}
 
-	err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(utils.MessageStartingFolderPath, f.FileInfo().Name()))
+	err = zipHandler.blobHandler.UploadFile(buf, filepath.Join(zipHandler.partnerId, utils.MessageStartingFolderPath, f.FileInfo().Name()))
 
 	if err != nil {
 		slog.Error("Failed to upload message file", slog.String(utils.FileNameKey, f.Name), slog.Any(utils.ErrorKey, err), slog.String("zipFilePath", zipFilePath))

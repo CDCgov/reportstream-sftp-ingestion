@@ -13,10 +13,10 @@ import (
 )
 
 var filename = "cheeseburger.zip"
-var unzipSuccessUrl = "sftp/unzip/success/cheeseburger.zip"
-var unzipFailurePath = "unzip/failure/cheeseburger.zip"
-var unzipFailureUrl = "sftp/unzip/failure/cheeseburger.zip"
-var blobPath = "unzip/cheeseburger.zip"
+var unzipSuccessUrl = "sftp/ca-phl/unzip/success/cheeseburger.zip"
+var unzipFailurePath = "ca-phl/unzip/failure/cheeseburger.zip"
+var unzipFailureUrl = "sftp/ca-phl/unzip/failure/cheeseburger.zip"
+var blobPath = "ca-phl/unzip/cheeseburger.zip"
 
 func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 
@@ -41,6 +41,7 @@ func Test_Unzip_FileIsPasswordProtected_UnzipsSuccessfully(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
 		zipClient:        mockZipClient,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err = zipHandler.Unzip(filename, blobPath)
@@ -73,6 +74,7 @@ func Test_Unzip_FileIsNotProtected_UnzipsSuccessfully(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
 		zipClient:        mockZipClient,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err = zipHandler.Unzip(filename, blobPath)
@@ -96,6 +98,7 @@ func Test_Unzip_UnableToGetPassword_ReturnsError(t *testing.T) {
 	zipHandler := ZipHandler{
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err := zipHandler.Unzip(filename, blobPath)
@@ -125,6 +128,7 @@ func Test_Unzip_FailsToOpenReader_ReturnsError(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		zipClient:        mockZipClient,
 		blobHandler:      mockBlobHandler,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err := zipHandler.Unzip(filename, blobPath)
@@ -157,6 +161,7 @@ func Test_Unzip_FilePasswordIsWrong_UploadsErrorDocument(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		zipClient:        mockZipClient,
 		blobHandler:      mockBlobHandler,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err = zipHandler.Unzip(filename, blobPath)
@@ -191,6 +196,7 @@ func Test_Unzip_UnzippedFileCannotBeUploaded_ReturnsError(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
 		zipClient:        mockZipClient,
+		partnerId:        utils.CA_PHL,
 	}
 
 	err = zipHandler.Unzip(filename, blobPath)
@@ -216,6 +222,7 @@ func Test_MoveZip_MoveZipSuccessful(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
 		zipClient:        mockZipClient,
+		partnerId:        utils.CA_PHL,
 	}
 
 	zipHandler.MoveZip(blobPath, utils.FailureFolder)
@@ -238,6 +245,7 @@ func Test_MoveZip_MoveZipUnsuccessful_LogsError(t *testing.T) {
 		credentialGetter: mockCredentialGetter,
 		blobHandler:      mockBlobHandler,
 		zipClient:        mockZipClient,
+		partnerId:        utils.CA_PHL,
 	}
 
 	zipHandler.MoveZip(blobPath, utils.FailureFolder)
