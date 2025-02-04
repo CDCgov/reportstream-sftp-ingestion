@@ -2,7 +2,7 @@ module github.com/CDCgov/reportstream-sftp-ingestion
 
 go 1.23
 
-toolchain go1.23.4
+toolchain go1.23.6
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.17.0
