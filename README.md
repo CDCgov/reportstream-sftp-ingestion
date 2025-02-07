@@ -1,5 +1,8 @@
 # ReportStream SFTP
 
+> [!WARNING]
+> This application is no longer being developed or maintained.
+
 ## Requirements
 
 Go installed on your machine
